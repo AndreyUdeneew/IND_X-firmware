@@ -79,6 +79,7 @@ COMP_HandleTypeDef hcomp1;
 I2C_HandleTypeDef hi2c1;
 
 I2S_HandleTypeDef hi2s1;
+DMA_HandleTypeDef hdma_spi1_tx;
 
 SPI_HandleTypeDef hspi2;
 
@@ -126,11 +127,25 @@ uint8_t cmd2Execute,strLen;
 uint8_t my_test1[], Image[], coala[],h1[],ASCIIcode[],h2[],image_data_Font_0x30[],image_data_Font_0x31[],
 image_data_Font_0x32[],image_data_Font_0x33[],image_data_Font_0x34[],image_data_Font_0x35[],image_data_Font_0x36[],
 image_data_Font_0x37[],image_data_Font_0x38[],image_data_Font_0x39[];
+uint8_t bf4me;
+//FATFS USBDISKFatFs;
+
+//FIL WavFile;
+extern char USBH_Path[4];  /* USBH logical drive path */
+//extern ApplicationTypeDef Appli_state;
+//extern AUDIO_StateMachine     Audio;
+//WAVE_FormatTypeDef *waveformat =  NULL;
+uint32_t WaveDataLength = 0;
+char str[100];
+char FileName[100]={0};
+uint8_t info[44];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_COMP1_Init(void);
 static void MX_TIM1_Init(void);
@@ -193,6 +208,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_COMP1_Init();
   MX_TIM1_Init();
@@ -208,7 +224,6 @@ int main(void)
 	weoClear();
 	weoInit();
 	MEM_GetID();
-
 
 	weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, h1);
 //	weoDrawRectangleFilled(0x00,0x00,0x06,0x0D,0xFF,FONT_X[0xFE]);
@@ -664,6 +679,22 @@ static void MX_USART3_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -736,7 +767,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   LL_GPIO_Init(KEY_3_GPIO_Port, &GPIO_InitStruct);
-
+  /**/
+  	  GPIO_InitStruct.Pin = KEY_4_Pin;
+  	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+  	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  	  LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
+  	  /**/
+  	    GPIO_InitStruct.Pin = KEY_5_Pin;
+  	    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+  	    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
   /**/
   GPIO_InitStruct.Pin = DISP_CS_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
@@ -757,8 +797,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = BF_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(BF_GPIO_Port, &GPIO_InitStruct);
 
   /**/
@@ -779,6 +819,17 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+//GPIO config after CUBE_MX
+///**/
+//	  GPIO_InitStruct.Pin = KEY_4_Pin;
+//	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+//	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+//	  LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
+//	  /**/
+//	    GPIO_InitStruct.Pin = KEY_5_Pin;
+//	    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+//	    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+//	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
 void  USART2_RX_Callback(void)
 {
 
@@ -993,18 +1044,9 @@ void  USART2_RX_Callback(void)
 		uint8_t myCS = 0;					//   COMMON PART FOR EVERY COMMAND
 		uint8_t myLength;
 		uint16_t ind = 0;
-		bf=0x7F;
 			ans[0] = cmd[0]|0x80;
 //==================================================================================================
 			if ((cmd[0] >= 0x10)&&(cmd[0] < 0x16)) { //answer is keyboard + stuff information                  0003
-				if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x13)||(cmd[0] == 0x14)||(cmd[0] == 0x15)||(cmd[0] == 0x16)) {
-//					bf=0xFF;
-//					GPIOC->ODR &= ~(1 << 6);	//reset BF
-				}
-				else{
-//					GPIOC->ODR &= ~(1 << 6);	//reset BF
-//					GPIOC->ODR |= 1 << 6;	//set BF
-				}
 				if ((GPIOA->IDR & (1 << 0)) == 0) {
 					keyboard &= 0b11111110;
 				}
@@ -1033,12 +1075,11 @@ void  USART2_RX_Callback(void)
 				myCS = 0 - myCS;
 				ans[3] = myCS;
 				i=0;
-				cmd2Execute=0x10;
 //======================================================================================================================================
 				while(!(USART2->ISR & USART_ISR_TXE)){};
 				USART2->TDR = ans[0]|0x0100;
 				for(i=1;i<myLength;i++)
-				  {
+				  {												//answer2cpu was given
 				    while(!(USART2->ISR & USART_ISR_TXE)){};
 				    USART2->TDR = (uint8_t)ans[i];
 				  }
@@ -1046,6 +1087,8 @@ void  USART2_RX_Callback(void)
 				if (cmd[0] == 0x11) {             //Show full screen background;
 					picNum = cmd[2];
 					cmd2Execute=0x11;
+					cmd[0]=0xFF;
+					bf4me=0x00; //reset BF flag for me
 				}
 //=======================================================================================================================================
 				if (cmd[0] == 0x12) {				//show small image
@@ -1054,6 +1097,8 @@ void  USART2_RX_Callback(void)
 					picNum=cmd[4];
 //					lookInfoPrintImage(dataASCII[i], ASCII_X, ASCII_Y);
 					cmd2Execute=0x12;
+					cmd[0]=0xFF;
+					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x13) {			//show ASCII code(s)
 					imX = cmd[2];
@@ -1063,21 +1108,28 @@ void  USART2_RX_Callback(void)
 					dataASCII[i] = cmd[i+4];
 				}
 					cmd2Execute=0x13;
-
+					cmd[0]=0xFF;
+					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x14) {			//издать звук
 					numSound = cmd[3];
 					cmd2Execute=0x14;
+					cmd[0]=0xFF;
+					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x15) {
 					volume = cmd[3];
 					contrast = cmd[4];
 					cmd2Execute=0x15;
+					cmd[0]=0xFF;
+					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x16) {
 					volume = cmd[3];
 					contrast = cmd[4];
 					cmd2Execute=0x16;
+					cmd[0]=0xFF;
+					bf4me=0x00; //reset BF flag for me
 				}
 //				weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, Image);
 //				USART2->ICR|=USART_ICR_ORECF;
@@ -1245,6 +1297,7 @@ void  USART2_RX_Callback(void)
 //    HAL_Delay(1);
 		weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, MEM_Buffer); // Здесь ещё работает
 		GPIOC->ODR |= 1 << 6;	//set BF
+
 	}
 	uint8_t lookInfoPrintImage(uint8_t picNum, uint8_t imX, uint8_t imY) {
 
@@ -1299,6 +1352,7 @@ void  USART2_RX_Callback(void)
 //		weoDrawRectangleFilled(0x00, 0x00, 0x0F, 0x06, 0xFF,MEM_Buffer);
 //		printASCIIarray(0x20,0x00,0x01,width);
 		GPIOC->ODR |= 1 << 6;	//set BF
+
 	}
 	void MEM_Write(uint32_t addr) {
 		uint8_t dat;
@@ -1389,6 +1443,8 @@ void  USART2_RX_Callback(void)
 	uint8_t cmdExecute(uint8_t cmd2Execute){
 		if(cmd[0]==0xFF){}
 		else{
+			if (bf4me!=0x00){}
+			else{
 		USART2->ICR|=USART_ICR_ORECF;
 		if(cmd2Execute==0x00){
 
@@ -1415,28 +1471,36 @@ void  USART2_RX_Callback(void)
 //			weoDrawRectangleFilled(0x00, 0x00, 0x0E, 0x25, 0xFF, h2);//works
 				}
 		if(cmd2Execute==0x11){
+			bf4me=0x11;	//set BF flag 4 me
 			GPIOC->ODR &= ~(1 << 6);	//reset BF
+
 			showFullScreen(picNum);
 //			lookInfoPrintImage(picNum,0x00,0x00);
 				}
 		if(cmd2Execute==0x12){
+			bf4me=0x12;	//set BF flag 4 me
 			GPIOC->ODR &= ~(1 << 6);	//reset BF
+
 			lookInfoPrintImage(picNum,imX,imY);
 				}
 		if(cmd2Execute==0x13){
+			bf4me=0x13;	//set BF flag 4 me
 			GPIOC->ODR &= ~(1 << 6);	//reset BF
+
 //			printASCIIarray_old(imX,imY, strLen,dataASCII);
 			printASCIIarray(imX,imY, strLen,dataASCII);
 				}
 		if(cmd2Execute==0x14){
+			bf4me=0x14;	//set BF flag 4 me
 			GPIOC->ODR &= ~(1 << 6);	//reset BF
+
 
 				}
 		if(cmd2Execute==0x15){
-
+			bf4me=0x15;	//set BF flag 4 me
 				}
 		if(cmd2Execute==0x16){
-
+			bf4me=0x16;	//set BF flag 4 me
 				}
 		if(cmd2Execute==0x00){
 
@@ -1449,6 +1513,7 @@ void  USART2_RX_Callback(void)
 				}
 			}
 		}
+	}
 	uint8_t printASCIIarray_old(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]){
 		uint8_t i,j,Y_height,X_width,ASCII_X;
 		uint8_t weoBuffer[48];
@@ -1546,6 +1611,7 @@ void  USART2_RX_Callback(void)
 			weoBuffer[i]=0x00;
 			}
 			GPIOC->ODR |= 1 << 6;	//set BF
+
 		}
 	uint8_t h1[8192] = {
 			0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x44, 0x13, 0x54, 0x21, 0x20, 0x00, 0x12, 0x22, 0x12, 0x33, 0x20, 0x00, 0x00, 0x11, 0x00, 0x00, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x10, 0x00, 0x00, 0x00, 0x01, 0x24, 0x43, 0x44, 0x43, 0x33, 0x43, 0x33, 0x33, 0x33, 0x32, 0x21, 0x12, 0x11, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,

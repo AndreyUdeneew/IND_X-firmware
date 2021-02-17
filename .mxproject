@@ -9,18 +9,18 @@ CDefines=USE_FULL_LL_DRIVER;USE_HAL_DRIVER;STM32G071xx;USE_FULL_LL_DRIVER;USE_HA
 [PreviousGenFiles]
 AdvancedFolderStructure=true
 HeaderFileListSize=4
-HeaderFiles#0=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/Core/Inc/stm32g0xx_it.h
-HeaderFiles#1=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/Core/Inc/stm32_assert.h
-HeaderFiles#2=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/Core/Inc/stm32g0xx_hal_conf.h
-HeaderFiles#3=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/Core/Inc/main.h
+HeaderFiles#0=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/IND_X firmware/Core/Inc/stm32g0xx_it.h
+HeaderFiles#1=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/IND_X firmware/Core/Inc/stm32_assert.h
+HeaderFiles#2=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/IND_X firmware/Core/Inc/stm32g0xx_hal_conf.h
+HeaderFiles#3=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/IND_X firmware/Core/Inc/main.h
 HeaderFolderListSize=1
-HeaderPath#0=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/Core/Inc
+HeaderPath#0=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/IND_X firmware/Core/Inc
 HeaderFiles=;
 SourceFileListSize=3
-SourceFiles#0=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/Core/Src/stm32g0xx_it.c
-SourceFiles#1=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/Core/Src/stm32g0xx_hal_msp.c
-SourceFiles#2=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/Core/Src/main.c
+SourceFiles#0=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/IND_X firmware/Core/Src/stm32g0xx_it.c
+SourceFiles#1=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/IND_X firmware/Core/Src/stm32g0xx_hal_msp.c
+SourceFiles#2=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/IND_X firmware/Core/Src/main.c
 SourceFolderListSize=1
-SourcePath#0=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/Core/Src
+SourcePath#0=C:/YandexDisk/My_STM_Projects/IND_X/IND_X/IND_X firmware/Core/Src
 SourceFiles=;
 
