@@ -57,6 +57,7 @@ void  USART1_RX_Callback(void);
 
 /* External variables --------------------------------------------------------*/
 extern I2C_HandleTypeDef hi2c1;
+extern DMA_HandleTypeDef hdma_spi1_tx;
 extern I2S_HandleTypeDef hi2s1;
 extern SPI_HandleTypeDef hspi2;
 extern USART_HandleTypeDef husart3;
@@ -141,6 +142,20 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32g0xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles DMA1 channel 1 interrupt.
+  */
+void DMA1_Channel1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_spi1_tx);
+  /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel1_IRQn 1 */
+}
 
 /**
   * @brief This function handles I2C1 event global interrupt / I2C1 wake-up interrupt through EXTI line 23.
