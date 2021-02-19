@@ -66,6 +66,8 @@
 #define startAddressForSoundInfo 0x1F400000
 #define USART_ISR_RXNE                      ((uint32_t)0x00000020U)
 #define USART_ISR_TXE                      ((uint32_t)0x00000080U)
+#define USART_CR2_MSBFIRST                      ((uint32_t)0x000040000)
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -194,7 +196,9 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  USART3->CR1 &=~(USART_CR1_UE);
+  USART3->CR2 |=USART_CR2_MSBFIRST;
+  USART3->CR1 |=USART_CR1_UE;
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -443,7 +447,7 @@ static void MX_SPI2_Init(void)
   /* USER CODE END SPI2_Init 0 */
 
   /* USER CODE BEGIN SPI2_Init 1 */
-
+//	SPI_BAUDRATEPRESCALER_4
   /* USER CODE END SPI2_Init 1 */
   /* SPI2 parameter configuration*/
   hspi2.Instance = SPI2;
@@ -453,7 +457,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -651,14 +655,14 @@ static void MX_USART3_Init(void)
 {
 
   /* USER CODE BEGIN USART3_Init 0 */
-
+//	USART3->CR2 |= USART_CR2_MSBFIRST;
   /* USER CODE END USART3_Init 0 */
 
   /* USER CODE BEGIN USART3_Init 1 */
-
+//	husart3.Init.BaudRate = 8000000;
   /* USER CODE END USART3_Init 1 */
   husart3.Instance = USART3;
-  husart3.Init.BaudRate = 4000000;
+  husart3.Init.BaudRate = 8000000;
   husart3.Init.WordLength = USART_WORDLENGTH_8B;
   husart3.Init.StopBits = USART_STOPBITS_1;
   husart3.Init.Parity = USART_PARITY_NONE;
@@ -903,7 +907,7 @@ void  USART2_RX_Callback(void)
 		USART_AS_SPI_sendCMD(0xA0);	//Set Re-map
 //		USART_AS_SPI_sendCMD(0x54);
 //		USART_AS_SPI_sendCMD(0b00010100);
-		USART_AS_SPI_sendCMD(0x51); //	0x51 is a proper remap!
+		USART_AS_SPI_sendCMD(0x53); //	0x51 is a proper remap!	// or 0x53 if disable software bytes inversion
 		USART_AS_SPI_sendCMD(0x81);	//Contrast Level
 		USART_AS_SPI_sendCMD(0xFF);
 		USART_AS_SPI_sendCMD(0xA1);	//Set Display Start Line
@@ -954,16 +958,16 @@ void  USART2_RX_Callback(void)
 			end_x_New=end_x;
 			end_y_New=0x7F-start_y;
 
-			for (i = 0; i < ((end_x_New/1 - start_x_New/1 + 1) * (end_y_New /2 - start_y_New/2 + 1));
-			i++) {
-//			for (i = 0; i < 8192;i++) {
-		MEM_Buffer[i] = (MEM_Buffer[i] & 0x55) << 1
-				| (MEM_Buffer[i] & 0xAA) >> 1;
-		MEM_Buffer[i] = (MEM_Buffer[i] & 0x33) << 2
-				| (MEM_Buffer[i] & 0xCC) >> 2;
-		MEM_Buffer[i] = (MEM_Buffer[i] & 0x0F) << 4
-				| (MEM_Buffer[i] & 0xF0) >> 4;
-			}
+//			for (i = 0; i < ((end_x_New/1 - start_x_New/1 + 1) * (end_y_New /2 - start_y_New/2 + 1));
+//			i++) {
+////			for (i = 0; i < 8192;i++) {
+//		MEM_Buffer[i] = (MEM_Buffer[i] & 0x55) << 1
+//				| (MEM_Buffer[i] & 0xAA) >> 1;
+//		MEM_Buffer[i] = (MEM_Buffer[i] & 0x33) << 2
+//				| (MEM_Buffer[i] & 0xCC) >> 2;
+//		MEM_Buffer[i] = (MEM_Buffer[i] & 0x0F) << 4
+//				| (MEM_Buffer[i] & 0xF0) >> 4;
+//			}
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
 			USART_AS_SPI_sendCMD(SET_DISPLAY_ROW_ADD);
