@@ -40,7 +40,7 @@ main.c:1008:7:soundSetup	8	static
 main.c:1044:10:answer2CPU	24	static
 main.c:1253:7:MEM_Reset	16	static,ignoring_inline_asm
 main.c:1279:10:showFullScreen	8240	static
-main.c:1306:10:lookInfoPrintImage	8256	static
+main.c:1306:10:showSmallImage	8256	static
 main.c:1361:7:MEM_Write	32	static,ignoring_inline_asm
 main.c:1387:11:MEM_GetID	16	static
 main.c:1404:7:MEM_EraseImg	32	static,ignoring_inline_asm

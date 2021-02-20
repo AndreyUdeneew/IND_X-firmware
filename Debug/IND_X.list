@@ -39,11 +39,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  17 .debug_line   00015423  00000000  00000000  0005f6b4  2**0
                   CONTENTS, READONLY, DEBUGGING
- 18 .debug_str    000ae127  00000000  00000000  00074ad7  2**0
+ 18 .debug_str    000ae123  00000000  00000000  00074ad7  2**0
                   CONTENTS, READONLY, DEBUGGING
- 19 .comment      0000007b  00000000  00000000  00122bfe  2**0
+ 19 .comment      0000007b  00000000  00000000  00122bfa  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000058dc  00000000  00000000  00122c7c  2**2
+ 20 .debug_frame  000058dc  00000000  00000000  00122c78  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -977,7 +977,7 @@ int main(void)
 //	showFullScreen(0x00);
 	while (1) {
 //		MEM_GetID();
-//		lookInfoPrintImage(0x00, 0x00, 0x00);
+//		showSmallImage(0x00, 0x00, 0x00);
 //		printASCIIarray(0,0,1,dataASCII);
 		cmdExecute(cmd2Execute);
  800062a:	4b09      	ldr	r3, [pc, #36]	; (8000650 <main+0x138>)
@@ -3724,7 +3724,7 @@ void  USART2_RX_Callback(void)
  80016cc:	791a      	ldrb	r2, [r3, #4]
  80016ce:	4b5b      	ldr	r3, [pc, #364]	; (800183c <answer2CPU+0x368>)
  80016d0:	701a      	strb	r2, [r3, #0]
-//					lookInfoPrintImage(dataASCII[i], ASCII_X, ASCII_Y);
+//					showSmallImage(dataASCII[i], ASCII_X, ASCII_Y);
 					cmd2Execute=0x12;
  80016d2:	4b5b      	ldr	r3, [pc, #364]	; (8001840 <answer2CPU+0x36c>)
  80016d4:	2212      	movs	r2, #18
@@ -4990,31 +4990,31 @@ void  USART2_RX_Callback(void)
  8001f50:	200051a4 	.word	0x200051a4
  8001f54:	00001388 	.word	0x00001388
 
-08001f58 <lookInfoPrintImage>:
-	uint8_t lookInfoPrintImage(uint8_t picNum, uint8_t imX, uint8_t imY) {
+08001f58 <showSmallImage>:
+	uint8_t showSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY) {
  8001f58:	b5f0      	push	{r4, r5, r6, r7, lr}
- 8001f5a:	4c95      	ldr	r4, [pc, #596]	; (80021b0 <lookInfoPrintImage+0x258>)
+ 8001f5a:	4c95      	ldr	r4, [pc, #596]	; (80021b0 <showSmallImage+0x258>)
  8001f5c:	44a5      	add	sp, r4
  8001f5e:	af02      	add	r7, sp, #8
  8001f60:	0004      	movs	r4, r0
  8001f62:	0008      	movs	r0, r1
  8001f64:	0011      	movs	r1, r2
- 8001f66:	4b93      	ldr	r3, [pc, #588]	; (80021b4 <lookInfoPrintImage+0x25c>)
- 8001f68:	4a93      	ldr	r2, [pc, #588]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8001f66:	4b93      	ldr	r3, [pc, #588]	; (80021b4 <showSmallImage+0x25c>)
+ 8001f68:	4a93      	ldr	r2, [pc, #588]	; (80021b8 <showSmallImage+0x260>)
  8001f6a:	4694      	mov	ip, r2
  8001f6c:	44bc      	add	ip, r7
  8001f6e:	4463      	add	r3, ip
  8001f70:	1c22      	adds	r2, r4, #0
  8001f72:	701a      	strb	r2, [r3, #0]
- 8001f74:	4b91      	ldr	r3, [pc, #580]	; (80021bc <lookInfoPrintImage+0x264>)
- 8001f76:	4a90      	ldr	r2, [pc, #576]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8001f74:	4b91      	ldr	r3, [pc, #580]	; (80021bc <showSmallImage+0x264>)
+ 8001f76:	4a90      	ldr	r2, [pc, #576]	; (80021b8 <showSmallImage+0x260>)
  8001f78:	4694      	mov	ip, r2
  8001f7a:	44bc      	add	ip, r7
  8001f7c:	4463      	add	r3, ip
  8001f7e:	1c02      	adds	r2, r0, #0
  8001f80:	701a      	strb	r2, [r3, #0]
- 8001f82:	4b8f      	ldr	r3, [pc, #572]	; (80021c0 <lookInfoPrintImage+0x268>)
- 8001f84:	4a8c      	ldr	r2, [pc, #560]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8001f82:	4b8f      	ldr	r3, [pc, #572]	; (80021c0 <showSmallImage+0x268>)
+ 8001f84:	4a8c      	ldr	r2, [pc, #560]	; (80021b8 <showSmallImage+0x260>)
  8001f86:	4694      	mov	ip, r2
  8001f88:	44bc      	add	ip, r7
  8001f8a:	4463      	add	r3, ip
@@ -5027,19 +5027,19 @@ void  USART2_RX_Callback(void)
 		uint32_t addr;
 		addr=0x00000000;
  8001f90:	2300      	movs	r3, #0
- 8001f92:	498c      	ldr	r1, [pc, #560]	; (80021c4 <lookInfoPrintImage+0x26c>)
+ 8001f92:	498c      	ldr	r1, [pc, #560]	; (80021c4 <showSmallImage+0x26c>)
  8001f94:	187a      	adds	r2, r7, r1
  8001f96:	6013      	str	r3, [r2, #0]
 		memCMD = 0x13; //read command with 4-byte address
- 8001f98:	4d8b      	ldr	r5, [pc, #556]	; (80021c8 <lookInfoPrintImage+0x270>)
+ 8001f98:	4d8b      	ldr	r5, [pc, #556]	; (80021c8 <showSmallImage+0x270>)
  8001f9a:	197b      	adds	r3, r7, r5
  8001f9c:	2213      	movs	r2, #19
  8001f9e:	701a      	strb	r2, [r3, #0]
 		//look at info about image
 //		picNum=0x20;
 		addr=picNum*0x2000;// the right path is to multiply picNum * image repeat period!
- 8001fa0:	4b84      	ldr	r3, [pc, #528]	; (80021b4 <lookInfoPrintImage+0x25c>)
- 8001fa2:	4a85      	ldr	r2, [pc, #532]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8001fa0:	4b84      	ldr	r3, [pc, #528]	; (80021b4 <showSmallImage+0x25c>)
+ 8001fa2:	4a85      	ldr	r2, [pc, #532]	; (80021b8 <showSmallImage+0x260>)
  8001fa4:	4694      	mov	ip, r2
  8001fa6:	44bc      	add	ip, r7
  8001fa8:	4463      	add	r3, ip
@@ -5052,8 +5052,8 @@ void  USART2_RX_Callback(void)
  8001fb2:	187b      	adds	r3, r7, r1
  8001fb4:	681b      	ldr	r3, [r3, #0]
  8001fb6:	b2da      	uxtb	r2, r3
- 8001fb8:	4b84      	ldr	r3, [pc, #528]	; (80021cc <lookInfoPrintImage+0x274>)
- 8001fba:	487f      	ldr	r0, [pc, #508]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8001fb8:	4b84      	ldr	r3, [pc, #528]	; (80021cc <showSmallImage+0x274>)
+ 8001fba:	487f      	ldr	r0, [pc, #508]	; (80021b8 <showSmallImage+0x260>)
  8001fbc:	4684      	mov	ip, r0
  8001fbe:	44bc      	add	ip, r7
  8001fc0:	4463      	add	r3, ip
@@ -5063,8 +5063,8 @@ void  USART2_RX_Callback(void)
  8001fc6:	681b      	ldr	r3, [r3, #0]
  8001fc8:	0a1b      	lsrs	r3, r3, #8
  8001fca:	b2da      	uxtb	r2, r3
- 8001fcc:	4b7f      	ldr	r3, [pc, #508]	; (80021cc <lookInfoPrintImage+0x274>)
- 8001fce:	487a      	ldr	r0, [pc, #488]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8001fcc:	4b7f      	ldr	r3, [pc, #508]	; (80021cc <showSmallImage+0x274>)
+ 8001fce:	487a      	ldr	r0, [pc, #488]	; (80021b8 <showSmallImage+0x260>)
  8001fd0:	4684      	mov	ip, r0
  8001fd2:	44bc      	add	ip, r7
  8001fd4:	4463      	add	r3, ip
@@ -5074,8 +5074,8 @@ void  USART2_RX_Callback(void)
  8001fda:	681b      	ldr	r3, [r3, #0]
  8001fdc:	0c1b      	lsrs	r3, r3, #16
  8001fde:	b2da      	uxtb	r2, r3
- 8001fe0:	4b7a      	ldr	r3, [pc, #488]	; (80021cc <lookInfoPrintImage+0x274>)
- 8001fe2:	4875      	ldr	r0, [pc, #468]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8001fe0:	4b7a      	ldr	r3, [pc, #488]	; (80021cc <showSmallImage+0x274>)
+ 8001fe2:	4875      	ldr	r0, [pc, #468]	; (80021b8 <showSmallImage+0x260>)
  8001fe4:	4684      	mov	ip, r0
  8001fe6:	44bc      	add	ip, r7
  8001fe8:	4463      	add	r3, ip
@@ -5085,23 +5085,23 @@ void  USART2_RX_Callback(void)
  8001fee:	681b      	ldr	r3, [r3, #0]
  8001ff0:	0e1b      	lsrs	r3, r3, #24
  8001ff2:	b2da      	uxtb	r2, r3
- 8001ff4:	4b75      	ldr	r3, [pc, #468]	; (80021cc <lookInfoPrintImage+0x274>)
- 8001ff6:	4970      	ldr	r1, [pc, #448]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8001ff4:	4b75      	ldr	r3, [pc, #468]	; (80021cc <showSmallImage+0x274>)
+ 8001ff6:	4970      	ldr	r1, [pc, #448]	; (80021b8 <showSmallImage+0x260>)
  8001ff8:	468c      	mov	ip, r1
  8001ffa:	44bc      	add	ip, r7
  8001ffc:	4463      	add	r3, ip
  8001ffe:	70da      	strb	r2, [r3, #3]
 
 		GPIOC->ODR &= ~(1 << 15); //reset cs
- 8002000:	4b73      	ldr	r3, [pc, #460]	; (80021d0 <lookInfoPrintImage+0x278>)
+ 8002000:	4b73      	ldr	r3, [pc, #460]	; (80021d0 <showSmallImage+0x278>)
  8002002:	695a      	ldr	r2, [r3, #20]
- 8002004:	4b72      	ldr	r3, [pc, #456]	; (80021d0 <lookInfoPrintImage+0x278>)
- 8002006:	4973      	ldr	r1, [pc, #460]	; (80021d4 <lookInfoPrintImage+0x27c>)
+ 8002004:	4b72      	ldr	r3, [pc, #456]	; (80021d0 <showSmallImage+0x278>)
+ 8002006:	4973      	ldr	r1, [pc, #460]	; (80021d4 <showSmallImage+0x27c>)
  8002008:	400a      	ands	r2, r1
  800200a:	615a      	str	r2, [r3, #20]
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
  800200c:	1979      	adds	r1, r7, r5
- 800200e:	4872      	ldr	r0, [pc, #456]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 800200e:	4872      	ldr	r0, [pc, #456]	; (80021d8 <showSmallImage+0x280>)
  8002010:	2332      	movs	r3, #50	; 0x32
  8002012:	2201      	movs	r2, #1
  8002014:	f004 f962 	bl	80062dc <HAL_SPI_Transmit>
@@ -5109,51 +5109,51 @@ void  USART2_RX_Callback(void)
  8002018:	240c      	movs	r4, #12
  800201a:	193b      	adds	r3, r7, r4
  800201c:	1cd9      	adds	r1, r3, #3
- 800201e:	486e      	ldr	r0, [pc, #440]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 800201e:	486e      	ldr	r0, [pc, #440]	; (80021d8 <showSmallImage+0x280>)
  8002020:	2332      	movs	r3, #50	; 0x32
  8002022:	2201      	movs	r2, #1
  8002024:	f004 f95a 	bl	80062dc <HAL_SPI_Transmit>
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2], 1, 50); //send address
  8002028:	193b      	adds	r3, r7, r4
  800202a:	1c99      	adds	r1, r3, #2
- 800202c:	486a      	ldr	r0, [pc, #424]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 800202c:	486a      	ldr	r0, [pc, #424]	; (80021d8 <showSmallImage+0x280>)
  800202e:	2332      	movs	r3, #50	; 0x32
  8002030:	2201      	movs	r2, #1
  8002032:	f004 f953 	bl	80062dc <HAL_SPI_Transmit>
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1], 1, 50); //send address
  8002036:	193b      	adds	r3, r7, r4
  8002038:	1c59      	adds	r1, r3, #1
- 800203a:	4867      	ldr	r0, [pc, #412]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 800203a:	4867      	ldr	r0, [pc, #412]	; (80021d8 <showSmallImage+0x280>)
  800203c:	2332      	movs	r3, #50	; 0x32
  800203e:	2201      	movs	r2, #1
  8002040:	f004 f94c 	bl	80062dc <HAL_SPI_Transmit>
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0], 1, 50); //send address
  8002044:	1939      	adds	r1, r7, r4
- 8002046:	4864      	ldr	r0, [pc, #400]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 8002046:	4864      	ldr	r0, [pc, #400]	; (80021d8 <showSmallImage+0x280>)
  8002048:	2332      	movs	r3, #50	; 0x32
  800204a:	2201      	movs	r2, #1
  800204c:	f004 f946 	bl	80062dc <HAL_SPI_Transmit>
 		HAL_SPI_Receive(&hspi2, (uint8_t*) &imInfo,2, 5000);
- 8002050:	4b62      	ldr	r3, [pc, #392]	; (80021dc <lookInfoPrintImage+0x284>)
+ 8002050:	4b62      	ldr	r3, [pc, #392]	; (80021dc <showSmallImage+0x284>)
  8002052:	2210      	movs	r2, #16
  8002054:	18b9      	adds	r1, r7, r2
- 8002056:	4860      	ldr	r0, [pc, #384]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 8002056:	4860      	ldr	r0, [pc, #384]	; (80021d8 <showSmallImage+0x280>)
  8002058:	2202      	movs	r2, #2
  800205a:	f004 fa97 	bl	800658c <HAL_SPI_Receive>
 		GPIOC->ODR |= 1 << 15; // set cs
- 800205e:	4b5c      	ldr	r3, [pc, #368]	; (80021d0 <lookInfoPrintImage+0x278>)
+ 800205e:	4b5c      	ldr	r3, [pc, #368]	; (80021d0 <showSmallImage+0x278>)
  8002060:	695a      	ldr	r2, [r3, #20]
- 8002062:	4b5b      	ldr	r3, [pc, #364]	; (80021d0 <lookInfoPrintImage+0x278>)
+ 8002062:	4b5b      	ldr	r3, [pc, #364]	; (80021d0 <showSmallImage+0x278>)
  8002064:	2180      	movs	r1, #128	; 0x80
  8002066:	0209      	lsls	r1, r1, #8
  8002068:	430a      	orrs	r2, r1
  800206a:	615a      	str	r2, [r3, #20]
 //
 		width=imInfo[0];
- 800206c:	4e5c      	ldr	r6, [pc, #368]	; (80021e0 <lookInfoPrintImage+0x288>)
+ 800206c:	4e5c      	ldr	r6, [pc, #368]	; (80021e0 <showSmallImage+0x288>)
  800206e:	19bb      	adds	r3, r7, r6
- 8002070:	4a5c      	ldr	r2, [pc, #368]	; (80021e4 <lookInfoPrintImage+0x28c>)
- 8002072:	4951      	ldr	r1, [pc, #324]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8002070:	4a5c      	ldr	r2, [pc, #368]	; (80021e4 <showSmallImage+0x28c>)
+ 8002072:	4951      	ldr	r1, [pc, #324]	; (80021b8 <showSmallImage+0x260>)
  8002074:	468c      	mov	ip, r1
  8002076:	44bc      	add	ip, r7
  8002078:	4462      	add	r2, ip
@@ -5161,10 +5161,10 @@ void  USART2_RX_Callback(void)
  800207c:	701a      	strb	r2, [r3, #0]
 //		width=0x10;
 		height=imInfo[1];
- 800207e:	495a      	ldr	r1, [pc, #360]	; (80021e8 <lookInfoPrintImage+0x290>)
+ 800207e:	495a      	ldr	r1, [pc, #360]	; (80021e8 <showSmallImage+0x290>)
  8002080:	187b      	adds	r3, r7, r1
- 8002082:	4a58      	ldr	r2, [pc, #352]	; (80021e4 <lookInfoPrintImage+0x28c>)
- 8002084:	484c      	ldr	r0, [pc, #304]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8002082:	4a58      	ldr	r2, [pc, #352]	; (80021e4 <showSmallImage+0x28c>)
+ 8002084:	484c      	ldr	r0, [pc, #304]	; (80021b8 <showSmallImage+0x260>)
  8002086:	4684      	mov	ip, r0
  8002088:	44bc      	add	ip, r7
  800208a:	4462      	add	r2, ip
@@ -5179,30 +5179,30 @@ void  USART2_RX_Callback(void)
  8002098:	4353      	muls	r3, r2
  800209a:	105b      	asrs	r3, r3, #1
  800209c:	b29a      	uxth	r2, r3
- 800209e:	4b53      	ldr	r3, [pc, #332]	; (80021ec <lookInfoPrintImage+0x294>)
+ 800209e:	4b53      	ldr	r3, [pc, #332]	; (80021ec <showSmallImage+0x294>)
  80020a0:	18fb      	adds	r3, r7, r3
  80020a2:	3220      	adds	r2, #32
  80020a4:	801a      	strh	r2, [r3, #0]
 		addrArray[0]+=0x02;
- 80020a6:	4b49      	ldr	r3, [pc, #292]	; (80021cc <lookInfoPrintImage+0x274>)
- 80020a8:	4a43      	ldr	r2, [pc, #268]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 80020a6:	4b49      	ldr	r3, [pc, #292]	; (80021cc <showSmallImage+0x274>)
+ 80020a8:	4a43      	ldr	r2, [pc, #268]	; (80021b8 <showSmallImage+0x260>)
  80020aa:	4694      	mov	ip, r2
  80020ac:	44bc      	add	ip, r7
  80020ae:	4463      	add	r3, ip
  80020b0:	781b      	ldrb	r3, [r3, #0]
  80020b2:	3302      	adds	r3, #2
  80020b4:	b2da      	uxtb	r2, r3
- 80020b6:	4b45      	ldr	r3, [pc, #276]	; (80021cc <lookInfoPrintImage+0x274>)
- 80020b8:	483f      	ldr	r0, [pc, #252]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 80020b6:	4b45      	ldr	r3, [pc, #276]	; (80021cc <showSmallImage+0x274>)
+ 80020b8:	483f      	ldr	r0, [pc, #252]	; (80021b8 <showSmallImage+0x260>)
  80020ba:	4684      	mov	ip, r0
  80020bc:	44bc      	add	ip, r7
  80020be:	4463      	add	r3, ip
  80020c0:	701a      	strb	r2, [r3, #0]
 //len=0x38;
 		USART2->ICR|=USART_ICR_ORECF;
- 80020c2:	4b4b      	ldr	r3, [pc, #300]	; (80021f0 <lookInfoPrintImage+0x298>)
+ 80020c2:	4b4b      	ldr	r3, [pc, #300]	; (80021f0 <showSmallImage+0x298>)
  80020c4:	6a1a      	ldr	r2, [r3, #32]
- 80020c6:	4b4a      	ldr	r3, [pc, #296]	; (80021f0 <lookInfoPrintImage+0x298>)
+ 80020c6:	4b4a      	ldr	r3, [pc, #296]	; (80021f0 <showSmallImage+0x298>)
  80020c8:	2108      	movs	r1, #8
  80020ca:	430a      	orrs	r2, r1
  80020cc:	621a      	str	r2, [r3, #32]
@@ -5216,66 +5216,66 @@ void  USART2_RX_Callback(void)
 //						addrArray[0]=0x02;
 
 		GPIOC->ODR &= ~(1 << 15);	//reset cs
- 80020d4:	4b3e      	ldr	r3, [pc, #248]	; (80021d0 <lookInfoPrintImage+0x278>)
+ 80020d4:	4b3e      	ldr	r3, [pc, #248]	; (80021d0 <showSmallImage+0x278>)
  80020d6:	695a      	ldr	r2, [r3, #20]
- 80020d8:	4b3d      	ldr	r3, [pc, #244]	; (80021d0 <lookInfoPrintImage+0x278>)
- 80020da:	493e      	ldr	r1, [pc, #248]	; (80021d4 <lookInfoPrintImage+0x27c>)
+ 80020d8:	4b3d      	ldr	r3, [pc, #244]	; (80021d0 <showSmallImage+0x278>)
+ 80020da:	493e      	ldr	r1, [pc, #248]	; (80021d4 <showSmallImage+0x27c>)
  80020dc:	400a      	ands	r2, r1
  80020de:	615a      	str	r2, [r3, #20]
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50);//read command with 4-byte address
  80020e0:	1979      	adds	r1, r7, r5
- 80020e2:	483d      	ldr	r0, [pc, #244]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 80020e2:	483d      	ldr	r0, [pc, #244]	; (80021d8 <showSmallImage+0x280>)
  80020e4:	2332      	movs	r3, #50	; 0x32
  80020e6:	2201      	movs	r2, #1
  80020e8:	f004 f8f8 	bl	80062dc <HAL_SPI_Transmit>
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[3],1, 50);	//send address
  80020ec:	193b      	adds	r3, r7, r4
  80020ee:	1cd9      	adds	r1, r3, #3
- 80020f0:	4839      	ldr	r0, [pc, #228]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 80020f0:	4839      	ldr	r0, [pc, #228]	; (80021d8 <showSmallImage+0x280>)
  80020f2:	2332      	movs	r3, #50	; 0x32
  80020f4:	2201      	movs	r2, #1
  80020f6:	f004 f8f1 	bl	80062dc <HAL_SPI_Transmit>
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2],1, 50);	//send address
  80020fa:	193b      	adds	r3, r7, r4
  80020fc:	1c99      	adds	r1, r3, #2
- 80020fe:	4836      	ldr	r0, [pc, #216]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 80020fe:	4836      	ldr	r0, [pc, #216]	; (80021d8 <showSmallImage+0x280>)
  8002100:	2332      	movs	r3, #50	; 0x32
  8002102:	2201      	movs	r2, #1
  8002104:	f004 f8ea 	bl	80062dc <HAL_SPI_Transmit>
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1],1, 50);	//send address
  8002108:	193b      	adds	r3, r7, r4
  800210a:	1c59      	adds	r1, r3, #1
- 800210c:	4832      	ldr	r0, [pc, #200]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 800210c:	4832      	ldr	r0, [pc, #200]	; (80021d8 <showSmallImage+0x280>)
  800210e:	2332      	movs	r3, #50	; 0x32
  8002110:	2201      	movs	r2, #1
  8002112:	f004 f8e3 	bl	80062dc <HAL_SPI_Transmit>
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0],1, 50);	//send address
  8002116:	1939      	adds	r1, r7, r4
- 8002118:	482f      	ldr	r0, [pc, #188]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 8002118:	482f      	ldr	r0, [pc, #188]	; (80021d8 <showSmallImage+0x280>)
  800211a:	2332      	movs	r3, #50	; 0x32
  800211c:	2201      	movs	r2, #1
  800211e:	f004 f8dd 	bl	80062dc <HAL_SPI_Transmit>
 		HAL_SPI_Receive(&hspi2, (uint8_t*) &MEM_Buffer,len, 5000);// 7 information bits about the image
- 8002122:	4c2e      	ldr	r4, [pc, #184]	; (80021dc <lookInfoPrintImage+0x284>)
- 8002124:	4b31      	ldr	r3, [pc, #196]	; (80021ec <lookInfoPrintImage+0x294>)
+ 8002122:	4c2e      	ldr	r4, [pc, #184]	; (80021dc <showSmallImage+0x284>)
+ 8002124:	4b31      	ldr	r3, [pc, #196]	; (80021ec <showSmallImage+0x294>)
  8002126:	18fb      	adds	r3, r7, r3
  8002128:	881a      	ldrh	r2, [r3, #0]
  800212a:	2514      	movs	r5, #20
  800212c:	1979      	adds	r1, r7, r5
- 800212e:	482a      	ldr	r0, [pc, #168]	; (80021d8 <lookInfoPrintImage+0x280>)
+ 800212e:	482a      	ldr	r0, [pc, #168]	; (80021d8 <showSmallImage+0x280>)
  8002130:	0023      	movs	r3, r4
  8002132:	f004 fa2b 	bl	800658c <HAL_SPI_Receive>
 		GPIOC->ODR |= 1 << 15;	// set cs
- 8002136:	4b26      	ldr	r3, [pc, #152]	; (80021d0 <lookInfoPrintImage+0x278>)
+ 8002136:	4b26      	ldr	r3, [pc, #152]	; (80021d0 <showSmallImage+0x278>)
  8002138:	695a      	ldr	r2, [r3, #20]
- 800213a:	4b25      	ldr	r3, [pc, #148]	; (80021d0 <lookInfoPrintImage+0x278>)
+ 800213a:	4b25      	ldr	r3, [pc, #148]	; (80021d0 <showSmallImage+0x278>)
  800213c:	2180      	movs	r1, #128	; 0x80
  800213e:	0209      	lsls	r1, r1, #8
  8002140:	430a      	orrs	r2, r1
  8002142:	615a      	str	r2, [r3, #20]
 		weoDrawRectangleFilled(imX, imY, (imX+width-0x01), (imY+height-0x01), 0xFF,MEM_Buffer);	// Здесь ещё работает 0xFF - затычка
- 8002144:	4b1d      	ldr	r3, [pc, #116]	; (80021bc <lookInfoPrintImage+0x264>)
- 8002146:	481c      	ldr	r0, [pc, #112]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8002144:	4b1d      	ldr	r3, [pc, #116]	; (80021bc <showSmallImage+0x264>)
+ 8002146:	481c      	ldr	r0, [pc, #112]	; (80021b8 <showSmallImage+0x260>)
  8002148:	183a      	adds	r2, r7, r0
  800214a:	18d2      	adds	r2, r2, r3
  800214c:	19bb      	adds	r3, r7, r6
@@ -5285,10 +5285,10 @@ void  USART2_RX_Callback(void)
  8002154:	b2db      	uxtb	r3, r3
  8002156:	3b01      	subs	r3, #1
  8002158:	b2dc      	uxtb	r4, r3
- 800215a:	4b19      	ldr	r3, [pc, #100]	; (80021c0 <lookInfoPrintImage+0x268>)
+ 800215a:	4b19      	ldr	r3, [pc, #100]	; (80021c0 <showSmallImage+0x268>)
  800215c:	183a      	adds	r2, r7, r0
  800215e:	18d2      	adds	r2, r2, r3
- 8002160:	4921      	ldr	r1, [pc, #132]	; (80021e8 <lookInfoPrintImage+0x290>)
+ 8002160:	4921      	ldr	r1, [pc, #132]	; (80021e8 <showSmallImage+0x290>)
  8002162:	187b      	adds	r3, r7, r1
  8002164:	7812      	ldrb	r2, [r2, #0]
  8002166:	781b      	ldrb	r3, [r3, #0]
@@ -5296,14 +5296,14 @@ void  USART2_RX_Callback(void)
  800216a:	b2db      	uxtb	r3, r3
  800216c:	3b01      	subs	r3, #1
  800216e:	b2da      	uxtb	r2, r3
- 8002170:	4b13      	ldr	r3, [pc, #76]	; (80021c0 <lookInfoPrintImage+0x268>)
- 8002172:	4911      	ldr	r1, [pc, #68]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 8002170:	4b13      	ldr	r3, [pc, #76]	; (80021c0 <showSmallImage+0x268>)
+ 8002172:	4911      	ldr	r1, [pc, #68]	; (80021b8 <showSmallImage+0x260>)
  8002174:	468c      	mov	ip, r1
  8002176:	44bc      	add	ip, r7
  8002178:	4463      	add	r3, ip
  800217a:	7819      	ldrb	r1, [r3, #0]
- 800217c:	4b0f      	ldr	r3, [pc, #60]	; (80021bc <lookInfoPrintImage+0x264>)
- 800217e:	480e      	ldr	r0, [pc, #56]	; (80021b8 <lookInfoPrintImage+0x260>)
+ 800217c:	4b0f      	ldr	r3, [pc, #60]	; (80021bc <showSmallImage+0x264>)
+ 800217e:	480e      	ldr	r0, [pc, #56]	; (80021b8 <showSmallImage+0x260>)
  8002180:	4684      	mov	ip, r0
  8002182:	44bc      	add	ip, r7
  8002184:	4463      	add	r3, ip
@@ -5318,9 +5318,9 @@ void  USART2_RX_Callback(void)
 //		weoDrawRectangleFilled(0x00, 0x00, 0x0F, 0x06, 0xFF,MEM_Buffer);
 //		printASCIIarray(0x20,0x00,0x01,width);
 		GPIOC->ODR |= 1 << 6;	//set BF
- 8002198:	4b0d      	ldr	r3, [pc, #52]	; (80021d0 <lookInfoPrintImage+0x278>)
+ 8002198:	4b0d      	ldr	r3, [pc, #52]	; (80021d0 <showSmallImage+0x278>)
  800219a:	695a      	ldr	r2, [r3, #20]
- 800219c:	4b0c      	ldr	r3, [pc, #48]	; (80021d0 <lookInfoPrintImage+0x278>)
+ 800219c:	4b0c      	ldr	r3, [pc, #48]	; (80021d0 <showSmallImage+0x278>)
  800219e:	2140      	movs	r1, #64	; 0x40
  80021a0:	430a      	orrs	r2, r1
  80021a2:	615a      	str	r2, [r3, #20]
@@ -5329,7 +5329,7 @@ void  USART2_RX_Callback(void)
  80021a4:	46c0      	nop			; (mov r8, r8)
  80021a6:	0018      	movs	r0, r3
  80021a8:	46bd      	mov	sp, r7
- 80021aa:	4b12      	ldr	r3, [pc, #72]	; (80021f4 <lookInfoPrintImage+0x29c>)
+ 80021aa:	4b12      	ldr	r3, [pc, #72]	; (80021f4 <showSmallImage+0x29c>)
  80021ac:	449d      	add	sp, r3
  80021ae:	bdf0      	pop	{r4, r5, r6, r7, pc}
  80021b0:	ffffdfd4 	.word	0xffffdfd4
@@ -5520,7 +5520,7 @@ void  USART2_RX_Callback(void)
  80022f8:	781b      	ldrb	r3, [r3, #0]
  80022fa:	0018      	movs	r0, r3
  80022fc:	f7ff fd8a 	bl	8001e14 <showFullScreen>
-//			lookInfoPrintImage(picNum,0x00,0x00);
+//			showSmallImage(picNum,0x00,0x00);
 				}
 		if(cmd2Execute==0x12){
  8002300:	1dfb      	adds	r3, r7, #7
@@ -5539,7 +5539,7 @@ void  USART2_RX_Callback(void)
  8002316:	438a      	bics	r2, r1
  8002318:	615a      	str	r2, [r3, #20]
 
-			lookInfoPrintImage(picNum,imX,imY);
+			showSmallImage(picNum,imX,imY);
  800231a:	4b27      	ldr	r3, [pc, #156]	; (80023b8 <cmdExecute+0x104>)
  800231c:	7818      	ldrb	r0, [r3, #0]
  800231e:	4b27      	ldr	r3, [pc, #156]	; (80023bc <cmdExecute+0x108>)
@@ -5549,7 +5549,7 @@ void  USART2_RX_Callback(void)
  8002326:	681b      	ldr	r3, [r3, #0]
  8002328:	b2db      	uxtb	r3, r3
  800232a:	001a      	movs	r2, r3
- 800232c:	f7ff fe14 	bl	8001f58 <lookInfoPrintImage>
+ 800232c:	f7ff fe14 	bl	8001f58 <showSmallImage>
 				}
 		if(cmd2Execute==0x13){
  8002330:	1dfb      	adds	r3, r7, #7
@@ -5682,7 +5682,7 @@ void  USART2_RX_Callback(void)
  80023f2:	7812      	ldrb	r2, [r2, #0]
  80023f4:	701a      	strb	r2, [r3, #0]
 
-			for (i=0;i<=strLen;i++){
+			for (i=0;i<strLen;i++){
  80023f6:	233c      	movs	r3, #60	; 0x3c
  80023f8:	18fb      	adds	r3, r7, r3
  80023fa:	2200      	movs	r2, #0
@@ -5773,7 +5773,7 @@ void  USART2_RX_Callback(void)
  8002490:	183b      	adds	r3, r7, r0
  8002492:	3201      	adds	r2, #1
  8002494:	701a      	strb	r2, [r3, #0]
-			for (i=0;i<=strLen;i++){
+			for (i=0;i<strLen;i++){
  8002496:	213c      	movs	r1, #60	; 0x3c
  8002498:	187b      	adds	r3, r7, r1
  800249a:	881a      	ldrh	r2, [r3, #0]
@@ -5787,7 +5787,7 @@ void  USART2_RX_Callback(void)
  80024aa:	18ba      	adds	r2, r7, r2
  80024ac:	8812      	ldrh	r2, [r2, #0]
  80024ae:	429a      	cmp	r2, r3
- 80024b0:	d9a6      	bls.n	8002400 <printASCIIarray+0x34>
+ 80024b0:	d3a6      	bcc.n	8002400 <printASCIIarray+0x34>
 			}
 			for(i=0;i<49;i++){
  80024b2:	233c      	movs	r3, #60	; 0x3c
