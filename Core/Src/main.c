@@ -229,7 +229,7 @@ int main(void)
 	weoInit();
 	MEM_GetID();
 
-	weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, h1);
+//	weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, h1);
 //	weoDrawRectangleFilled(0x00,0x00,0x06,0x0D,0xFF,FONT_X[0xFE]);
 //	weoDrawRectangleFilled(0x00, 0x00,0x00+X_increment-1,0x00+ASCII_height-1, 0xFF, image_data_Font_0x31);
 //	weoDrawRectangleFilled(0x00, 0x00, 0x0E, 0x25, 0xFF, h2);
@@ -907,7 +907,7 @@ void  USART2_RX_Callback(void)
 		USART_AS_SPI_sendCMD(0xA0);	//Set Re-map
 //		USART_AS_SPI_sendCMD(0x54);
 //		USART_AS_SPI_sendCMD(0b00010100);
-		USART_AS_SPI_sendCMD(0x53); //	0x51 is a proper remap!	// or 0x53 if disable software bytes inversion
+		USART_AS_SPI_sendCMD(0x51); //	0x51 is a proper remap!	// or 0x53 if disable software bytes inversion
 		USART_AS_SPI_sendCMD(0x81);	//Contrast Level
 		USART_AS_SPI_sendCMD(0xFF);
 		USART_AS_SPI_sendCMD(0xA1);	//Set Display Start Line
@@ -958,16 +958,16 @@ void  USART2_RX_Callback(void)
 			end_x_New=end_x;
 			end_y_New=0x7F-start_y;
 
-//			for (i = 0; i < ((end_x_New/1 - start_x_New/1 + 1) * (end_y_New /2 - start_y_New/2 + 1));
-//			i++) {
-////			for (i = 0; i < 8192;i++) {
-//		MEM_Buffer[i] = (MEM_Buffer[i] & 0x55) << 1
-//				| (MEM_Buffer[i] & 0xAA) >> 1;
-//		MEM_Buffer[i] = (MEM_Buffer[i] & 0x33) << 2
-//				| (MEM_Buffer[i] & 0xCC) >> 2;
-//		MEM_Buffer[i] = (MEM_Buffer[i] & 0x0F) << 4
-//				| (MEM_Buffer[i] & 0xF0) >> 4;
-//			}
+			for (i = 0; i < ((end_x_New/1 - start_x_New/1 + 1) * (end_y_New /2 - start_y_New/2 + 1));
+			i++) {
+//			for (i = 0; i < 8192;i++) {
+		MEM_Buffer[i] = (MEM_Buffer[i] & 0x55) << 1
+				| (MEM_Buffer[i] & 0xAA) >> 1;
+		MEM_Buffer[i] = (MEM_Buffer[i] & 0x33) << 2
+				| (MEM_Buffer[i] & 0xCC) >> 2;
+		MEM_Buffer[i] = (MEM_Buffer[i] & 0x0F) << 4
+				| (MEM_Buffer[i] & 0xF0) >> 4;
+			}
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
 			USART_AS_SPI_sendCMD(SET_DISPLAY_ROW_ADD);
