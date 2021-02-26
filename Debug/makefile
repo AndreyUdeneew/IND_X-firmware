@@ -1,5 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
+# Toolchain: GNU Tools for STM32 (9-2020-q2-update)
 ################################################################################
 
 -include ../makefile.init
@@ -28,6 +29,12 @@ endif
 
 -include ../makefile.defs
 
+OPTIONAL_TOOL_DEPS := \
+$(wildcard ../makefile.defs) \
+$(wildcard ../makefile.init) \
+$(wildcard ../makefile.targets) \
+
+
 BUILD_ARTIFACT_NAME := IND_X
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX := 
@@ -54,22 +61,22 @@ all: main-build
 main-build: IND_X.elf secondary-outputs
 
 # Tool invocations
-IND_X.elf: $(OBJS) $(USER_OBJS) C:\YandexDisk\My_STM_Projects\IND_X\IND_X\IND_X\ firmware\STM32G071KBTX_FLASH.ld
+IND_X.elf: $(OBJS) $(USER_OBJS) C:\YandexDisk\My_STM_Projects\IND_X\IND_X\IND_X\ firmware\STM32G071KBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	arm-none-eabi-gcc -o "IND_X.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"C:\YandexDisk\My_STM_Projects\IND_X\IND_X\IND_X firmware\STM32G071KBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="IND_X.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
-default.size.stdout: $(EXECUTABLES)
+default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	arm-none-eabi-size  $(EXECUTABLES)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-IND_X.list: $(EXECUTABLES)
+IND_X.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "IND_X.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
-IND_X.bin: $(EXECUTABLES)
+IND_X.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "IND_X.bin"
 	@echo 'Finished building: $@'
 	@echo ' '

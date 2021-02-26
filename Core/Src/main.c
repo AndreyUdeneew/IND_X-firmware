@@ -156,7 +156,7 @@ static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 uint32_t MEM_GetID(void);
 uint8_t showFullScreen(uint8_t picNum);
-uint8_t lookInfoPrintImage(uint8_t picNum, uint8_t imX, uint8_t imY);
+uint8_t showSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY);
 uint8_t* showFullScreenSoundnfo(uint32_t addr);
 uint8_t answer2CPU(uint8_t cmd[]);
 uint16_t Scount(void);
@@ -244,7 +244,7 @@ int main(void)
 //	showFullScreen(0x00);
 	while (1) {
 //		MEM_GetID();
-//		lookInfoPrintImage(0x00, 0x00, 0x00);
+//		showSmallImage(0x00, 0x00, 0x00);
 //		printASCIIarray(0,0,1,dataASCII);
 		cmdExecute(cmd2Execute);
 //		HAL_Delay(1000);
@@ -1095,7 +1095,7 @@ void  USART2_RX_Callback(void)
 					imX = cmd[2];
 					imY = cmd[3];
 					picNum=cmd[4];
-//					lookInfoPrintImage(dataASCII[i], ASCII_X, ASCII_Y);
+//					showSmallImage(dataASCII[i], ASCII_X, ASCII_Y);
 					cmd2Execute=0x12;
 					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
@@ -1299,7 +1299,7 @@ void  USART2_RX_Callback(void)
 		GPIOC->ODR |= 1 << 6;	//set BF
 
 	}
-	uint8_t lookInfoPrintImage(uint8_t picNum, uint8_t imX, uint8_t imY) {
+	uint8_t showSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY) {
 
 		uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
 		uint8_t MEM_Buffer[8192], imInfo[2],addrArray[4];
@@ -1464,7 +1464,7 @@ void  USART2_RX_Callback(void)
 		if(cmd2Execute==0x10){
 //			USART2->ICR|=USART_ICR_ORECF;
 //			showFullScreen(0xFF);
-//			lookInfoPrintImage(0x01,0x00,0x00);
+//			showSmallImage(0x01,0x00,0x00);
 //			dataASCII[0]=0x31;
 //			dataASCII[1]=0x32;
 //			printASCIIarray(0x00,0x00,0x02,dataASCII);
@@ -1475,13 +1475,13 @@ void  USART2_RX_Callback(void)
 			GPIOC->ODR &= ~(1 << 6);	//reset BF
 
 			showFullScreen(picNum);
-//			lookInfoPrintImage(picNum,0x00,0x00);
+//			showSmallImage(picNum,0x00,0x00);
 				}
 		if(cmd2Execute==0x12){
 			bf4me=0x12;	//set BF flag 4 me
 			GPIOC->ODR &= ~(1 << 6);	//reset BF
 
-			lookInfoPrintImage(picNum,imX,imY);
+			showSmallImage(picNum,imX,imY);
 				}
 		if(cmd2Execute==0x13){
 			bf4me=0x13;	//set BF flag 4 me

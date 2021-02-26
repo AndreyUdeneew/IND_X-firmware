@@ -32,7 +32,7 @@ main.c:884:7:USART_AS_SPI_sendDAT	16	static
 main.c:895:7:weoInit	8	static
 main.c:919:7:weoClear	16	static
 main.c:925:7:Pic_show	32	static
-main.c:942:7:weoDrawRectangleFilled	32	static
+main.c:942:7:weoDrawRectangleFilled	40	static
 main.c:989:7:weoReset	8	static
 main.c:996:7:I2C_SOUND_ChangePage	32	static
 main.c:1000:7:WriteReg_I2C_SOUND	32	static
@@ -40,7 +40,7 @@ main.c:1004:7:soundSetup	8	static
 main.c:1040:10:answer2CPU	24	static
 main.c:1249:7:MEM_Reset	16	static,ignoring_inline_asm
 main.c:1275:10:showFullScreen	8240	static
-main.c:1302:10:lookInfoPrintImage	8256	static
+main.c:1302:10:showSmallImage	8256	static
 main.c:1357:7:MEM_Write	32	static,ignoring_inline_asm
 main.c:1383:11:MEM_GetID	16	static
 main.c:1400:7:MEM_EraseImg	32	static,ignoring_inline_asm
