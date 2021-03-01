@@ -63,7 +63,7 @@
 #define		MAX_ROW		128
 //#define X_increment 8
 //#define startAddressForImageInfo 0x00000000
-#define startAddressForSoundInfo 0x1F400000
+#define startAddressForSoundInfo 0x00400000
 #define USART_ISR_RXNE                      ((uint32_t)0x00000020U)
 #define USART_ISR_TXE                      ((uint32_t)0x00000080U)
 /* USER CODE END PD */
@@ -156,6 +156,7 @@ static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 uint32_t MEM_GetID(void);
 uint8_t showFullScreen(uint8_t picNum);
+uint8_t playSound(uint8_t soundNum);
 uint8_t showSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY);
 uint8_t* showFullScreenSoundnfo(uint32_t addr);
 uint8_t answer2CPU(uint8_t cmd[]);
@@ -194,7 +195,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  USART3->CR2|=USART_CR2_MSBFIRST;
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -439,7 +440,7 @@ static void MX_SPI2_Init(void)
 {
 
   /* USER CODE BEGIN SPI2_Init 0 */
-
+	hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   /* USER CODE END SPI2_Init 0 */
 
   /* USER CODE BEGIN SPI2_Init 1 */
@@ -453,7 +454,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -651,16 +652,22 @@ static void MX_USART3_Init(void)
 {
 
   /* USER CODE BEGIN USART3_Init 0 */
-
+//	USART3->CR2 &= ~(USART_CR1_UE);
+	USART3->CR2|=USART_CR2_MSBFIRST;
+//	USART3->CR2|=USART_CR1_UE;
+//	husart3.Init.BaudRate = 8000000;
   /* USER CODE END USART3_Init 0 */
 
   /* USER CODE BEGIN USART3_Init 1 */
 
   /* USER CODE END USART3_Init 1 */
   husart3.Instance = USART3;
-  husart3.Init.BaudRate = 4000000;
+  husart3.Init.BaudRate = 8000000;
   husart3.Init.WordLength = USART_WORDLENGTH_8B;
   husart3.Init.StopBits = USART_STOPBITS_1;
+  USART3->CR2|=USART_CR2_MSBFIRST;
+//  husart3.AdvancedInit.AdvFeatureInit = USART_ADVFEATURE_MSBFIRST_INIT;
+//    husart3.AdvancedInit.MSBFirst = USART_ADVFEATURE_MSBFIRST_ENABLE;
   husart3.Init.Parity = USART_PARITY_NONE;
   husart3.Init.Mode = USART_MODE_TX;
   husart3.Init.CLKPolarity = USART_POLARITY_HIGH;
@@ -978,7 +985,9 @@ void  USART2_RX_Callback(void)
 			GPIOA->ODR |= 1 << 7;	// set dc
 			for (i = 0; i < ((end_x_New/1 - start_x_New/1 + 1) * (end_y_New/2 - start_y_New /2 + 1));
 					i++) {
-				HAL_USART_Transmit(&husart3, (uint8_t*) &MEM_Buffer[i], 1, 1);
+//				HAL_USART_Transmit(&husart3, (uint8_t*) &MEM_Buffer[i], 1, 1);
+				while(!(USART3->ISR & USART_ISR_TXE)){};
+								USART3->TDR = MEM_Buffer[i];
 			}
 			GPIOA->ODR &= ~(1 << 7);	//reset dc
 			GPIOA->ODR |= 1 << 6;	//set cs
@@ -1293,6 +1302,10 @@ void  USART2_RX_Callback(void)
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0], 1, 50); //send address
 		HAL_SPI_Receive(&hspi2, (uint8_t*) &MEM_Buffer,8192, 5000);
+//		while (!(SPI2->SR & SPI_SR_RXNE)){};
+//		for (i=0;i<8192;i++){
+//		MEM_Buffer[i] = SPI2->DR;
+//		}
 		GPIOC->ODR |= 1 << 15; // set cs
 //    HAL_Delay(1);
 		weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, MEM_Buffer); // Здесь ещё работает
@@ -1352,8 +1365,43 @@ void  USART2_RX_Callback(void)
 //		weoDrawRectangleFilled(0x00, 0x00, 0x0F, 0x06, 0xFF,MEM_Buffer);
 //		printASCIIarray(0x20,0x00,0x01,width);
 		GPIOC->ODR |= 1 << 6;	//set BF
-
 	}
+	uint8_t playSound(uint8_t soundNum) {
+			uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
+			uint8_t MEM_Buffer[8192], soundInfo[9],addrINFO[4],addr[4],length[4];
+			uint16_t i, len;
+			uint32_t addrInfo,address,firstImAddr;
+			memCMD = 0x13; //read command with 4-byte address
+
+			address=startAddressForSoundInfo+(soundNum*0x09);
+
+			addrINFO[0]=address & 0xFF;
+			addrINFO[1]=(address >> 8) & 0xFF;
+			addrINFO[2]=(address >> 16) & 0xFF;
+			addrINFO[3]=(address >> 24) & 0xFF;
+
+			GPIOC->ODR &= ~(1 << 15); //reset cs
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[3], 1, 50); //send address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[2], 1, 50); //send address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[1], 1, 50); //send address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[0], 1, 50); //send address
+			HAL_SPI_Receive(&hspi2, (uint8_t*) &soundInfo,9, 5000);//9 bits of soundInfo
+			GPIOC->ODR |= 1 << 15; // set cs
+
+			addr[0]=soundInfo[4];
+			addr[1]=soundInfo[3];
+			addr[2]=soundInfo[2];
+			addr[3]=soundInfo[1];
+
+			length[0]=soundInfo[8];
+			length[1]=soundInfo[7];
+			length[2]=soundInfo[6];
+			length[3]=soundInfo[5];
+
+			GPIOC->ODR |= 1 << 6;	//set BF
+
+		}
 	void MEM_Write(uint32_t addr) {
 		uint8_t dat;
 		GPIOC->ODR &= ~(1 << 15);	//reset cs
