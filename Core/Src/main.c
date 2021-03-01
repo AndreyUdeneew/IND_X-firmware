@@ -1096,7 +1096,7 @@ void  USART2_RX_Callback(void)
 				if (cmd[0] == 0x11) {             //Show full screen background;
 					picNum = cmd[2];
 					cmd2Execute=0x11;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 //=======================================================================================================================================
@@ -1106,7 +1106,7 @@ void  USART2_RX_Callback(void)
 					picNum=cmd[4];
 //					showSmallImage(dataASCII[i], ASCII_X, ASCII_Y);
 					cmd2Execute=0x12;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x13) {			//show ASCII code(s)
@@ -1117,26 +1117,26 @@ void  USART2_RX_Callback(void)
 					dataASCII[i] = cmd[i+4];
 				}
 					cmd2Execute=0x13;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x14) {			//издать звук
 					numSound = cmd[3];
 					cmd2Execute=0x14;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x15) {
 					volume = cmd[3];
 					contrast = cmd[4];
 					cmd2Execute=0x15;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x16) {
 					volume = cmd[3];
 					contrast = cmd[4];
-					cmd2Execute=0x16;
+//					cmd2Execute=0x16;
 					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
@@ -1489,8 +1489,8 @@ void  USART2_RX_Callback(void)
 
 	}
 	uint8_t cmdExecute(uint8_t cmd2Execute){
-		if(cmd[0]==0xFF){}
-		else{
+//		if(cmd[0]==0xFF){}
+//		else{
 			if (bf4me!=0x00){}
 			else{
 		USART2->ICR|=USART_ICR_ORECF;
@@ -1560,7 +1560,7 @@ void  USART2_RX_Callback(void)
 
 				}
 			}
-		}
+//		}
 	}
 	uint8_t printASCIIarray_old(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]){
 		uint8_t i,j,Y_height,X_width,ASCII_X;
