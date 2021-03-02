@@ -226,7 +226,7 @@ int main(void)
 	weoInit();
 	MEM_GetID();
 
-	weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, h1);
+//	weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, h1);
 //	weoDrawRectangleFilled(0x00,0x00,0x06,0x0D,0xFF,FONT_X[0xFE]);
 //	weoDrawRectangleFilled(0x00, 0x00,0x00+X_increment-1,0x00+ASCII_height-1, 0xFF, image_data_Font_0x31);
 //	weoDrawRectangleFilled(0x00, 0x00, 0x0E, 0x25, 0xFF, h2);
@@ -1096,7 +1096,7 @@ void  USART2_RX_Callback(void)
 				if (cmd[0] == 0x11) {             //Show full screen background;
 					picNum = cmd[2];
 					cmd2Execute=0x11;
-//					cmd[0]=0xFF;
+					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 //=======================================================================================================================================
@@ -1106,7 +1106,7 @@ void  USART2_RX_Callback(void)
 					picNum=cmd[4];
 //					showSmallImage(dataASCII[i], ASCII_X, ASCII_Y);
 					cmd2Execute=0x12;
-//					cmd[0]=0xFF;
+					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x13) {			//show ASCII code(s)
@@ -1117,7 +1117,7 @@ void  USART2_RX_Callback(void)
 					dataASCII[i] = cmd[i+4];
 				}
 					cmd2Execute=0x13;
-//					cmd[0]=0xFF;
+					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x14) {			//издать звук
@@ -1130,7 +1130,7 @@ void  USART2_RX_Callback(void)
 					volume = cmd[3];
 					contrast = cmd[4];
 					cmd2Execute=0x15;
-//					cmd[0]=0xFF;
+					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x16) {
@@ -1489,10 +1489,10 @@ void  USART2_RX_Callback(void)
 
 	}
 	uint8_t cmdExecute(uint8_t cmd2Execute){
-//		if(cmd[0]==0xFF){}
+		if(cmd[0]==0xFF){return;}
 //		else{
-			if (bf4me!=0x00){}
-			else{
+			if (bf4me!=0x00){return;}
+//			else{
 		USART2->ICR|=USART_ICR_ORECF;
 		if(cmd2Execute==0x00){
 
@@ -1559,7 +1559,7 @@ void  USART2_RX_Callback(void)
 		if(cmd2Execute=0x00){
 
 				}
-			}
+//			}
 //		}
 	}
 	uint8_t printASCIIarray_old(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]){
