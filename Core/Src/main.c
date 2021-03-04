@@ -66,6 +66,8 @@
 #define startAddressForSoundInfo 0x00400000
 #define USART_ISR_RXNE                      ((uint32_t)0x00000020U)
 #define USART_ISR_TXE                      ((uint32_t)0x00000080U)
+
+#define USART_CR2_MSBFIRST   (1 << 19)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -188,6 +190,7 @@ void weoDrawRectangleInit(unsigned char start_x, unsigned char start_y,
   */
 int main(void)
 {
+	USART3->CR2 |= USART_CR2_MSBFIRST;
   /* USER CODE BEGIN 1 */
 	uint16_t testINPUT = 0;
 	uint16_t testAns = 0;
@@ -200,7 +203,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  USART3->CR2|=USART_CR2_MSBFIRST;
+  USART3->CR2 |= USART_CR2_MSBFIRST;
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -227,16 +230,13 @@ int main(void)
 	HAL_Delay(100);
 	uint8_t I2Cbuf[5];
 	MEM_Reset();
-	weoClear();
+
 	weoInit();
+	weoClear();
+
 	MEM_GetID();
 
-//	weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, h1);
-//	weoDrawRectangleFilled(0x00,0x00,0x06,0x0D,0xFF,FONT_X[0xFE]);
-//	weoDrawRectangleFilled(0x00, 0x00,0x00+X_increment-1,0x00+ASCII_height-1, 0xFF, image_data_Font_0x31);
-//	weoDrawRectangleFilled(0x00, 0x00, 0x0E, 0x25, 0xFF, h2);
 	USART2->CR1 |= (USART_CR1_UE | USART_CR1_RE | USART_CR1_TE|USART_CR1_M); // Enable USART, Receive and Transmit
-//  while ( HAL_UART_Receive(&huart2, (uint8_t*)&uartSpeed, 1, 10) != HAL_OK ); //Waiting for auto baud rate detection byte 0x55
 
   /* USER CODE END 2 */
 
@@ -244,20 +244,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	LL_USART_EnableIT_RXNE(USART2);
 	LL_USART_EnableIT_ERROR(USART2);
-//	dataASCII[0]= 0x30;
-//	dataASCII[1]=0x31;
+
 	USART2->ICR|=USART_ICR_ORECF;
-//	showFullScreen(0x00);
+
+//	USART3->CR1 &= ~(USART_CR1_UE);
+//	USART3->CR2 |= USART_CR2_MSBFIRST;
+//	HAL_Delay(2000);
+//	USART3->CR1 |= USART_CR1_UE;
+
 	while (1) {
-//		MEM_GetID();
-//		showSmallImage(0x00, 0x00, 0x00);
-//		printASCIIarray(0,0,1,dataASCII);
+
 		cmdExecute(cmd2Execute);
-//		HAL_Delay(1000);
-//		weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, h1);
+
 //		Scount();
-//Demo();
-//		weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, h1);
+
 	}
     /* USER CODE END WHILE */
 
@@ -670,7 +670,11 @@ static void MX_USART3_Init(void)
   husart3.Init.BaudRate = 8000000;
   husart3.Init.WordLength = USART_WORDLENGTH_8B;
   husart3.Init.StopBits = USART_STOPBITS_1;
+
   USART3->CR2|=USART_CR2_MSBFIRST;
+
+//  huart3->AdvancedInit.MSBFirst;
+//  huart->Instance->CR2, USART_CR2_MSBFIRST, huart->AdvancedInit.MSBFirst
 //  husart3.AdvancedInit.AdvFeatureInit = USART_ADVFEATURE_MSBFIRST_INIT;
 //    husart3.AdvancedInit.MSBFirst = USART_ADVFEATURE_MSBFIRST_ENABLE;
   husart3.Init.Parity = USART_PARITY_NONE;
@@ -897,15 +901,15 @@ void  USART2_RX_Callback(void)
 		}
 	void USART_AS_SPI_sendDAT(uint8_t byte) //(Without CS and D/C)
 	{
-		byte = (byte & 0x55) << 1 | (byte & 0xAA) >> 1;
-		byte = (byte & 0x33) << 2 | (byte & 0xCC) >> 2;
-		byte = (byte & 0x0F) << 4 | (byte & 0xF0) >> 4;
-		GPIOA->ODR &= ~(1 << 6); //reset cs
-		GPIOA->ODR |= 1 << 7; // set dc
-//		HAL_USART_Transmit(&husart3, (uint8_t*) &byte, 1, 1);
+//		byte = (byte & 0x55) << 1 | (byte & 0xAA) >> 1;
+//		byte = (byte & 0x33) << 2 | (byte & 0xCC) >> 2;
+//		byte = (byte & 0x0F) << 4 | (byte & 0xF0) >> 4;
+//		GPIOA->ODR &= ~(1 << 6); //reset cs
+//		GPIOA->ODR |= 1 << 7; // set dc
+		HAL_USART_Transmit(&husart3, (uint8_t*) &byte, 1, 1);
 //		while(!(USART3->ISR & USART_ISR_TXE)){};
 //						USART3->TDR = byte;
-		GPIOA->ODR |= 1 << 6; //set cs
+//		GPIOA->ODR |= 1 << 6; //set cs
 
 	}
 	void weoInit(void) {
@@ -933,10 +937,27 @@ void  USART2_RX_Callback(void)
 		//=======================================================================================================
 	}
 	void weoClear(void) {
-		uint16_t i;
-		for (i = 0; i < 8192; i++) {
-			USART_AS_SPI_sendDAT(BACKGROUND_COLOR);
-		}
+		uint16_t i = 0;
+
+					GPIOA->ODR &= ~(1 << 6);	//reset cs
+					GPIOA->ODR &= ~(1 << 7);	// reset dc
+					USART_AS_SPI_sendCMD(SET_DISPLAY_ROW_ADD);
+							USART_AS_SPI_sendCMD(0x00);
+							USART_AS_SPI_sendCMD(0x7F);
+							USART_AS_SPI_sendCMD(SET_DISPLAY_COL_ADD);
+							USART_AS_SPI_sendCMD(0x00);
+							USART_AS_SPI_sendCMD(0x7F);
+					GPIOA->ODR |= 1 << 7;	//set dc
+					GPIOA->ODR |= 1 << 6;	//set cs
+					GPIOA->ODR &= ~(1 << 6);	//reset cs
+					GPIOA->ODR |= 1 << 7;	// set dc
+					for (i = 0; i <= 8195;i++) {	//fullScreen + small reserve
+		//				HAL_USART_Transmit(&husart3, (uint8_t*) &MEM_Buffer[i], 1, 1);
+						while(!(USART3->ISR & USART_ISR_TXE)){};
+						USART3->TDR = 0x00;
+					}
+					GPIOA->ODR &= ~(1 << 7);	//reset dc
+					GPIOA->ODR |= 1 << 6;	//set cs
 	}
 	void Pic_show(unsigned char ptr[][MAX_COL/2]){
 		unsigned char i=0,j=0;
@@ -1132,7 +1153,7 @@ void  USART2_RX_Callback(void)
 				if (cmd[0] == 0x11) {             //Show full screen background;
 					picNum = cmd[2];
 					cmd2Execute=0x11;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 //=======================================================================================================================================
@@ -1142,7 +1163,7 @@ void  USART2_RX_Callback(void)
 					picNum=cmd[4];
 //					showSmallImage(dataASCII[i], ASCII_X, ASCII_Y);
 					cmd2Execute=0x12;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x13) {			//show ASCII code(s)
@@ -1153,7 +1174,7 @@ void  USART2_RX_Callback(void)
 					dataASCII[i] = cmd[i+4];
 				}
 					cmd2Execute=0x13;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x14) {			//издать звук
@@ -1166,14 +1187,14 @@ void  USART2_RX_Callback(void)
 					volume = cmd[3];
 					contrast = cmd[4];
 					cmd2Execute=0x15;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x16) {
 					volume = cmd[3];
 					contrast = cmd[4];
 					cmd2Execute=0x16;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 //				weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, Image);
@@ -1365,6 +1386,8 @@ void  USART2_RX_Callback(void)
 		addrArray[2]=(addr >> 16) & 0xFF;
 		addrArray[3]=(addr >> 24) & 0xFF;
 
+		weoDrawRectangleInit(0x00, 0x00, 0x7F, 0x7F); // Здесь ещё работает
+
 		GPIOC->ODR &= ~(1 << 15); //reset cs
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[3], 1, 50); //send address
@@ -1378,7 +1401,6 @@ void  USART2_RX_Callback(void)
 //		}
 		GPIOC->ODR |= 1 << 15; // set cs
 
-		weoDrawRectangleInit(0x00, 0x00, 0x7F, 0x7F); // Здесь ещё работает
 
 		GPIOA->ODR &= ~(1 << 6);	//reset cs
 		GPIOA->ODR |= 1 << 7;	// set dc
@@ -1409,7 +1431,7 @@ void  USART2_RX_Callback(void)
 		addr=0x00000000;
 		memCMD = 0x13; //read command with 4-byte address
 		//look at info about image
-		addr=picNum*0x2000;// the right path is to multiply picNum * image repeat period!
+		addr=(picNum*0x2000)+0x3C000;// the right path is to multiply picNum * image repeat period!
 
 		addrArray[0]=addr & 0xFF;
 		addrArray[1]=(addr >> 8) & 0xFF;
@@ -1455,7 +1477,7 @@ void  USART2_RX_Callback(void)
 		addr=0x00000000;
 		memCMD = 0x13; //read command with 4-byte address
 		//look at info about image
-		addr=(picNum*0x2000)+0x20000;// the right path is to multiply picNum * image repeat period!
+		addr=(picNum*0x2000)+0x3C000;// the right path is to multiply picNum * image repeat period!
 
 		addrArray[0]=addr & 0xFF;
 		addrArray[1]=(addr >> 8) & 0xFF;
@@ -1476,6 +1498,7 @@ void  USART2_RX_Callback(void)
 
 		len=(width*height>>1)+0x20;
 		addrArray[0]+=0x02;
+		weoDrawRectangleInit(imX, imY, (imX+width-0x01), (imY+height-0x01));
 
 		USART2->ICR|=USART_ICR_ORECF;
 		memCMD = 0x13; //read command with 4-byte address
@@ -1488,8 +1511,6 @@ void  USART2_RX_Callback(void)
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0],1, 50);	//send address
 		HAL_SPI_Receive(&hspi2, (uint8_t*) &MEM_Buffer,len, 5000);// 7 information bits about the image
 		GPIOC->ODR |= 1 << 15;	// set cs
-
-		weoDrawRectangleInit(imX, imY, (imX+width-0x01), (imY+height-0x01));
 
 		GPIOA->ODR &= ~(1 << 6);	//reset cs
 		GPIOA->ODR |= 1 << 7;	// set dc
@@ -1782,7 +1803,7 @@ void  USART2_RX_Callback(void)
 			uint16_t i;
 			ASCII_X=imX;
 
-			for (i=0;i<=strLen;i++){
+			for (i=0;i<strLen;i++){
 //			if ( dataASCII[i]==0x39 ) {
 				for(j=0;j<49;j++){
 									weoBuffer[j]=FONT_X[dataASCII[i]][j];
