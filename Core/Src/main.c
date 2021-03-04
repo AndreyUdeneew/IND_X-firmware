@@ -190,7 +190,6 @@ void weoDrawRectangleInit(unsigned char start_x, unsigned char start_y,
   */
 int main(void)
 {
-	USART3->CR2 |= USART_CR2_MSBFIRST;
   /* USER CODE BEGIN 1 */
 	uint16_t testINPUT = 0;
 	uint16_t testAns = 0;
@@ -203,7 +202,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  USART3->CR2 |= USART_CR2_MSBFIRST;
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -249,11 +248,11 @@ int main(void)
 
 //	USART3->CR1 &= ~(USART_CR1_UE);
 //	USART3->CR2 |= USART_CR2_MSBFIRST;
-//	HAL_Delay(2000);
 //	USART3->CR1 |= USART_CR1_UE;
 
 	while (1) {
-
+//		while(!(USART3->ISR & USART_ISR_TXE)){};
+//						USART3->TDR = 0xF0;
 		cmdExecute(cmd2Execute);
 
 //		Scount();
@@ -667,16 +666,9 @@ static void MX_USART3_Init(void)
 
   /* USER CODE END USART3_Init 1 */
   husart3.Instance = USART3;
-  husart3.Init.BaudRate = 8000000;
+  husart3.Init.BaudRate = 8100000;
   husart3.Init.WordLength = USART_WORDLENGTH_8B;
   husart3.Init.StopBits = USART_STOPBITS_1;
-
-  USART3->CR2|=USART_CR2_MSBFIRST;
-
-//  huart3->AdvancedInit.MSBFirst;
-//  huart->Instance->CR2, USART_CR2_MSBFIRST, huart->AdvancedInit.MSBFirst
-//  husart3.AdvancedInit.AdvFeatureInit = USART_ADVFEATURE_MSBFIRST_INIT;
-//    husart3.AdvancedInit.MSBFirst = USART_ADVFEATURE_MSBFIRST_ENABLE;
   husart3.Init.Parity = USART_PARITY_NONE;
   husart3.Init.Mode = USART_MODE_TX;
   husart3.Init.CLKPolarity = USART_POLARITY_HIGH;
@@ -894,16 +886,16 @@ void  USART2_RX_Callback(void)
 			byte = (byte & 0x0F) << 4 | (byte & 0xF0) >> 4;
 	//		GPIOA->ODR &= ~(1 << 6); //reset cs
 	//		GPIOA->ODR &= ~(1 << 7); // reset d/c
-			HAL_USART_Transmit(&husart3, (uint8_t*) &byte, 1, 1);
+			HAL_USART_Transmit(&husart3, (uint8_t*) &byte, 1, 10);
 //			while(!(USART3->ISR & USART_ISR_TXE)){};
 //							USART3->TDR = (uint8_t*)&byte;
 	//		GPIOA->ODR |= 1 << 6; //set cs
 		}
 	void USART_AS_SPI_sendDAT(uint8_t byte) //(Without CS and D/C)
 	{
-//		byte = (byte & 0x55) << 1 | (byte & 0xAA) >> 1;
-//		byte = (byte & 0x33) << 2 | (byte & 0xCC) >> 2;
-//		byte = (byte & 0x0F) << 4 | (byte & 0xF0) >> 4;
+		byte = (byte & 0x55) << 1 | (byte & 0xAA) >> 1;
+		byte = (byte & 0x33) << 2 | (byte & 0xCC) >> 2;
+		byte = (byte & 0x0F) << 4 | (byte & 0xF0) >> 4;
 //		GPIOA->ODR &= ~(1 << 6); //reset cs
 //		GPIOA->ODR |= 1 << 7; // set dc
 		HAL_USART_Transmit(&husart3, (uint8_t*) &byte, 1, 1);
@@ -951,7 +943,7 @@ void  USART2_RX_Callback(void)
 					GPIOA->ODR |= 1 << 6;	//set cs
 					GPIOA->ODR &= ~(1 << 6);	//reset cs
 					GPIOA->ODR |= 1 << 7;	// set dc
-					for (i = 0; i <= 8195;i++) {	//fullScreen + small reserve
+					for (i = 0; i <= 8192;i++) {	//fullScreen + small reserve
 		//				HAL_USART_Transmit(&husart3, (uint8_t*) &MEM_Buffer[i], 1, 1);
 						while(!(USART3->ISR & USART_ISR_TXE)){};
 						USART3->TDR = 0x00;
@@ -980,6 +972,9 @@ void  USART2_RX_Callback(void)
 	void weoDrawRectangleFilled(unsigned char start_x, unsigned char start_y,
 				unsigned char end_x, unsigned char end_y, unsigned char color,
 				uint8_t MEM_Buffer[]) {
+
+
+
 			uint16_t i = 0;
 			uint8_t start_x_New,start_y_New,end_x_New,end_y_New;
 			if (start_x > OLED_DIM_WIDTH || start_y > OLED_DIM_HEIGHT
@@ -992,19 +987,18 @@ void  USART2_RX_Callback(void)
 			end_x_New=end_x;
 			end_y_New=0x7F-start_y;
 
-			for (i = 0; i < ((end_x_New/1 - start_x_New/1 + 1) * (end_y_New /2 - start_y_New/2 + 1));
-			i++) {
-//			for (i = 0; i < 8192;i++) {
-		MEM_Buffer[i] = (MEM_Buffer[i] & 0x55) << 1
-				| (MEM_Buffer[i] & 0xAA) >> 1;
-		MEM_Buffer[i] = (MEM_Buffer[i] & 0x33) << 2
-				| (MEM_Buffer[i] & 0xCC) >> 2;
-		MEM_Buffer[i] = (MEM_Buffer[i] & 0x0F) << 4
-				| (MEM_Buffer[i] & 0xF0) >> 4;
-			}
+//			for (i = 0; i < ((end_x_New/1 - start_x_New/1 + 1) * (end_y_New /2 - start_y_New/2 + 1));
+//			i++) {
+//		MEM_Buffer[i] = (MEM_Buffer[i] & 0x55) << 1
+//				| (MEM_Buffer[i] & 0xAA) >> 1;
+//		MEM_Buffer[i] = (MEM_Buffer[i] & 0x33) << 2
+//				| (MEM_Buffer[i] & 0xCC) >> 2;
+//		MEM_Buffer[i] = (MEM_Buffer[i] & 0x0F) << 4
+//				| (MEM_Buffer[i] & 0xF0) >> 4;
+//			}
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
-			USART_AS_SPI_sendCMD(SET_DISPLAY_ROW_ADD);
+					USART_AS_SPI_sendCMD(SET_DISPLAY_ROW_ADD);
 					USART_AS_SPI_sendCMD(start_x_New/1);
 					USART_AS_SPI_sendCMD(end_x_New/1);
 					USART_AS_SPI_sendCMD(SET_DISPLAY_COL_ADD);
@@ -1012,8 +1006,14 @@ void  USART2_RX_Callback(void)
 					USART_AS_SPI_sendCMD(end_y_New/2);
 			GPIOA->ODR |= 1 << 7;	//set dc
 			GPIOA->ODR |= 1 << 6;	//set cs
+
+			USART3->CR1 &= ~(USART_CR1_UE);
+			USART3->CR2 |= USART_CR2_MSBFIRST;
+			USART3->CR1 |= USART_CR1_UE;
+
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
 			GPIOA->ODR |= 1 << 7;	// set dc
+
 			for (i = 0; i < ((end_x_New/1 - start_x_New/1 + 1) * (end_y_New/2 - start_y_New /2 + 1));
 					i++) {
 //				HAL_USART_Transmit(&husart3, (uint8_t*) &MEM_Buffer[i], 1, 1);
@@ -1022,6 +1022,10 @@ void  USART2_RX_Callback(void)
 			}
 			GPIOA->ODR &= ~(1 << 7);	//reset dc
 			GPIOA->ODR |= 1 << 6;	//set cs
+
+			USART3->CR1 &= ~(USART_CR1_UE);
+			USART3->CR2 &= ~(USART_CR2_MSBFIRST);
+			USART3->CR1 |= USART_CR1_UE;
 		}
 //========================================================================================================================
 	void weoDrawRectangleInit(unsigned char start_x, unsigned char start_y,
@@ -1040,7 +1044,7 @@ void  USART2_RX_Callback(void)
 
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
-			USART_AS_SPI_sendCMD(SET_DISPLAY_ROW_ADD);
+					USART_AS_SPI_sendCMD(SET_DISPLAY_ROW_ADD);
 					USART_AS_SPI_sendCMD(start_x_New/1);
 					USART_AS_SPI_sendCMD(end_x_New/1);
 					USART_AS_SPI_sendCMD(SET_DISPLAY_COL_ADD);
@@ -1721,6 +1725,7 @@ void  USART2_RX_Callback(void)
 				}
 //			}
 //		}
+		USART2->ICR|=USART_ICR_ORECF;
 	}
 	uint8_t printASCIIarray_old(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]){
 		uint8_t i,j,Y_height,X_width,ASCII_X;
