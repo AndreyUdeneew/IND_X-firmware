@@ -471,7 +471,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -679,7 +679,7 @@ static void MX_USART3_Init(void)
 
   /* USER CODE END USART3_Init 1 */
   husart3.Instance = USART3;
-  husart3.Init.BaudRate = 4000000;
+  husart3.Init.BaudRate = 8100000;
   husart3.Init.WordLength = USART_WORDLENGTH_8B;
   husart3.Init.StopBits = USART_STOPBITS_1;
   husart3.Init.Parity = USART_PARITY_NONE;
