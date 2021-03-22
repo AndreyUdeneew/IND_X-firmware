@@ -19,5 +19,5 @@ stm32g0xx_hal_flash_ex.c:843:13:FLASH_OB_PCROP1AConfig	40	static
 stm32g0xx_hal_flash_ex.c:916:13:FLASH_OB_PCROP1BConfig	32	static
 stm32g0xx_hal_flash_ex.c:963:13:FLASH_OB_GetPCROP1A	32	static
 stm32g0xx_hal_flash_ex.c:1002:13:FLASH_OB_GetPCROP1B	24	static
-stm32g0xx_hal_flash_ex.c:1256:13:FLASH_OB_SecMemConfig	24	static
-stm32g0xx_hal_flash_ex.c:1276:13:FLASH_OB_GetSecMem	24	static
+stm32g0xx_hal_flash_ex.c:1260:13:FLASH_OB_SecMemConfig	24	static
+stm32g0xx_hal_flash_ex.c:1280:13:FLASH_OB_GetSecMem	24	static

@@ -98,10 +98,10 @@ void Error_Handler(void);
 #define DCDC_GPIO_Port GPIOA
 #define BF_Pin LL_GPIO_PIN_6
 #define BF_GPIO_Port GPIOC
-#define ACCEL_INT1_Pin LL_GPIO_PIN_11
-#define ACCEL_INT1_GPIO_Port GPIOA
-#define ACCEL_INT2_Pin LL_GPIO_PIN_12
-#define ACCEL_INT2_GPIO_Port GPIOA
+#define TEST_1_Pin LL_GPIO_PIN_11
+#define TEST_1_GPIO_Port GPIOA
+#define TEST_2_Pin LL_GPIO_PIN_12
+#define TEST_2_GPIO_Port GPIOA
 #define KEY_4_Pin LL_GPIO_PIN_13
 #define KEY_4_GPIO_Port GPIOA
 #define KEY_5_Pin LL_GPIO_PIN_14
