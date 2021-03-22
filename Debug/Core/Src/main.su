@@ -53,5 +53,5 @@ main.c:1639:11:MEM_GetID	16	static
 main.c:1656:7:MEM_EraseImg	32	static,ignoring_inline_asm
 main.c:1685:11:Scount	8	static
 main.c:1689:10:cmdExecute	16	static
-main.c:1756:10:printASCIIarray	88	static
-main.c:1912:6:Error_Handler	8	static
+main.c:1759:10:printASCIIarray	88	static
+main.c:1915:6:Error_Handler	8	static

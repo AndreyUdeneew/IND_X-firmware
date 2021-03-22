@@ -1227,8 +1227,8 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x15) {
-					volume = cmd[3];
-					contrast = cmd[4];
+					volume = cmd[2];
+					contrast = cmd[3];
 					cmd2Execute=0x15;
 //					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
@@ -1734,6 +1734,9 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
 
 				}
 		if(cmd2Execute==0x15){
+			if(cmd[3]==0x00){
+				weoClear();
+			}
 			bf4me=0x15;	//set BF flag 4 me
 				}
 		if(cmd2Execute==0x16){
