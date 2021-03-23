@@ -1397,7 +1397,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0], 1, 50); //send address
 		HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) &MEM_Buffer ,len);
 
-//		sendBuffer2WEO(MEM_Buffer, len);
+//		sendBuffer2WEO(MEM_Buffer, len); //5
 
 //		GPIOC->ODR |= 1 << 15; // set cs
 //

@@ -5164,7 +5164,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8002016:	4b14      	ldr	r3, [pc, #80]	; (8002068 <showFullScreenFAST+0x144>)
  8002018:	0018      	movs	r0, r3
  800201a:	f005 f821 	bl	8007060 <HAL_SPI_Receive_DMA>
-//		sendBuffer2WEO(MEM_Buffer, len);
+//		sendBuffer2WEO(MEM_Buffer, len); //5
 
 //		GPIOC->ODR |= 1 << 15; // set cs
 //
