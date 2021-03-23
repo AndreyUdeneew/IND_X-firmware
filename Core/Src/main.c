@@ -166,17 +166,16 @@ static void MX_I2C1_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 uint32_t MEM_GetID(void);
-uint8_t showFullScreen(uint8_t picNum);
-uint8_t showFullScreenFAST(uint8_t picNum);
-uint8_t playSound(uint8_t soundNum);
-uint8_t showSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY);
-uint8_t showSmallImageFAST(uint8_t picNum, uint8_t imX, uint8_t imY);
-uint8_t* showFullScreenSoundnfo(uint32_t addr);
+uint8_t weoShowFullScreen(uint8_t picNum);
+uint8_t weoShowFullScreenFAST(uint8_t picNum);
+uint8_t soundPlay(uint8_t soundNum);
+uint8_t weoShowSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY);
+uint8_t weoShowSmallImageFAST(uint8_t picNum, uint8_t imX, uint8_t imY);
+uint8_t* weoShowFullScreenSoundnfo(uint32_t addr);
 uint8_t answer2CPU(uint8_t cmd[]);
 uint16_t Scount(void);
 //uint8_t cmd2Execute;
 uint8_t cmdExecute(uint8_t cmd2Execute);
-uint8_t printASCIIarray_old(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]);
 uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]);
 void MEM_Write(uint32_t addr);
 void Demo(void);
@@ -186,7 +185,7 @@ void weoDrawRectangleFilled(unsigned char start_x, unsigned char start_y,
 void weoDrawRectangleInit(unsigned char start_x, unsigned char start_y,
 		unsigned char end_x, unsigned char end_y);
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi);
-uint8_t sendBuffer2WEO(uint8_t *MEM_Buffer, uint8_t len);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -877,27 +876,23 @@ void  USART2_RX_Callback(void)
   }
 }
 //====================================================================================================================
-uint8_t sendBuffer2WEO(uint8_t *MEM_Buffer, uint8_t len){
-	GPIOA->ODR &= ~(1 << 6);	//reset cs
-	GPIOA->ODR &= ~(1 << 7);	// reset dc
-	HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,len);
+void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi2)
+{
+  	GPIOA->ODR |= 1 << 11;	//set test 1
+  	GPIOA->ODR &= ~(1 << 11);	//reset test 1
+  	GPIOA->ODR &= ~(1 << 6);	//reset cs
+  		GPIOA->ODR |= 1 << 7;	// reset dc
+  		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,len);
+
 }
 //==========================================================
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi2)
 {
   	GPIOC->ODR |= 1 << 15; // set cs
-
-//  	sendBuffer2WEO(MEM_Buffer, len);
-
-	GPIOA->ODR &= ~(1 << 6);	//reset cs
-	GPIOA->ODR |= 1 << 7;	// set dc
 }
 //==============================================================
 void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 {
-  	GPIOA->ODR |= 1 << 11;	//set test 1
-  	GPIOA->ODR &= ~(1 << 11);	//reset test 1
-
 	GPIOA->ODR &= ~(1 << 7);	//reset dc
 	GPIOA->ODR |= 1 << 6;	//set cs
 
@@ -1160,7 +1155,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 					imX = cmd[2];
 					imY = cmd[3];
 					picNum=cmd[4];
-//					showSmallImage(dataASCII[i], ASCII_X, ASCII_Y);
+//					weoShowSmallImage(dataASCII[i], ASCII_X, ASCII_Y);
 					cmd2Execute=0x12;
 //					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
@@ -1337,7 +1332,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		HAL_Delay(1); //200 ms by Andrew
 	}
 //==================================================================================================================================
-	uint8_t showFullScreen(uint8_t picNum) {
+	uint8_t weoShowFullScreen(uint8_t picNum) {
 		uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
 		uint8_t MEM_Buffer[8192], firstImAddrArray[4],addrArray[4];
 		uint16_t i, len;
@@ -1367,7 +1362,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 	}
 //==========================================================================================================================
 
-	uint8_t showFullScreenFAST(uint8_t picNum) {
+	uint8_t weoShowFullScreenFAST(uint8_t picNum) {
 		uint8_t memCMD, imByte;
 //		uint8_t MEM_Buffer[8192];
 		uint8_t DUMMY_Buffer[8192], firstImAddrArray[4],addrArray[4];
@@ -1396,24 +1391,9 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0], 1, 50); //send address
 		HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) &MEM_Buffer ,len);
-
-//		sendBuffer2WEO(MEM_Buffer, len); //5
-
-//		GPIOC->ODR |= 1 << 15; // set cs
-//
-
-		HAL_Delay(5);
-
-		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,8192);
-//		HAL_Delay(21);
-//		GPIOA->ODR &= ~(1 << 7);	//reset dc
-//		GPIOA->ODR |= 1 << 6;	//set cs
-//
-//		GPIOC->ODR |= 1 << 6;	//set BF
-//		cmd2Execute=0;
 	}
 //==========================================================================================================================
-	uint8_t showSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY) {
+	uint8_t weoShowSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY) {
 
 		uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
 		uint8_t MEM_Buffer[8192];
@@ -1423,8 +1403,8 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		addr=0x00000000;
 		memCMD = 0x13; //read command with 4-byte address
 		//look at info about image
-//		addr=(picNum*0x2000)+0x3C000;// the right path is to multiply picNum * image repeat period!
-		addr=(picNum*0x2000);
+		addr=(picNum*0x2000)+0x3C000;// the right path is to multiply picNum * image repeat period!
+//		addr=(picNum*0x2000);
 
 		addrArray[0]=addr & 0xFF;
 		addrArray[1]=(addr >> 8) & 0xFF;
@@ -1461,7 +1441,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		GPIOC->ODR |= 1 << 6;	//set BF
 		cmd2Execute=0;
 	}
-	uint8_t showSmallImageFAST(uint8_t picNum, uint8_t imX, uint8_t imY) {
+	uint8_t weoShowSmallImageFAST(uint8_t picNum, uint8_t imX, uint8_t imY) {
 
 		uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
 		uint8_t MEM_Buffer[8192], imInfo[2],addrArray[4];
@@ -1521,7 +1501,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		cmd2Execute=0;
 	}
 //=========================================================================================================================
-	uint8_t playSound(uint8_t soundNum) {
+	uint8_t soundPlay(uint8_t soundNum) {
 			uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
 			uint8_t MEM_Buffer[8192], soundInfo[9],addrINFO[4],addr[4],length[4];
 			uint16_t i, len;
@@ -1658,14 +1638,14 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		if(cmd2Execute==0x11){
 			bf4me=0x11;	//set BF flag 4 me
 			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
-//			showFullScreen(picNum);
-			showFullScreenFAST(picNum);
+//			weoShowFullScreen(picNum);
+			weoShowFullScreenFAST(picNum);
 				}
 		if(cmd2Execute==0x12){
 			bf4me=0x12;	//set BF flag 4 me
 			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
-//			showSmallImageFAST(picNum,imX,imY);
-			showSmallImage(picNum,imX,imY);
+//			weoShowSmallImageFAST(picNum,imX,imY);
+			weoShowSmallImage(picNum,imX,imY);
 				}
 		if(cmd2Execute==0x13){
 			bf4me=0x13;	//set BF flag 4 me
