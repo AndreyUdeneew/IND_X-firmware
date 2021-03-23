@@ -167,10 +167,10 @@ static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 uint32_t MEM_GetID(void);
 uint8_t weoShowFullScreen(uint8_t picNum);
-uint8_t weoShowFullScreenFAST(uint8_t picNum);
+uint8_t weoShowFullScreenDMA(uint8_t picNum);
 uint8_t soundPlay(uint8_t soundNum);
 uint8_t weoShowSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY);
-uint8_t weoShowSmallImageFAST(uint8_t picNum, uint8_t imX, uint8_t imY);
+uint8_t weoShowSmallImageDMA(uint8_t picNum, uint8_t imX, uint8_t imY);
 uint8_t* weoShowFullScreenSoundnfo(uint32_t addr);
 uint8_t answer2CPU(uint8_t cmd[]);
 uint16_t Scount(void);
@@ -1104,6 +1104,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		uint16_t ind = 0;
 
 		cmd2Execute=0;
+		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x14)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
 		ans[0] = cmd[0]|0x80;
 //==================================================================================================
 			if ((cmd[0] >= 0x10)&&(cmd[0] < 0x16)) { //answer is keyboard + stuff information                  0003
@@ -1144,7 +1145,8 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 				    USART2->TDR = (uint8_t)ans[i];
 				  }
 //=======================================================================================================================================
-				if (cmd[0] == 0x11) {             //Show full screen background;
+				if (cmd[0] == 0x11) {//Show full screen background;
+//					GPIOC->ODR &= ~(1 << 6);//reset BF
 					picNum = cmd[2];
 					cmd2Execute=0x11;
 //					cmd[0]=0xFF;
@@ -1152,6 +1154,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 				}
 //=======================================================================================================================================
 				if (cmd[0] == 0x12) {				//show small image
+//					GPIOC->ODR &= ~(1 << 6);//reset BF
 					imX = cmd[2];
 					imY = cmd[3];
 					picNum=cmd[4];
@@ -1161,6 +1164,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x13) {			//show ASCII code(s)
+//					GPIOC->ODR &= ~(1 << 6);//reset BF
 					imX = cmd[2];
 					imY = cmd[3];
 					strLen = cmd[1] -0x03;
@@ -1362,12 +1366,11 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 	}
 //==========================================================================================================================
 
-	uint8_t weoShowFullScreenFAST(uint8_t picNum) {
+	uint8_t weoShowFullScreenDMA(uint8_t picNum) {
 		uint8_t memCMD, imByte;
 //		uint8_t MEM_Buffer[8192];
 		uint8_t DUMMY_Buffer[8192], firstImAddrArray[4],addrArray[4];
 		uint16_t i;
-//		uint16_t len;
 		uint32_t addrInfo,addr;
 
 		weoDrawRectangleInit(0x00, 0x00, 0x7F, 0x7F); // Здесь ещё работает
@@ -1403,8 +1406,8 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		addr=0x00000000;
 		memCMD = 0x13; //read command with 4-byte address
 		//look at info about image
-		addr=(picNum*0x2000)+0x3C000;// the right path is to multiply picNum * image repeat period!
-//		addr=(picNum*0x2000);
+//		addr=(picNum*0x2000)+0x3C000;// the right path is to multiply picNum * image repeat period!
+		addr=(picNum*0x2000);
 
 		addrArray[0]=addr & 0xFF;
 		addrArray[1]=(addr >> 8) & 0xFF;
@@ -1441,11 +1444,11 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		GPIOC->ODR |= 1 << 6;	//set BF
 		cmd2Execute=0;
 	}
-	uint8_t weoShowSmallImageFAST(uint8_t picNum, uint8_t imX, uint8_t imY) {
+	uint8_t weoShowSmallImageDMA(uint8_t picNum, uint8_t imX, uint8_t imY) {
 
 		uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
 		uint8_t MEM_Buffer[8192], imInfo[2],addrArray[4];
-		uint16_t i, len;
+		uint16_t i;
 		uint32_t addr;
 		addr=0x00000000;
 		memCMD = 0x13; //read command with 4-byte address
@@ -1482,23 +1485,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0],1, 50);	//send address
-
-		GPIOA->ODR &= ~(1 << 6);	//reset cs
-		GPIOA->ODR |= 1 << 7;	// set dc
-		for (i = 0; i < len;i++) {
-		HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) & imReg,1);
-		}
-		GPIOA->ODR &= ~(1 << 7);	//reset dc
-		GPIOA->ODR |= 1 << 6;	//set cs
-
-		GPIOC->ODR |= 1 << 15; // set cs
-
-		USART3->CR1 &= ~(USART_CR1_UE);
-		USART3->CR2 &= ~(USART_CR2_MSBFIRST);
-		USART3->CR1 |= USART_CR1_UE;
-
-		GPIOC->ODR |= 1 << 6;	//set BF
-		cmd2Execute=0;
+		HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) &MEM_Buffer ,len);
 	}
 //=========================================================================================================================
 	uint8_t soundPlay(uint8_t soundNum) {
@@ -1617,9 +1604,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		if(cmd[0]==0x10){return;}	// protection against short peaks while cmd 10h
 			if (bf4me!=0x00){return;}	// protection against false BF resets
 		USART2->ICR|=USART_ICR_ORECF;
-//		if(cmd2Execute==0x00){
-//
-//		}
+
 		if(cmd2Execute==0x01){
 
 				}
@@ -1637,26 +1622,26 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 				}
 		if(cmd2Execute==0x11){
 			bf4me=0x11;	//set BF flag 4 me
-			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
+//			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 //			weoShowFullScreen(picNum);
-			weoShowFullScreenFAST(picNum);
+			weoShowFullScreenDMA(picNum);
 				}
 		if(cmd2Execute==0x12){
 			bf4me=0x12;	//set BF flag 4 me
-			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
-//			weoShowSmallImageFAST(picNum,imX,imY);
+//			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
+//			weoShowSmallImageDMA(picNum,imX,imY);
 			weoShowSmallImage(picNum,imX,imY);
 				}
 		if(cmd2Execute==0x13){
 			bf4me=0x13;	//set BF flag 4 me
-			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
+//			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 
 //			printASCIIarray_old(imX,imY, strLen,dataASCII);
 			printASCIIarray(imX,imY, strLen,dataASCII);
 				}
 		if(cmd2Execute==0x14){
 			bf4me=0x14;	//set BF flag 4 me
-			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
+//			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 
 
 				}
