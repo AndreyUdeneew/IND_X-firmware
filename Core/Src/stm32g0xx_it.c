@@ -182,8 +182,8 @@ void DMA1_Channel2_3_IRQHandler(void)
 void DMA1_Ch4_7_DMAMUX1_OVR_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Ch4_7_DMAMUX1_OVR_IRQn 0 */
-		GPIOA->ODR |= 1 << 11;	//set test 1
-		GPIOA->ODR &= ~(1 << 11);	//reset test 1
+//		GPIOA->ODR |= 1 << 11;	//set test 1
+//		GPIOA->ODR &= ~(1 << 11);	//reset test 1
   /* USER CODE END DMA1_Ch4_7_DMAMUX1_OVR_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart3_tx);
   /* USER CODE BEGIN DMA1_Ch4_7_DMAMUX1_OVR_IRQn 1 */

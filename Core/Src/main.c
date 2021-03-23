@@ -878,51 +878,28 @@ void  USART2_RX_Callback(void)
 }
 //====================================================================================================================
 uint8_t sendBuffer2WEO(uint8_t *MEM_Buffer, uint8_t len){
-  	GPIOA->ODR |= 1 << 11;	//set test 1
-  	GPIOA->ODR &= ~(1 << 11);	//reset test 1
+	GPIOA->ODR &= ~(1 << 6);	//reset cs
+	GPIOA->ODR &= ~(1 << 7);	// reset dc
 	HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,len);
 }
 //==========================================================
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi2)
 {
-  	GPIOA->ODR |= 1 << 11;	//set test 1
-  	GPIOA->ODR &= ~(1 << 11);	//reset test 1
   	GPIOC->ODR |= 1 << 15; // set cs
-  	weoDrawRectangleInit(0x00, 0x00, 0x7F, 0x7F);
-//  	sendBuffer2WEO(MEM_Buffer, len);
 
-//	HAL_Delay(21);
-	USART3->CR1 &= ~(USART_CR1_UE);
-	USART3->CR2 |= USART_CR2_MSBFIRST;
-	USART3->CR1 |= USART_CR1_UE;
+//  	sendBuffer2WEO(MEM_Buffer, len);
 
 	GPIOA->ODR &= ~(1 << 6);	//reset cs
 	GPIOA->ODR |= 1 << 7;	// set dc
-
-//	sendBuffer2WEO(MEM_Buffer, len);
-//	HAL_Delay(21);
-//	GPIOA->ODR &= ~(1 << 7);	//reset dc
-//	GPIOA->ODR |= 1 << 6;	//set cs
-//
-//	USART3->CR1 &= ~(USART_CR1_UE);
-//	USART3->CR2 &= ~(USART_CR2_MSBFIRST);
-//	USART3->CR1 |= USART_CR1_UE;
-//HAL_Delay(21);
-//	GPIOC->ODR |= 1 << 6;	//set BF
-//	cmd2Execute=0;
 }
 //==============================================================
-void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
+void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 {
   	GPIOA->ODR |= 1 << 11;	//set test 1
   	GPIOA->ODR &= ~(1 << 11);	//reset test 1
 
 	GPIOA->ODR &= ~(1 << 7);	//reset dc
 	GPIOA->ODR |= 1 << 6;	//set cs
-
-//	USART3->CR1 &= ~(USART_CR1_UE);
-//	USART3->CR2 &= ~(USART_CR2_MSBFIRST);
-//	USART3->CR1 |= USART_CR1_UE;
 
 	GPIOC->ODR |= 1 << 6;	//set BF
 	cmd2Execute=0;
@@ -953,31 +930,11 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
 	  USART2->ICR|=USART_ICR_ORECF;
 	}
 	void USART_AS_SPI_sendCMD(uint8_t byte) {
-//		USART3->CR1 &= ~(USART_CR1_UE);
-//		USART3->CR2 |= USART_CR2_MSBFIRST;
-//		USART3->CR1 |= USART_CR1_UE;
-//			byte = (byte & 0x55) << 1 | (byte & 0xAA) >> 1;
-//			byte = (byte & 0x33) << 2 | (byte & 0xCC) >> 2;
-//			byte = (byte & 0x0F) << 4 | (byte & 0xF0) >> 4;
-	//		GPIOA->ODR &= ~(1 << 6); //reset cs
-	//		GPIOA->ODR &= ~(1 << 7); // reset d/c
 			HAL_USART_Transmit(&husart3, (uint8_t*) &byte, 1, 10);
-//			while(!(USART3->ISR & USART_ISR_TXE)){};
-//							USART3->TDR = byte;
-	//		GPIOA->ODR |= 1 << 6; //set cs
 		}
 	void USART_AS_SPI_sendDAT(uint8_t byte) //(Without CS and D/C)
 	{
-//		byte = (byte & 0x55) << 1 | (byte & 0xAA) >> 1;
-//		byte = (byte & 0x33) << 2 | (byte & 0xCC) >> 2;
-//		byte = (byte & 0x0F) << 4 | (byte & 0xF0) >> 4;
-//		GPIOA->ODR &= ~(1 << 6); //reset cs
-//		GPIOA->ODR |= 1 << 7; // set dc
 		HAL_USART_Transmit(&husart3, (uint8_t*) &byte, 1, 1);
-//		while(!(USART3->ISR & USART_ISR_TXE)){};
-//						USART3->TDR = byte;
-//		GPIOA->ODR |= 1 << 6; //set cs
-
 	}
 	void weoInit(void) {
 
@@ -1075,7 +1032,6 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
 					|| end_x > OLED_DIM_WIDTH || end_y > OLED_DIM_HEIGHT) {
 				return;
 			}
-
 			start_x_New=start_x;
 			start_y_New=0x7F-end_y;
 			end_x_New=end_x;
@@ -1419,6 +1375,8 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
 //		uint16_t len;
 		uint32_t addrInfo,addr;
 
+		weoDrawRectangleInit(0x00, 0x00, 0x7F, 0x7F); // Здесь ещё работает
+
 		len=8192;
 		dma_spi_cnt=len;
 		memCMD = 0x13; //read command with 4-byte address
@@ -1429,8 +1387,6 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
 		addrArray[1]=(addr >> 8) & 0xFF;
 		addrArray[2]=(addr >> 16) & 0xFF;
 		addrArray[3]=(addr >> 24) & 0xFF;
-
-
 
 		GPIOC->ODR &= ~(1 << 15); //reset cs
 
@@ -1444,27 +1400,17 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
 //		sendBuffer2WEO(MEM_Buffer, len);
 
 //		GPIOC->ODR |= 1 << 15; // set cs
-//		weoDrawRectangleInit(0x00, 0x00, 0x7F, 0x7F); // Здесь ещё работает
-
-		HAL_Delay(21);
-//		USART3->CR1 &= ~(USART_CR1_UE);
-//		USART3->CR2 |= USART_CR2_MSBFIRST;
-//		USART3->CR1 |= USART_CR1_UE;
 //
-//		GPIOA->ODR &= ~(1 << 6);	//reset cs
-//		GPIOA->ODR |= 1 << 7;	// set dc
+
+		HAL_Delay(5);
 
 		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,8192);
-		HAL_Delay(21);
-		GPIOA->ODR &= ~(1 << 7);	//reset dc
-		GPIOA->ODR |= 1 << 6;	//set cs
-
-		USART3->CR1 &= ~(USART_CR1_UE);
-		USART3->CR2 &= ~(USART_CR2_MSBFIRST);
-		USART3->CR1 |= USART_CR1_UE;
-		HAL_Delay(21);
-		GPIOC->ODR |= 1 << 6;	//set BF
-		cmd2Execute=0;
+//		HAL_Delay(21);
+//		GPIOA->ODR &= ~(1 << 7);	//reset dc
+//		GPIOA->ODR |= 1 << 6;	//set cs
+//
+//		GPIOC->ODR |= 1 << 6;	//set BF
+//		cmd2Execute=0;
 	}
 //==========================================================================================================================
 	uint8_t showSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY) {
@@ -1477,7 +1423,8 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
 		addr=0x00000000;
 		memCMD = 0x13; //read command with 4-byte address
 		//look at info about image
-		addr=(picNum*0x2000)+0x3C000;// the right path is to multiply picNum * image repeat period!
+//		addr=(picNum*0x2000)+0x3C000;// the right path is to multiply picNum * image repeat period!
+		addr=(picNum*0x2000);
 
 		addrArray[0]=addr & 0xFF;
 		addrArray[1]=(addr >> 8) & 0xFF;
@@ -1711,8 +1658,8 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
 		if(cmd2Execute==0x11){
 			bf4me=0x11;	//set BF flag 4 me
 			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
-			showFullScreen(picNum);
-//			showFullScreenFAST(picNum);
+//			showFullScreen(picNum);
+			showFullScreenFAST(picNum);
 				}
 		if(cmd2Execute==0x12){
 			bf4me=0x12;	//set BF flag 4 me
