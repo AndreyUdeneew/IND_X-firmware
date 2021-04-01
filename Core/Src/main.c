@@ -258,7 +258,7 @@ int main(void)
 //	USART3->CR1 &= ~(USART_CR1_UE);
 //	USART3->CR2 |= USART_CR2_MSBFIRST;
 //	USART3->CR1 |= USART_CR1_UE;
-	weoDrawRectangleFilled(0x00,0x00,0x7F,0x7F,0xFF,h1);
+//	weoDrawRectangleFilled(0x00,0x00,0x7F,0x7F,0xFF,h1);
 //	USART3->CR1 &= ~(USART_CR1_UE);
 //		USART3->CR2 |= USART_CR2_MSBFIRST;
 //		USART3->CR1 |= USART_CR1_UE;
@@ -1021,7 +1021,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
 			GPIOA->ODR |= 1 << 7;	// set dc
 
-			for (i = 0; i < ((end_x_New/1 - start_x_New/1 + 1) * (end_y_New/2 - start_y_New /2 + 1));i++) {
+			for (i = 0; i <= ((end_x_New/1 - start_x_New/1 + 1) * (end_y_New/2 - start_y_New /2 + 1));i++) {
 				while(!(USART3->ISR & USART_ISR_TXE)){};
 				USART3->TDR =MEM_Buffer[i];
 			}
@@ -1412,12 +1412,14 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		uint8_t MEM_Buffer[8192];
 		uint8_t imInfo[2],addrArray[4];
 		uint16_t i, len;
-		uint32_t addr;
+		uint32_t addr,addrData;
 		addr=0x00000000;
 		memCMD = 0x13; //read command with 4-byte address
 		//look at info about image
 		addr=(picNum*0x2000)+0x3C000;// the right path is to multiply picNum * image repeat period!
 //		addr=(picNum*0x2000);
+
+		addrData=addr+0x02;
 
 		addrArray[0]=addr & 0xFF;
 		addrArray[1]=(addr >> 8) & 0xFF;
@@ -1436,8 +1438,11 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		width=imInfo[0];
 		height=imInfo[1];
 
-		len=(width*height>>1)+0x40;
-		addrArray[0]+=0x02;
+		len=((width/2)*(height+1));
+		addrArray[0]=addrData & 0xFF;
+		addrArray[1]=(addrData >> 8) & 0xFF;
+		addrArray[2]=(addrData >> 16) & 0xFF;
+		addrArray[3]=(addrData >> 24) & 0xFF;
 
 		USART2->ICR|=USART_ICR_ORECF;
 		memCMD = 0x13; //read command with 4-byte address
@@ -1459,7 +1464,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
 		uint8_t MEM_Buffer[8192], imInfo[2],addrArray[4];
 		uint16_t i;
-		uint32_t addr;
+		uint32_t addr,addrData;
 		addr=0x00000000;
 		memCMD = 0x13; //read command with 4-byte address
 		//look at info about image
@@ -1482,9 +1487,11 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		width=imInfo[0];
 		height=imInfo[1];
 
-		len=(width*height>>1)+0x20;
-		addrArray[0]+=0x02;
-		weoDrawRectangleInit(imX, imY, (imX+width-0x01), (imY+height-0x01));
+		len=((width/2)*(height+1));
+		addrArray[0]=addrData & 0xFF;
+		addrArray[1]=(addrData >> 8) & 0xFF;
+		addrArray[2]=(addrData >> 16) & 0xFF;
+		addrArray[3]=(addrData >> 24) & 0xFF;
 
 		USART2->ICR|=USART_ICR_ORECF;
 		memCMD = 0x13; //read command with 4-byte address
