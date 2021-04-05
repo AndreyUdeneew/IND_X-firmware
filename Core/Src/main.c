@@ -1422,7 +1422,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 		addr=0x00000000;
 		memCMD = 0x13; //read command with 4-byte address
 		//look at info about image
-		addr=(picNum*0x2000)+0x20000;// the right path is to multiply picNum * image repeat period!
+		addr=(picNum*0x2000)+0x200000;// the right path is to multiply picNum * image repeat period!
 //		addr=(picNum*0x2000);
 
 		addrArray[0]=addr & 0xFF;
