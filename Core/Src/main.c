@@ -248,7 +248,7 @@ int main(void)
 	HAL_Delay(1);
 	weoClear();
 	MEM_GetID();
-	soundSetup();
+//	soundSetup();
 
 	USART2->CR1 |= (USART_CR1_UE | USART_CR1_RE | USART_CR1_TE|USART_CR1_M); // Enable USART, Receive and Transmit
 
@@ -264,33 +264,33 @@ int main(void)
 	uint8_t x=0x05;
 	uint8_t y=0x03;
 
-    int16_t signal[4096];
-    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
-
-    uint16_t k = 0;
-    while(k < nsamples) {
-        double t = ((double)k/2.0)/((double)nsamples);
-        signal[k] = 32767*sin(100.0 * TAU * t); // left
-        signal[k+1] = signal[k]; // right
-        k += 2;
-    }
-
-	I2C_SOUND_ChangePage(0x01);
-	WriteReg_I2C_SOUND(0x01, 0x00);
-	I2C_SOUND_ChangePage(0x00);
-	WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+//    int16_t signal[4096];
+//    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
+//
+//    uint16_t k = 0;
+//    while(k < nsamples) {
+//        double t = ((double)k/2.0)/((double)nsamples);
+//        signal[k] = 32767*sin(100.0 * TAU * t); // left
+//        signal[k+1] = signal[k]; // right
+//        k += 2;
+//    }
+//
+//	I2C_SOUND_ChangePage(0x01);
+//	WriteReg_I2C_SOUND(0x01, 0x00);
 //	I2C_SOUND_ChangePage(0x00);
-	I2C_SOUND_ChangePage(0x01);
-	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-	WriteReg_I2C_SOUND(0x2E, 0xFF);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//	WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+////	I2C_SOUND_ChangePage(0x00);
+//	I2C_SOUND_ChangePage(0x01);
+//	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//	WriteReg_I2C_SOUND(0x2E, 0x00);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
 		cmdExecute(cmd2Execute);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,
-		                               HAL_MAX_DELAY);
-		I2C_SOUND_ChangePage(0x00);
-//		Scount();
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,
+//		                               HAL_MAX_DELAY);
+//		I2C_SOUND_ChangePage(0x00);
+		Scount();
 	}
     /* USER CODE END WHILE */
 
@@ -948,8 +948,8 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 //	GPIOA->ODR &= ~(1 << 7);	//reset dc	????????????????????????????????????????????????
 //	GPIOA->ODR |= 1 << 6;	//set cs		????????????????????????????????????????????????
 
-	GPIOC->ODR |= 1 << 6;	//set BF
-	cmd2Execute=0;
+//	GPIOC->ODR |= 1 << 6;	//set BF
+//	cmd2Execute=0;
 }
 //==============================================================
 	void cmdReceive (uint16_t dt1)
@@ -1165,7 +1165,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		uint16_t ind = 0;
 
 		cmd2Execute=0;
-		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x14)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
+		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x13)||(cmd[0] == 0x14)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
 		ans[0] = cmd[0]|0x80;
 //==================================================================================================
 			if ((cmd[0] >= 0x10)&&(cmd[0] < 0x16)) { //answer is keyboard + stuff information                  0003
@@ -1771,25 +1771,30 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 	}
 //========================================================================================================================
 	uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]){
-			uint8_t j,Y_height,X_width,ASCII_X;
+			uint8_t j,Y_height,X_width,ASCII_X,decY;
 			uint8_t weoBuffer[49];
 			uint16_t i;
 			ASCII_X=imX;
 
 			len=49;
 
+			decY=0x01;
+			if(imY % 2 !=0){
+				decY=0x02;
+			}
+
 			for (i=0;i<strLen;i++){
 				for(j=0;j<49;j++){
 					weoBuffer[j]=FONT_X[dataASCII[i]][j];
 					}
-				weoDrawRectangleFilled(ASCII_X,imY,ASCII_X+X_increment-0,imY+ASCII_height-0,0xFF,weoBuffer);
+				weoDrawRectangleFilled(ASCII_X,imY,ASCII_X+X_increment-0,imY+ASCII_height-decY,0xFF,weoBuffer);
 				ASCII_X += X_increment+1;
 			}
 			for(i=0;i<len;i++){
-			weoBuffer[i]=0x00;
+					weoBuffer[j]=0x00;
 			}
 			GPIOC->ODR |= 1 << 6;	//set BF
-
+			cmd2Execute=0;
 		}
 uint8_t test[49] = {
 	    //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
