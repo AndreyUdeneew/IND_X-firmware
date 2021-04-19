@@ -248,7 +248,7 @@ int main(void)
 	HAL_Delay(1);
 	weoClear();
 	MEM_GetID();
-//	soundSetup();
+	soundSetup();
 
 	USART2->CR1 |= (USART_CR1_UE | USART_CR1_RE | USART_CR1_TE|USART_CR1_M); // Enable USART, Receive and Transmit
 
@@ -264,32 +264,34 @@ int main(void)
 	uint8_t x=0x05;
 	uint8_t y=0x03;
 
-//    int16_t signal[4096];
-//    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
-//
-//    uint16_t k = 0;
-//    while(k < nsamples) {
-//        double t = ((double)k/2.0)/((double)nsamples);
-//        signal[k] = 32767*sin(100.0 * TAU * t); // left
-//        signal[k+1] = signal[k]; // right
-//        k += 2;
-//    }
-//
-//	I2C_SOUND_ChangePage(0x01);
-//	WriteReg_I2C_SOUND(0x01, 0x00);
-//	I2C_SOUND_ChangePage(0x00);
-//	WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
-////	I2C_SOUND_ChangePage(0x00);
-//	I2C_SOUND_ChangePage(0x01);
-//	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-//	WriteReg_I2C_SOUND(0x2E, 0x00);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+    int16_t signal[4096];
+    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
 
+    uint16_t k = 0;
+    while(k < nsamples) {
+        double t = ((double)k/2.0)/((double)nsamples);
+        signal[k] = 32767*sin(100.0 * TAU * t); // left
+        signal[k+1] = signal[k]; // right
+        k += 2;
+    }
+
+	I2C_SOUND_ChangePage(0x01);
+	WriteReg_I2C_SOUND(0x01, 0x00);
+	I2C_SOUND_ChangePage(0x00);
+	WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+//	I2C_SOUND_ChangePage(0x00);
+	I2C_SOUND_ChangePage(0x01);
+	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+	HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+	HAL_Delay(100);
+	HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+	HAL_Delay(100);
+	HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
 		cmdExecute(cmd2Execute);
-//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,
-//		                               HAL_MAX_DELAY);
-//		I2C_SOUND_ChangePage(0x00);
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
 		Scount();
 	}
     /* USER CODE END WHILE */
