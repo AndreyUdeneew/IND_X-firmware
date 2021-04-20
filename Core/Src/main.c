@@ -169,6 +169,9 @@ static void MX_I2C1_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 uint32_t MEM_GetID(void);
+void squeak_single(void);
+void squeak_double(void);
+void squeak_triple(void);
 uint8_t weoShowFullScreen(uint8_t picNum);
 uint8_t weoShowFullScreenDMA(uint8_t picNum);
 uint8_t soundPlay(uint8_t soundNum);
@@ -264,30 +267,12 @@ int main(void)
 	uint8_t x=0x05;
 	uint8_t y=0x03;
 
-    int16_t signal[4096];
-    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
+//	squeak_single();
+//    HAL_Delay(400);
+//	squeak_double();
+//    HAL_Delay(400);
+    squeak_triple();
 
-    uint16_t k = 0;
-    while(k < nsamples) {
-        double t = ((double)k/2.0)/((double)nsamples);
-        signal[k] = 32767*sin(100.0 * TAU * t); // left
-        signal[k+1] = signal[k]; // right
-        k += 2;
-    }
-
-	I2C_SOUND_ChangePage(0x01);
-	WriteReg_I2C_SOUND(0x01, 0x00);
-	I2C_SOUND_ChangePage(0x00);
-	WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
-//	I2C_SOUND_ChangePage(0x00);
-	I2C_SOUND_ChangePage(0x01);
-	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-	HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
-	HAL_Delay(100);
-	HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
-	HAL_Delay(100);
-	HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
 		cmdExecute(cmd2Execute);
@@ -863,8 +848,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(TEST_2_GPIO_Port, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = KEY_4_Pin;
+  	  GPIO_InitStruct.Pin = KEY_4_Pin;
   	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   	  LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
@@ -1798,6 +1782,78 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 			GPIOC->ODR |= 1 << 6;	//set BF
 			cmd2Execute=0;
 		}
+//=============================================================================================================
+	void squeak_single(void){
+		   uint16_t signal[2048];
+		    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
+
+		    uint16_t k = 0;
+		    while(k < nsamples) {
+		        double t = ((double)k/2.0)/((double)nsamples);
+		        signal[k] = 32767*sin(100.0 * TAU * t); // left
+		        k += 1;
+		    }
+		I2C_SOUND_ChangePage(0x01);
+		WriteReg_I2C_SOUND(0x01, 0x00);
+		I2C_SOUND_ChangePage(0x00);
+		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+	//	I2C_SOUND_ChangePage(0x00);
+		I2C_SOUND_ChangePage(0x01);
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+	}
+//=============================================================================================================
+	void squeak_double(void){
+		   uint16_t signal[2048];
+		    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
+
+		    uint16_t k = 0;
+		    while(k < nsamples) {
+		        double t = ((double)k/2.0)/((double)nsamples);
+		        signal[k] = 32767*sin(100.0 * TAU * t); // left
+		        k += 1;
+		    }
+		I2C_SOUND_ChangePage(0x01);
+		WriteReg_I2C_SOUND(0x01, 0x00);
+		I2C_SOUND_ChangePage(0x00);
+		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+	//	I2C_SOUND_ChangePage(0x00);
+		I2C_SOUND_ChangePage(0x01);
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+		HAL_Delay(100);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+	}
+//=============================================================================================================
+	void squeak_triple(void){
+		   uint16_t signal[2048];
+		    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
+
+		    uint16_t k = 0;
+		    while(k < nsamples) {
+		        double t = ((double)k/2.0)/((double)nsamples);
+		        signal[k] = 32767*sin(100.0 * TAU * t); // left
+		        k += 1;
+		    }
+		I2C_SOUND_ChangePage(0x01);
+		WriteReg_I2C_SOUND(0x01, 0x00);
+		I2C_SOUND_ChangePage(0x00);
+		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+	//	I2C_SOUND_ChangePage(0x00);
+		I2C_SOUND_ChangePage(0x01);
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+		HAL_Delay(100);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+		HAL_Delay(100);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+	}
+//=============================================================================================================
+
+
 uint8_t test[49] = {
 	    //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
 	    //∙∙█████████∙∙∙
