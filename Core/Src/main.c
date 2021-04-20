@@ -135,7 +135,7 @@ uint8_t uartFlag=0;
 uint8_t cmd2Execute,strLen;
 uint8_t my_test1[], Image[], coala[],h1[],test[],ASCIIcode[],h2[],image_data_Font_0x30[],image_data_Font_0x31[],
 image_data_Font_0x32[],image_data_Font_0x33[],image_data_Font_0x34[],image_data_Font_0x35[],image_data_Font_0x36[],
-image_data_Font_0x37[],image_data_Font_0x38[],image_data_Font_0x39[];
+image_data_Font_0x37[],image_data_Font_0x38[],image_data_Font_0x39[],aim[],frame[];
 uint8_t bf4me;
 uint8_t inputCS=0;
 uint8_t dma_spi_fl=0;
@@ -264,14 +264,16 @@ int main(void)
 
 	USART2->ICR|=USART_ICR_ORECF;
 
-	uint8_t x=0x05;
-	uint8_t y=0x03;
-
 //	squeak_single();
 //    HAL_Delay(400);
 //	squeak_double();
 //    HAL_Delay(400);
     squeak_triple();
+
+	uint8_t x=0x00;
+	uint8_t y=0x00;
+//	weoDrawRectangleFilled(x,y,x+0x0A,y+0x11-1,0xFF,frame);
+//	weoDrawRectangleFilled(x+2,y+3,x+2+0x06,y+3+0x0D-2,0xFF,aim);
 
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
@@ -848,6 +850,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(TEST_2_GPIO_Port, &GPIO_InitStruct);
+
   	  GPIO_InitStruct.Pin = KEY_4_Pin;
   	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
@@ -857,7 +860,6 @@ static void MX_GPIO_Init(void)
   	    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   	    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
-
   /**/
   LL_SYSCFG_EnableFastModePlus(LL_SYSCFG_I2C_FASTMODEPLUS_PB9);
 
@@ -1223,9 +1225,9 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x14) {			//издать звук
-					numSound = cmd[3];
+					numSound = cmd[2];
 					cmd2Execute=0x14;
-					cmd[0]=0xFF;
+//					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x15) {
@@ -1714,10 +1716,18 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 				}
 		if(cmd2Execute==0x14){
 			bf4me=0x14;	//set BF flag 4 me
-//			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
-
-
+			if(numSound==0x01){
+				squeak_single();
+			}
+			if(numSound==0x02){
+				squeak_double();
+			}
+			if(numSound==0x03){
+				squeak_triple();
 				}
+			GPIOC->ODR |= 1 << 6;	//set BF
+			cmd2Execute=0;
+		}
 		if(cmd2Execute==0x15){
 			I2C_SOUND_ChangePage(0x01);
 			WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
@@ -1870,6 +1880,46 @@ uint8_t test[49] = {
 	    0x00, 0x00, 0x00, 0xf0, 0x00, 0x00, 0x00,
 	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 	};
+uint8_t aim[49]={
+	    //██████████████
+	    //█∙∙∙███∙∙∙∙∙∙█
+	    //█∙∙∙█∙∙██∙∙∙∙█
+	    //█∙∙∙█∙∙∙∙██∙∙█
+	    //█∙██████████∙█
+	    //█∙∙∙█∙∙∙∙∙∙∙∙█
+	    //██████████████
+	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	    0xf0, 0x00, 0xff, 0xf0, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0xf0, 0x0f, 0xf0, 0x00, 0x0f,
+	    0xf0, 0x00, 0xf0, 0x00, 0x0f, 0xf0, 0x0f,
+	    0xf0, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f,
+	    0xf0, 0x00, 0xf0, 0x00, 0x00, 0x00, 0x0f,
+	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+};
+uint8_t frame[99]={
+	    //██████████████████
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //██████████████████
+	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+};
 /* USER CODE END 4 */
 
 /**
