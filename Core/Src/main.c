@@ -107,9 +107,9 @@ uint8_t EmitterSN[16] = { 0x1, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
 		0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF }; //cmd 03h  (contains 16 bytes)
 uint8_t picNum, numSound, volume, contrast, currentUARTspeed,strLen;
 		ASCII_Y,imX,imY, dat2screen, CommandID, uartSpeed;
-uint8_t  X_increment=0x06;
-uint8_t  Y_increment=0x0D;
-uint8_t  ASCII_height=0x0D;
+uint8_t  X_increment=0x07;
+uint8_t  Y_increment=0x0E;
+uint8_t  ASCII_height=0x0E;
 uint8_t dataASCII[16], I2Cbuf[5];
 uint16_t uartData[10];
 uint32_t MEM_ID = 0;
@@ -270,10 +270,34 @@ int main(void)
 //    HAL_Delay(400);
     squeak_triple();
 
-	uint8_t x=0x00;
-	uint8_t y=0x00;
-//	weoDrawRectangleFilled(x,y,x+0x0A,y+0x11-1,0xFF,frame);
-//	weoDrawRectangleFilled(x+2,y+3,x+2+0x06,y+3+0x0D-2,0xFF,aim);
+	uint8_t x=0x02;
+	uint8_t y=0x04;
+	uint8_t decY;
+
+//	GPIOA->ODR &= ~(1 << 6);	//reset cs
+//					GPIOA->ODR &= ~(1 << 7);	// reset dc
+//					USART_AS_SPI_sendCMD(0x81);	//Contrast Level
+//					USART_AS_SPI_sendCMD(0xFF);
+//					GPIOA->ODR |= 1 << 7;	//set dc
+//					GPIOA->ODR |= 1 << 6;	//set cs
+//		uint8_t localWidth=0x0B;
+//		uint8_t localHeight=0x12;
+//				decY=0x01;
+//				if(y % 2 !=0){
+//					decY=0x02;
+//				}
+//	weoDrawRectangleFilled(x,y,(x+localWidth-1),y+(localHeight-decY),0xFF,frame);
+//	uint8_t shiftX=0x02;
+//	uint8_t shiftY=0x02;
+//	x+=shiftX;
+//	y+=shiftY;
+//				localWidth=0x07;
+//				localHeight=0x0E;
+//				decY=0x01;
+//				if(y % 2 !=0){
+//					decY=0x02;
+//				}
+//	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
 
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
@@ -1057,6 +1081,8 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 				USART3->TDR =MEM_Buffer[i];
 			}
 //			while(!(USART3->ISR & USART_ISR_TXE)){};
+			GPIOA->ODR &= ~(1 << 7);	// reset dc
+//			USART_AS_SPI_sendCMD(0xBB);	// command for NOP
 			HAL_Delay(1);
 //			GPIOA->ODR &= ~(1 << 7);	//reset dc
 			GPIOA->ODR |= 1 << 6;	//set cs
@@ -1783,8 +1809,8 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 				for(j=0;j<49;j++){
 					weoBuffer[j]=FONT_X[dataASCII[i]][j];
 					}
-				weoDrawRectangleFilled(ASCII_X,imY,ASCII_X+X_increment-0,imY+ASCII_height-decY,0xFF,weoBuffer);
-				ASCII_X += X_increment+1;
+				weoDrawRectangleFilled(ASCII_X,imY,ASCII_X+X_increment-1,imY+ASCII_height-decY,0xFF,weoBuffer);
+				ASCII_X += X_increment+0;
 			}
 			for(i=0;i<len;i++){
 					weoBuffer[j]=0x00;
