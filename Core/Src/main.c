@@ -877,7 +877,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(TEST_2_GPIO_Port, &GPIO_InitStruct);
-
   	  GPIO_InitStruct.Pin = KEY_4_Pin;
   	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
@@ -1844,7 +1843,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		I2C_SOUND_ChangePage(0x01);
 //		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 //		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 	}
 //=============================================================================================================
 	void squeak_double(void){
@@ -1865,9 +1864,9 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		I2C_SOUND_ChangePage(0x01);
 //		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 //		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 	}
 //=============================================================================================================
 	void squeak_triple(void){
@@ -1888,11 +1887,11 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		I2C_SOUND_ChangePage(0x01);
 //		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 //		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 	}
 //=============================================================================================================
 
