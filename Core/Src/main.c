@@ -264,10 +264,9 @@ int main(void)
 
 	USART2->ICR|=USART_ICR_ORECF;
 
-//	squeak_single();
-//    HAL_Delay(400);
-//	squeak_double();
-//    HAL_Delay(400);
+	I2C_SOUND_ChangePage(0x01);
+	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
     squeak_triple();
 
 	uint8_t x=0x02;
@@ -299,10 +298,14 @@ int main(void)
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
 
+	I2C_SOUND_ChangePage(0x01);
+//	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
 		cmdExecute(cmd2Execute);
-//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
+//		squeak_single();
 		Scount();
 	}
     /* USER CODE END WHILE */
@@ -1839,8 +1842,8 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
 	}
 //=============================================================================================================
@@ -1860,8 +1863,8 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
 		HAL_Delay(100);
 		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
@@ -1883,8 +1886,8 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
 		HAL_Delay(100);
 		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples, HAL_MAX_DELAY);
