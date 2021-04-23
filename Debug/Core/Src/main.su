@@ -54,8 +54,8 @@ main.c:1654:11:MEM_GetID	16	static
 main.c:1671:7:MEM_EraseImg	32	static,ignoring_inline_asm
 main.c:1700:11:Scount	8	static
 main.c:1704:10:cmdExecute	16	static
-main.c:1795:10:printASCIIarray	88	static
-main.c:1822:7:squeak_single	4136	static
-main.c:1843:7:squeak_double	4136	static
-main.c:1866:7:squeak_triple	4136	static
-main.c:1955:6:Error_Handler	8	static
+main.c:1799:10:printASCIIarray	88	static
+main.c:1826:7:squeak_single	4136	static
+main.c:1847:7:squeak_double	4136	static
+main.c:1870:7:squeak_triple	4136	static
+main.c:1959:6:Error_Handler	8	static

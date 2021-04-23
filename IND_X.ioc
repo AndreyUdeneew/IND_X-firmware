@@ -420,4 +420,3 @@ TIM1.TIM_MasterSlaveMode=TIM_MASTERSLAVEMODE_DISABLE
 PB1.GPIOParameters=GPIO_Speed,GPIO_Label
 PA7.Signal=GPIO_Output
 PA6.Locked=true
-isbadioc=false

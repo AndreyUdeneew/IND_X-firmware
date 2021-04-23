@@ -1179,7 +1179,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		uint16_t ind = 0;
 
 		cmd2Execute=0;
-		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x13)||(cmd[0] == 0x14)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
+		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x13)||(cmd[0] == 0x14)||(cmd[0] == 0x15)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
 		ans[0] = cmd[0]|0x80;
 //==================================================================================================
 			if ((cmd[0] >= 0x10)&&(cmd[0] < 0x16)) { //answer is keyboard + stuff information                  0003
@@ -1758,8 +1758,10 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 			I2C_SOUND_ChangePage(0x01);
 			WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 			if(volume==0x00){
-				WriteReg_I2C_SOUND(0x2E,0xFF);//mute
+				I2C_SOUND_ChangePage(0x01);
+				WriteReg_I2C_SOUND(0x2E,0xFF);// mute
 			}
+			I2C_SOUND_ChangePage(0x01);
 			WriteReg_I2C_SOUND(0x2E, volume);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 
 			if(contrast==0x00){
@@ -1769,11 +1771,13 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 				GPIOA->ODR &= ~(1 << 6);	//reset cs
 				GPIOA->ODR &= ~(1 << 7);	// reset dc
 				USART_AS_SPI_sendCMD(0x81);	//Contrast Level
-				USART_AS_SPI_sendCMD(contrast<<1);
+				USART_AS_SPI_sendCMD(contrast<<4);
 				GPIOA->ODR |= 1 << 7;	//set dc
 				GPIOA->ODR |= 1 << 6;	//set cs
 			}
 			bf4me=0x15;	//set BF flag 4 me
+			GPIOC->ODR |= 1 << 6;	//set BF
+			cmd2Execute=0;
 		}
 		if(cmd2Execute==0x16){
 			bf4me=0x16;	//set BF flag 4 me
