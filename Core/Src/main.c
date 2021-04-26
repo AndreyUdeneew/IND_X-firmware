@@ -1757,8 +1757,9 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 			cmd2Execute=0;
 		}
 		if(cmd2Execute==0x15){
+			bf4me=0x15;	//set BF flag 4 me
 			I2C_SOUND_ChangePage(0x01);
-			WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//			WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 			if(volume==0x00){
 				I2C_SOUND_ChangePage(0x01);
 				WriteReg_I2C_SOUND(0x2E,0xFF);// mute
@@ -1777,7 +1778,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 				GPIOA->ODR |= 1 << 7;	//set dc
 				GPIOA->ODR |= 1 << 6;	//set cs
 			}
-			bf4me=0x15;	//set BF flag 4 me
+//			bf4me=0x15;	//set BF flag 4 me
 			GPIOC->ODR |= 1 << 6;	//set BF
 			cmd2Execute=0;
 		}

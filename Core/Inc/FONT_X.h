@@ -1,4 +1,4 @@
-uint8_t FONT_X[0x100][0x31]={
+static const uint8_t FONT_X[0x100][0x31]={
 {
     //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
     //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
