@@ -36,6 +36,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+//==================================== WEO128128A ======================================
 #define SET_DISPLAY_COL_ADD 0x15
 #define SET_DISPLAY_ROW_ADD 0x75
 #define SET_DISPLAY_CONTRAST 0x81
@@ -61,6 +62,62 @@
 #define OLED_DIM_HEIGHT 0x7F
 #define		MAX_COL		64
 #define		MAX_ROW		128
+//=====================================	LIS3DH ===========================================
+#define accelDataRate_PWRDWN 0x00
+#define accelDataRate_1_Hz 0x10
+#define accelDataRate_10_Hz 0x20
+#define accelDataRate_25_Hz 0x30
+#define accelDataRate_50_Hz 0x40
+#define accelDataRate_100_Hz 0x50
+#define accelDataRate_200_Hz 0x60
+#define accelDataRate_400_Hz 0x70
+#define accelDataRate_1600_Hz 0x80
+#define accelDataRate_5000_Hz 0x90
+#define FIFO_BYPASS 0b00000000
+#define FIFO_FIFO_MODE 0b01000000
+#define FIFO_STREAM_MODE 0b10000000
+#define FIFO_REIGGER_MODE 0b11000000
+#define FIFO_TRIGGER_INT1 0b00000000
+#define FIFO_TRIGGER_INT2 0x00100000
+#define Xen 0b00000001
+#define Yen 0b00000010
+#define Zen 0b00000100
+#define BDU 0b10000000
+#define BLE 0b01000000
+#define FS1 0b00100000
+#define FS0 0b00010000
+#define FULL_SCALE_2G 0x00
+#define HR 0b00000100
+#define ST1 0b00000100
+#define ST0 0b00000010
+#define SIM 0b00000001
+#define FIFO_EN 0b01000000
+#define OUT1L 0x08
+#define OUT1H 0x09
+#define OUT2L 0x0A
+#define OUT2H 0x0B
+#define OUT3L 0x0C
+#define OUT3H 0x0D
+#define INT_COUNTER 0x0E
+#define CTRL_REG1 0x20
+#define CTRL_REG2 0x21
+#define CTRL_REG3 0x22
+#define CTRL_REG4 0x23
+#define CTRL_REG5 0x24
+#define CTRL_REG6 0x25
+#define REF_DATACAPTURE 0x26
+#define STATUS_REG 0x27
+#define OUTXL 0x28
+#define OUTXH 0x29
+#define OUTYL 0x2A
+#define OUTYH 0x2B
+#define OUTZL 0x2C
+#define OUTZH 0x2D
+#define FIFO_CTRL_REG 0x2E
+#define FIFO_SRC_REG 0x2F
+#define INT_1_CFG 0x30
+#define INT_1_SRC 0x30
+
 //#define X_increment 8
 //#define startAddressForImageInfo 0x00000000
 #define startAddressForSoundInfo 0x01400900
@@ -133,9 +190,10 @@ uint32_t tmp;
 uint32_t startAddressForImageInfo=0x00000000;
 uint8_t uartFlag=0;
 uint8_t cmd2Execute,strLen;
-uint8_t my_test1[], Image[], coala[],h1[],test[],ASCIIcode[],h2[],image_data_Font_0x30[],image_data_Font_0x31[],
+uint8_t my_test1[], Image[], coala[],h1[],ASCIIcode[],h2[],image_data_Font_0x30[],image_data_Font_0x31[],
 image_data_Font_0x32[],image_data_Font_0x33[],image_data_Font_0x34[],image_data_Font_0x35[],image_data_Font_0x36[],
-image_data_Font_0x37[],image_data_Font_0x38[],image_data_Font_0x39[],aim[],frame[];
+image_data_Font_0x37[],image_data_Font_0x38[],image_data_Font_0x39[];
+uint8_t aim[],frame[],test[];
 uint8_t bf4me;
 uint8_t inputCS=0;
 uint8_t dma_spi_fl=0;
@@ -168,10 +226,6 @@ static void MX_I2S1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
-uint32_t MEM_GetID(void);
-void squeak_single(void);
-void squeak_double(void);
-void squeak_triple(void);
 uint8_t weoShowFullScreen(uint8_t picNum);
 uint8_t weoShowFullScreenDMA(uint8_t picNum);
 uint8_t soundPlay(uint8_t soundNum);
@@ -183,7 +237,13 @@ uint16_t Scount(void);
 //uint8_t cmd2Execute;
 uint8_t cmdExecute(uint8_t cmd2Execute);
 uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]);
+uint32_t MEM_GetID(void);
+void squeak_single(void);
+void squeak_double(void);
+void squeak_triple(void);
 void MEM_Write(uint32_t addr);
+void LIS3DHsetup(void);
+uint8_t LIS3DHreadReg(uint8_t reg);
 void Demo(void);
 void weoDrawRectangleFilled(unsigned char start_x, unsigned char start_y,
 		unsigned char end_x, unsigned char end_y, unsigned char color,
@@ -1895,64 +1955,98 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 	}
 //=============================================================================================================
+	void LIS3DHsendCMD(uint8_t reg, uint8_t data) {
+		uint8_t buf[] = { reg, data };
+		HAL_I2C_Master_Transmit(&hi2c1, (uint16_t) 0x32, buf, 2, 1000);	//32h - address for writing
+	}
+//=============================================================================================================
+	uint8_t LIS3DHreadReg(uint8_t reg){
+			uint8_t value;
+//			HAL_I2C_Master_Receive(&hi2c1, (uint16_t) 0x33, reg,&value, 1, 0x10000);	//33h - address for reading
+			HAL_I2C_Mem_Read(&hi2c1, (uint16_t) 0x33, reg,I2C_MEMADD_SIZE_8BIT,&value, 1, 0x10000);	//33h - address for reading
+			return value;
+	}
+//=============================================================================================================
+	void LIS3DHsetup(void){
+		uint8_t CTRL_REG1_val=0x00;
+		uint8_t CTRL_REG4_val=0x00;
+		uint8_t CTRL_REG5_val=0x00;
+		uint8_t CTRL_REG6_val=0x00;
+		uint8_t FIFO_CTRL_REG_val=0x00;
+		uint8_t FIFO_SRC_REG_val=0x00;
+		uint8_t INT_1_CFG_val=0x00;
+		uint8_t INT_1_SRC_val=0x00;
 
+		LIS3DHsendCMD(CTRL_REG1,CTRL_REG1_val|accelDataRate_25_Hz|Xen|Yen|Zen);//data rate selection
+//		LIS3DHsendCMD(CTRL_REG2,);//HPFilter
+//		LIS3DHsendCMD(CTRL_REG3,);
+		LIS3DHsendCMD(CTRL_REG4,CTRL_REG4_val|BDU|FULL_SCALE_2G|HR);
+		LIS3DHsendCMD(CTRL_REG5,CTRL_REG4_val|FIFO_EN);
+//		LIS3DHsendCMD(CTRL_REG6,);
+//		LIS3DHsendCMD(FIFO_CTRL_REG,FIFO_CTRL_REG_val);	//	2B configured
+//		LIS3DHsendCMD(FIFO_SRC_REG,FIFO_SRC_REG_val);	//	2B configured
+//		LIS3DHsendCMD(INT_1_CFG,INT_1_CFG_val);	//	2B configured
+//		LIS3DHsendCMD(INT_1_SRC_val,INT_1_SRC_val);	//	2B configured
+	}
+//============================================================================================================
 
-uint8_t test[49] = {
-	    //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
-	    //∙∙█████████∙∙∙
-	    //∙∙∙███████∙∙∙∙
-	    //∙∙∙∙█████∙∙∙∙∙
-	    //∙∙∙∙∙███∙∙∙∙∙∙
-	    //∙∙∙∙∙∙█∙∙∙∙∙∙∙
-	    //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
-	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	    0x00, 0xff, 0xff, 0xff, 0xff, 0xf0, 0x00,
-	    0x00, 0x0f, 0xff, 0xff, 0xff, 0x00, 0x00,
-	    0x00, 0x00, 0xff, 0xff, 0xf0, 0x00, 0x00,
-	    0x00, 0x00, 0x0f, 0xff, 0x00, 0x00, 0x00,
-	    0x00, 0x00, 0x00, 0xf0, 0x00, 0x00, 0x00,
-	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-	};
-uint8_t aim[49]={
-	    //██████████████
-	    //█∙∙∙███∙∙∙∙∙∙█
-	    //█∙∙∙█∙∙██∙∙∙∙█
-	    //█∙∙∙█∙∙∙∙██∙∙█
-	    //█∙██████████∙█
-	    //█∙∙∙█∙∙∙∙∙∙∙∙█
-	    //██████████████
-	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	    0xf0, 0x00, 0xff, 0xf0, 0x00, 0x00, 0x0f,
-	    0xf0, 0x00, 0xf0, 0x0f, 0xf0, 0x00, 0x0f,
-	    0xf0, 0x00, 0xf0, 0x00, 0x0f, 0xf0, 0x0f,
-	    0xf0, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f,
-	    0xf0, 0x00, 0xf0, 0x00, 0x00, 0x00, 0x0f,
-	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-};
-uint8_t frame[99]={
-	    //██████████████████
-	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-	    //██████████████████
-	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-};
+//=============================================================================================================
+//uint8_t test[49] = {
+//	    //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
+//	    //∙∙█████████∙∙∙
+//	    //∙∙∙███████∙∙∙∙
+//	    //∙∙∙∙█████∙∙∙∙∙
+//	    //∙∙∙∙∙███∙∙∙∙∙∙
+//	    //∙∙∙∙∙∙█∙∙∙∙∙∙∙
+//	    //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
+//	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+//	    0x00, 0xff, 0xff, 0xff, 0xff, 0xf0, 0x00,
+//	    0x00, 0x0f, 0xff, 0xff, 0xff, 0x00, 0x00,
+//	    0x00, 0x00, 0xff, 0xff, 0xf0, 0x00, 0x00,
+//	    0x00, 0x00, 0x0f, 0xff, 0x00, 0x00, 0x00,
+//	    0x00, 0x00, 0x00, 0xf0, 0x00, 0x00, 0x00,
+//	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+//	};
+//uint8_t aim[49]={
+//	    //██████████████
+//	    //█∙∙∙███∙∙∙∙∙∙█
+//	    //█∙∙∙█∙∙██∙∙∙∙█
+//	    //█∙∙∙█∙∙∙∙██∙∙█
+//	    //█∙██████████∙█
+//	    //█∙∙∙█∙∙∙∙∙∙∙∙█
+//	    //██████████████
+//	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+//	    0xf0, 0x00, 0xff, 0xf0, 0x00, 0x00, 0x0f,
+//	    0xf0, 0x00, 0xf0, 0x0f, 0xf0, 0x00, 0x0f,
+//	    0xf0, 0x00, 0xf0, 0x00, 0x0f, 0xf0, 0x0f,
+//	    0xf0, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f,
+//	    0xf0, 0x00, 0xf0, 0x00, 0x00, 0x00, 0x0f,
+//	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+//};
+//uint8_t frame[99]={
+//	    //██████████████████
+//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+//	    //██████████████████
+//	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+//	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+//};
 /* USER CODE END 4 */
 
 /**
