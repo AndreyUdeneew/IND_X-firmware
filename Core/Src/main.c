@@ -195,6 +195,7 @@ image_data_Font_0x32[],image_data_Font_0x33[],image_data_Font_0x34[],image_data_
 image_data_Font_0x37[],image_data_Font_0x38[],image_data_Font_0x39[];
 uint8_t aim[],frame[],test[];
 uint8_t bf4me;
+uint8_t dimmer=0;
 uint8_t inputCS=0;
 uint8_t dma_spi_fl=0;
 uint16_t dma_spi_cnt=1;
@@ -986,15 +987,15 @@ void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi2)
 {
   	GPIOA->ODR |= 1 << 11;	//set test 1
   	GPIOA->ODR &= ~(1 << 11);	//reset test 1
-//  	if(cmd2Execute==0x11){
+  	if(cmd2Execute==0x11){
   	GPIOA->ODR &= ~(1 << 6);	//reset cs of DISPLAY
   		GPIOA->ODR |= 1 << 7;	//set   dc of DISPLAY
   		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,len);
-//  	}
-//  	if(cmd2Execute==0x13){
-//
-////  	  		HAL_SPI_Transmit_DMA(&hspi1, MEM_Buffer,len);
-//  	  	}
+  	}
+  	if(cmd2Execute==0x13){
+
+//  	  		HAL_SPI_Transmit_DMA(&hspi1, MEM_Buffer,len);
+  	  	}
 
 }
 //==========================================================
@@ -1117,7 +1118,6 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 					|| end_x > OLED_DIM_WIDTH || end_y > OLED_DIM_HEIGHT) {
 				return;
 			}
-
 
 			start_x_New=start_x;
 			start_y_New=0x7F-end_y;
@@ -1638,7 +1638,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 	}
 //=========================================================================================================================
 	uint8_t soundPlay(uint8_t soundNum) {
-			uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
+			uint8_t memCMD,addr_l,addr_L,addr_h,addr_H;
 			uint8_t MEM_Buffer[8192], soundInfo[9],addrINFO[4],addr[4],length[4];
 			uint16_t i, len;
 			uint32_t addrInfo,address,firstImAddr;
@@ -1813,6 +1813,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 			if(numSound==0x03){
 				squeak_triple();
 				}
+			HAL_Delay(500);
 			GPIOC->ODR |= 1 << 6;	//set BF
 			cmd2Execute=0;
 		}
@@ -1834,7 +1835,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 				GPIOA->ODR &= ~(1 << 6);	//reset cs
 				GPIOA->ODR &= ~(1 << 7);	// reset dc
 				USART_AS_SPI_sendCMD(0x81);	//Contrast Level
-				USART_AS_SPI_sendCMD(contrast<<4);
+				USART_AS_SPI_sendCMD(contrast*0x10);
 				GPIOA->ODR |= 1 << 7;	//set dc
 				GPIOA->ODR |= 1 << 6;	//set cs
 			}
@@ -1861,11 +1862,16 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 //========================================================================================================================
 	uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]){
 			uint8_t j,Y_height,X_width,ASCII_X,decY;
-			uint8_t weoBuffer[49];
+			uint8_t weoBuffer1[49],weoBuffer2[49],weoBuffer[49];
 			uint16_t i;
 			ASCII_X=imX;
 
 			len=49;
+
+			if(imY > 0x7F){
+				imY &=0x7F;
+				dimmer=1;
+			}
 
 			decY=0x01;
 			if(imY % 2 !=0){
@@ -1876,12 +1882,20 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 				for(j=0;j<49;j++){
 					weoBuffer[j]=FONT_X[dataASCII[i]][j];
 					}
+				for (uint8_t k=0;k<49;k++){
+					weoBuffer1[k]=(weoBuffer[k]&0x0F)>>dimmer;
+					weoBuffer2[k]=(weoBuffer[k]&0xF0)>>dimmer;
+				}
+				for (uint8_t k=0;k<49;k++){
+					weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+				}
 				weoDrawRectangleFilled(ASCII_X,imY,ASCII_X+X_increment-1,imY+ASCII_height-decY,0xFF,weoBuffer);
 				ASCII_X += X_increment+0;
 			}
 			for(i=0;i<len;i++){
 					weoBuffer[j]=0x00;
 			}
+
 			GPIOC->ODR |= 1 << 6;	//set BF
 			cmd2Execute=0;
 		}
@@ -1905,6 +1919,9 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 //		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 //		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+//		HAL_Delay(500);
+//		GPIOC->ODR |= 1 << 6;	//set BF
+//		cmd2Execute=0;
 	}
 //=============================================================================================================
 	void squeak_double(void){
@@ -1928,6 +1945,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+//		HAL_Delay(500);
 	}
 //=============================================================================================================
 	void squeak_triple(void){
@@ -1953,6 +1971,9 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+//		HAL_Delay(500);
+//		GPIOC->ODR |= 1 << 6;	//set BF
+//		cmd2Execute=0;
 	}
 //=============================================================================================================
 	void LIS3DHsendCMD(uint8_t reg, uint8_t data) {
