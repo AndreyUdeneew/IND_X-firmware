@@ -240,6 +240,7 @@ uint8_t cmdExecute(uint8_t cmd2Execute);
 uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]);
 uint32_t MEM_GetID(void);
 void squeak_single(void);
+void squeak_long(void);
 void squeak_double(void);
 void squeak_triple(void);
 void MEM_Write(uint32_t addr);
@@ -329,6 +330,8 @@ int main(void)
 	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
     squeak_triple();
+//    HAL_Delay(500);
+//    squeak_long();
 
 	uint8_t x=0x02;
 	uint8_t y=0x04;
@@ -1813,9 +1816,14 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 			if(numSound==0x03){
 				squeak_triple();
 				}
+			if(numSound==0x04){
+				squeak_long();
+				}
+			if(numSound!=0x04){
 			HAL_Delay(500);
 			GPIOC->ODR |= 1 << 6;	//set BF
 			cmd2Execute=0;
+			}
 		}
 		if(cmd2Execute==0x15){
 			bf4me=0x15;	//set BF flag 4 me
@@ -1922,6 +1930,34 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 //		HAL_Delay(500);
 //		GPIOC->ODR |= 1 << 6;	//set BF
 //		cmd2Execute=0;
+	}
+//==========================================================================================================================
+	void squeak_long(void){
+		   uint16_t signal[2048];
+		    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
+
+		    uint16_t k = 0;
+		    while(k < nsamples) {
+		        double t = ((double)k/2.0)/((double)nsamples);
+		        signal[k] = 32767*sin(100.0 * TAU * t); // left
+		        k += 1;
+		    }
+		I2C_SOUND_ChangePage(0x01);
+		WriteReg_I2C_SOUND(0x01, 0x00);
+		I2C_SOUND_ChangePage(0x00);
+		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+	//	I2C_SOUND_ChangePage(0x00);
+		I2C_SOUND_ChangePage(0x01);
+//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,HAL_MAX_DELAY);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,HAL_MAX_DELAY);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,HAL_MAX_DELAY);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,HAL_MAX_DELAY);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,HAL_MAX_DELAY);
+//		HAL_Delay(500);
+		GPIOC->ODR |= 1 << 6;	//set BF
+		cmd2Execute=0;
 	}
 //=============================================================================================================
 	void squeak_double(void){
