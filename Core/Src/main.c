@@ -1876,11 +1876,6 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 
 			len=49;
 
-			if(imY > 0x7F){
-				imY &=0x7F;
-				dimmer=1;
-			}
-
 			decY=0x01;
 			if(imY % 2 !=0){
 				decY=0x02;
@@ -1890,12 +1885,17 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 				for(j=0;j<49;j++){
 					weoBuffer[j]=FONT_X[dataASCII[i]][j];
 					}
+				if(imY > 0x7F){
+					imY &=0x7F;
+					dimmer=1;
 				for (uint8_t k=0;k<49;k++){
 					weoBuffer1[k]=(weoBuffer[k]&0x0F)>>dimmer;
 					weoBuffer2[k]=(weoBuffer[k]&0xF0)>>dimmer;
 				}
+
 				for (uint8_t k=0;k<49;k++){
 					weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+				}
 				}
 				weoDrawRectangleFilled(ASCII_X,imY,ASCII_X+X_increment-1,imY+ASCII_height-decY,0xFF,weoBuffer);
 				ASCII_X += X_increment+0;

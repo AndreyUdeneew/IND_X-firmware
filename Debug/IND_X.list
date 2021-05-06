@@ -10376,92 +10376,90 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  80047e0:	2231      	movs	r2, #49	; 0x31
  80047e2:	801a      	strh	r2, [r3, #0]
 
-			if(imY > 0x7F){
- 80047e4:	1dbb      	adds	r3, r7, #6
- 80047e6:	781b      	ldrb	r3, [r3, #0]
- 80047e8:	b25b      	sxtb	r3, r3
- 80047ea:	2b00      	cmp	r3, #0
- 80047ec:	da08      	bge.n	8004800 <printASCIIarray+0x4c>
-				imY &=0x7F;
- 80047ee:	1dbb      	adds	r3, r7, #6
- 80047f0:	1dba      	adds	r2, r7, #6
- 80047f2:	7812      	ldrb	r2, [r2, #0]
- 80047f4:	217f      	movs	r1, #127	; 0x7f
- 80047f6:	400a      	ands	r2, r1
- 80047f8:	701a      	strb	r2, [r3, #0]
-				dimmer=1;
- 80047fa:	4b7b      	ldr	r3, [pc, #492]	; (80049e8 <printASCIIarray+0x234>)
- 80047fc:	2201      	movs	r2, #1
+			decY=0x01;
+ 80047e4:	21ad      	movs	r1, #173	; 0xad
+ 80047e6:	187b      	adds	r3, r7, r1
+ 80047e8:	2201      	movs	r2, #1
+ 80047ea:	701a      	strb	r2, [r3, #0]
+			if(imY % 2 !=0){
+ 80047ec:	1dbb      	adds	r3, r7, #6
+ 80047ee:	781b      	ldrb	r3, [r3, #0]
+ 80047f0:	2201      	movs	r2, #1
+ 80047f2:	4013      	ands	r3, r2
+ 80047f4:	b2db      	uxtb	r3, r3
+ 80047f6:	2b00      	cmp	r3, #0
+ 80047f8:	d002      	beq.n	8004800 <printASCIIarray+0x4c>
+				decY=0x02;
+ 80047fa:	187b      	adds	r3, r7, r1
+ 80047fc:	2202      	movs	r2, #2
  80047fe:	701a      	strb	r2, [r3, #0]
 			}
 
-			decY=0x01;
- 8004800:	21ad      	movs	r1, #173	; 0xad
- 8004802:	187b      	adds	r3, r7, r1
- 8004804:	2201      	movs	r2, #1
- 8004806:	701a      	strb	r2, [r3, #0]
-			if(imY % 2 !=0){
- 8004808:	1dbb      	adds	r3, r7, #6
- 800480a:	781b      	ldrb	r3, [r3, #0]
- 800480c:	2201      	movs	r2, #1
- 800480e:	4013      	ands	r3, r2
- 8004810:	b2db      	uxtb	r3, r3
- 8004812:	2b00      	cmp	r3, #0
- 8004814:	d002      	beq.n	800481c <printASCIIarray+0x68>
-				decY=0x02;
- 8004816:	187b      	adds	r3, r7, r1
- 8004818:	2202      	movs	r2, #2
- 800481a:	701a      	strb	r2, [r3, #0]
-			}
-
 			for (i=0;i<strLen;i++){
- 800481c:	23aa      	movs	r3, #170	; 0xaa
- 800481e:	18fb      	adds	r3, r7, r3
- 8004820:	2200      	movs	r2, #0
- 8004822:	801a      	strh	r2, [r3, #0]
- 8004824:	e0af      	b.n	8004986 <printASCIIarray+0x1d2>
+ 8004800:	23aa      	movs	r3, #170	; 0xaa
+ 8004802:	18fb      	adds	r3, r7, r3
+ 8004804:	2200      	movs	r2, #0
+ 8004806:	801a      	strh	r2, [r3, #0]
+ 8004808:	e0bd      	b.n	8004986 <printASCIIarray+0x1d2>
 				for(j=0;j<49;j++){
- 8004826:	23af      	movs	r3, #175	; 0xaf
- 8004828:	18fb      	adds	r3, r7, r3
- 800482a:	2200      	movs	r2, #0
- 800482c:	701a      	strb	r2, [r3, #0]
- 800482e:	e01b      	b.n	8004868 <printASCIIarray+0xb4>
+ 800480a:	23af      	movs	r3, #175	; 0xaf
+ 800480c:	18fb      	adds	r3, r7, r3
+ 800480e:	2200      	movs	r2, #0
+ 8004810:	701a      	strb	r2, [r3, #0]
+ 8004812:	e01b      	b.n	800484c <printASCIIarray+0x98>
 					weoBuffer[j]=FONT_X[dataASCII[i]][j];
- 8004830:	23aa      	movs	r3, #170	; 0xaa
- 8004832:	18fb      	adds	r3, r7, r3
- 8004834:	881b      	ldrh	r3, [r3, #0]
- 8004836:	683a      	ldr	r2, [r7, #0]
- 8004838:	18d3      	adds	r3, r2, r3
- 800483a:	781b      	ldrb	r3, [r3, #0]
- 800483c:	001a      	movs	r2, r3
- 800483e:	25af      	movs	r5, #175	; 0xaf
- 8004840:	197b      	adds	r3, r7, r5
- 8004842:	7818      	ldrb	r0, [r3, #0]
- 8004844:	197b      	adds	r3, r7, r5
- 8004846:	7819      	ldrb	r1, [r3, #0]
- 8004848:	4c68      	ldr	r4, [pc, #416]	; (80049ec <printASCIIarray+0x238>)
- 800484a:	0013      	movs	r3, r2
- 800484c:	00db      	lsls	r3, r3, #3
- 800484e:	1a9b      	subs	r3, r3, r2
- 8004850:	00da      	lsls	r2, r3, #3
- 8004852:	1ad2      	subs	r2, r2, r3
- 8004854:	18a3      	adds	r3, r4, r2
- 8004856:	5c1a      	ldrb	r2, [r3, r0]
- 8004858:	230c      	movs	r3, #12
- 800485a:	18fb      	adds	r3, r7, r3
- 800485c:	545a      	strb	r2, [r3, r1]
+ 8004814:	23aa      	movs	r3, #170	; 0xaa
+ 8004816:	18fb      	adds	r3, r7, r3
+ 8004818:	881b      	ldrh	r3, [r3, #0]
+ 800481a:	683a      	ldr	r2, [r7, #0]
+ 800481c:	18d3      	adds	r3, r2, r3
+ 800481e:	781b      	ldrb	r3, [r3, #0]
+ 8004820:	001a      	movs	r2, r3
+ 8004822:	25af      	movs	r5, #175	; 0xaf
+ 8004824:	197b      	adds	r3, r7, r5
+ 8004826:	7818      	ldrb	r0, [r3, #0]
+ 8004828:	197b      	adds	r3, r7, r5
+ 800482a:	7819      	ldrb	r1, [r3, #0]
+ 800482c:	4c6e      	ldr	r4, [pc, #440]	; (80049e8 <printASCIIarray+0x234>)
+ 800482e:	0013      	movs	r3, r2
+ 8004830:	00db      	lsls	r3, r3, #3
+ 8004832:	1a9b      	subs	r3, r3, r2
+ 8004834:	00da      	lsls	r2, r3, #3
+ 8004836:	1ad2      	subs	r2, r2, r3
+ 8004838:	18a3      	adds	r3, r4, r2
+ 800483a:	5c1a      	ldrb	r2, [r3, r0]
+ 800483c:	230c      	movs	r3, #12
+ 800483e:	18fb      	adds	r3, r7, r3
+ 8004840:	545a      	strb	r2, [r3, r1]
 				for(j=0;j<49;j++){
- 800485e:	197b      	adds	r3, r7, r5
- 8004860:	781a      	ldrb	r2, [r3, #0]
- 8004862:	197b      	adds	r3, r7, r5
- 8004864:	3201      	adds	r2, #1
- 8004866:	701a      	strb	r2, [r3, #0]
- 8004868:	23af      	movs	r3, #175	; 0xaf
- 800486a:	18fb      	adds	r3, r7, r3
- 800486c:	781b      	ldrb	r3, [r3, #0]
- 800486e:	2b30      	cmp	r3, #48	; 0x30
- 8004870:	d9de      	bls.n	8004830 <printASCIIarray+0x7c>
+ 8004842:	197b      	adds	r3, r7, r5
+ 8004844:	781a      	ldrb	r2, [r3, #0]
+ 8004846:	197b      	adds	r3, r7, r5
+ 8004848:	3201      	adds	r2, #1
+ 800484a:	701a      	strb	r2, [r3, #0]
+ 800484c:	23af      	movs	r3, #175	; 0xaf
+ 800484e:	18fb      	adds	r3, r7, r3
+ 8004850:	781b      	ldrb	r3, [r3, #0]
+ 8004852:	2b30      	cmp	r3, #48	; 0x30
+ 8004854:	d9de      	bls.n	8004814 <printASCIIarray+0x60>
 					}
+				if(imY > 0x7F){
+ 8004856:	1dbb      	adds	r3, r7, #6
+ 8004858:	781b      	ldrb	r3, [r3, #0]
+ 800485a:	b25b      	sxtb	r3, r3
+ 800485c:	2b00      	cmp	r3, #0
+ 800485e:	da63      	bge.n	8004928 <printASCIIarray+0x174>
+					imY &=0x7F;
+ 8004860:	1dbb      	adds	r3, r7, #6
+ 8004862:	1dba      	adds	r2, r7, #6
+ 8004864:	7812      	ldrb	r2, [r2, #0]
+ 8004866:	217f      	movs	r1, #127	; 0x7f
+ 8004868:	400a      	ands	r2, r1
+ 800486a:	701a      	strb	r2, [r3, #0]
+					dimmer=1;
+ 800486c:	4b5f      	ldr	r3, [pc, #380]	; (80049ec <printASCIIarray+0x238>)
+ 800486e:	2201      	movs	r2, #1
+ 8004870:	701a      	strb	r2, [r3, #0]
 				for (uint8_t k=0;k<49;k++){
  8004872:	23a9      	movs	r3, #169	; 0xa9
  8004874:	18fb      	adds	r3, r7, r3
@@ -10478,7 +10476,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8004888:	001a      	movs	r2, r3
  800488a:	230f      	movs	r3, #15
  800488c:	4013      	ands	r3, r2
- 800488e:	4a56      	ldr	r2, [pc, #344]	; (80049e8 <printASCIIarray+0x234>)
+ 800488e:	4a57      	ldr	r2, [pc, #348]	; (80049ec <printASCIIarray+0x238>)
  8004890:	7812      	ldrb	r2, [r2, #0]
  8004892:	4113      	asrs	r3, r2
  8004894:	001a      	movs	r2, r3
@@ -10498,7 +10496,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  80048ae:	001a      	movs	r2, r3
  80048b0:	23f0      	movs	r3, #240	; 0xf0
  80048b2:	4013      	ands	r3, r2
- 80048b4:	4a4c      	ldr	r2, [pc, #304]	; (80049e8 <printASCIIarray+0x234>)
+ 80048b4:	4a4d      	ldr	r2, [pc, #308]	; (80049ec <printASCIIarray+0x238>)
  80048b6:	7812      	ldrb	r2, [r2, #0]
  80048b8:	4113      	asrs	r3, r2
  80048ba:	001a      	movs	r2, r3
@@ -10521,6 +10519,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  80048da:	2b30      	cmp	r3, #48	; 0x30
  80048dc:	d9ce      	bls.n	800487c <printASCIIarray+0xc8>
 				}
+
 				for (uint8_t k=0;k<49;k++){
  80048de:	23a8      	movs	r3, #168	; 0xa8
  80048e0:	18fb      	adds	r3, r7, r3
@@ -10561,6 +10560,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8004922:	781b      	ldrb	r3, [r3, #0]
  8004924:	2b30      	cmp	r3, #48	; 0x30
  8004926:	d9df      	bls.n	80048e8 <printASCIIarray+0x134>
+				}
 				}
 				weoDrawRectangleFilled(ASCII_X,imY,ASCII_X+X_increment-1,imY+ASCII_height-decY,0xFF,weoBuffer);
  8004928:	4b31      	ldr	r3, [pc, #196]	; (80049f0 <printASCIIarray+0x23c>)
@@ -10619,7 +10619,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8004990:	8812      	ldrh	r2, [r2, #0]
  8004992:	429a      	cmp	r2, r3
  8004994:	d200      	bcs.n	8004998 <printASCIIarray+0x1e4>
- 8004996:	e746      	b.n	8004826 <printASCIIarray+0x72>
+ 8004996:	e738      	b.n	800480a <printASCIIarray+0x56>
 			}
 			for(i=0;i<len;i++){
  8004998:	187b      	adds	r3, r7, r1
@@ -10668,8 +10668,8 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  80049e0:	b02c      	add	sp, #176	; 0xb0
  80049e2:	bdb0      	pop	{r4, r5, r7, pc}
  80049e4:	200004e8 	.word	0x200004e8
- 80049e8:	20000064 	.word	0x20000064
- 80049ec:	0800e9bc 	.word	0x0800e9bc
+ 80049e8:	0800e9bc 	.word	0x0800e9bc
+ 80049ec:	20000064 	.word	0x20000064
  80049f0:	20000030 	.word	0x20000030
  80049f4:	20000031 	.word	0x20000031
  80049f8:	50000800 	.word	0x50000800
