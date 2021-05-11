@@ -21,29 +21,29 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, DATA
   8 .data         00000040  20000000  08011d80  00030000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          000024d0  20000040  08011dc0  00030040  2**2
+  9 .bss          000024dc  20000040  08011dc0  00030040  2**2
                   ALLOC
- 10 ._user_heap_stack 00000600  20002510  08011dc0  00032510  2**0
+ 10 ._user_heap_stack 00000604  2000251c  08011dc0  0003251c  2**0
                   ALLOC
  11 .ARM.attributes 00000028  00000000  00000000  00030040  2**0
                   CONTENTS, READONLY
- 12 .debug_info   0001a198  00000000  00000000  00030068  2**0
+ 12 .debug_info   0001a26a  00000000  00000000  00030068  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 000034b9  00000000  00000000  0004a200  2**0
+ 13 .debug_abbrev 000034d5  00000000  00000000  0004a2d2  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 000018d0  00000000  00000000  0004d6c0  2**3
+ 14 .debug_aranges 000018e0  00000000  00000000  0004d7a8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 00001758  00000000  00000000  0004ef90  2**3
+ 15 .debug_ranges 00001768  00000000  00000000  0004f088  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  0001c54a  00000000  00000000  000506e8  2**0
+ 16 .debug_macro  0001c54a  00000000  00000000  000507f0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0001d3ef  00000000  00000000  0006cc32  2**0
+ 17 .debug_line   0001d45c  00000000  00000000  0006cd3a  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000ae75b  00000000  00000000  0008a021  2**0
+ 18 .debug_str    000ae7b5  00000000  00000000  0008a196  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  0013877c  2**0
+ 19 .comment      00000053  00000000  00000000  0013894b  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00005eb8  00000000  00000000  001387d0  2**2
+ 20 .debug_frame  00005ef4  00000000  00000000  001389a0  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -4931,11 +4931,11 @@ int main(void)
 		cmdExecute(cmd2Execute);
  8002532:	e7f7      	b.n	8002524 <main+0x138>
  8002534:	40021000 	.word	0x40021000
- 8002538:	20000254 	.word	0x20000254
+ 8002538:	20000258 	.word	0x20000258
  800253c:	40004400 	.word	0x40004400
  8002540:	1000100d 	.word	0x1000100d
  8002544:	50000800 	.word	0x50000800
- 8002548:	20000366 	.word	0x20000366
+ 8002548:	2000036a 	.word	0x2000036a
 
 0800254c <SystemClock_Config>:
 /**
@@ -5187,7 +5187,7 @@ static void MX_COMP1_Init(void)
  80026a2:	46bd      	mov	sp, r7
  80026a4:	bd80      	pop	{r7, pc}
  80026a6:	46c0      	nop			; (mov r8, r8)
- 80026a8:	20000254 	.word	0x20000254
+ 80026a8:	20000258 	.word	0x20000258
  80026ac:	40010200 	.word	0x40010200
 
 080026b0 <MX_I2C1_Init>:
@@ -5352,7 +5352,7 @@ static void MX_I2S1_Init(void)
  8002776:	46bd      	mov	sp, r7
  8002778:	bd80      	pop	{r7, pc}
  800277a:	46c0      	nop			; (mov r8, r8)
- 800277c:	2000036c 	.word	0x2000036c
+ 800277c:	20000370 	.word	0x20000370
  8002780:	40013000 	.word	0x40013000
 
 08002784 <MX_SPI2_Init>:
@@ -5774,7 +5774,7 @@ static void MX_TIM1_Init(void)
  80029ee:	46bd      	mov	sp, r7
  80029f0:	b01e      	add	sp, #120	; 0x78
  80029f2:	bd80      	pop	{r7, pc}
- 80029f4:	20000310 	.word	0x20000310
+ 80029f4:	20000314 	.word	0x20000314
  80029f8:	40012c00 	.word	0x40012c00
  80029fc:	0000027f 	.word	0x0000027f
 
@@ -6090,7 +6090,7 @@ static void MX_USART3_Init(void)
  8002bb0:	bd80      	pop	{r7, pc}
  8002bb2:	46c0      	nop			; (mov r8, r8)
  8002bb4:	40004800 	.word	0x40004800
- 8002bb8:	20000294 	.word	0x20000294
+ 8002bb8:	20000298 	.word	0x20000298
  8002bbc:	007b98a0 	.word	0x007b98a0
 
 08002bc0 <MX_DMA_Init>:
@@ -6677,9 +6677,9 @@ void  USART2_RX_Callback(void)
  8002f2c:	46bd      	mov	sp, r7
  8002f2e:	bd80      	pop	{r7, pc}
  8002f30:	40004400 	.word	0x40004400
- 8002f34:	200004ea 	.word	0x200004ea
+ 8002f34:	200004f6 	.word	0x200004f6
  8002f38:	20000060 	.word	0x20000060
- 8002f3c:	200024f0 	.word	0x200024f0
+ 8002f3c:	200024fc 	.word	0x200024fc
  8002f40:	20000062 	.word	0x20000062
  8002f44:	20000061 	.word	0x20000061
 
@@ -6751,10 +6751,10 @@ void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi2)
  8002fac:	b002      	add	sp, #8
  8002fae:	bd80      	pop	{r7, pc}
  8002fb0:	fffff7ff 	.word	0xfffff7ff
- 8002fb4:	20000366 	.word	0x20000366
- 8002fb8:	200004e8 	.word	0x200004e8
- 8002fbc:	200004f0 	.word	0x200004f0
- 8002fc0:	20000294 	.word	0x20000294
+ 8002fb4:	2000036a 	.word	0x2000036a
+ 8002fb8:	200004f4 	.word	0x200004f4
+ 8002fbc:	200004fc 	.word	0x200004fc
+ 8002fc0:	20000298 	.word	0x20000298
 
 08002fc4 <HAL_SPI_RxCpltCallback>:
 //==========================================================
@@ -6830,7 +6830,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8003028:	bd80      	pop	{r7, pc}
  800302a:	46c0      	nop			; (mov r8, r8)
  800302c:	50000800 	.word	0x50000800
- 8003030:	20000366 	.word	0x20000366
+ 8003030:	2000036a 	.word	0x2000036a
 
 08003034 <cmdReceive>:
 //	GPIOC->ODR |= 1 << 6;	//set BF
@@ -6961,7 +6961,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  80030f6:	bd80      	pop	{r7, pc}
  80030f8:	20000060 	.word	0x20000060
  80030fc:	20000062 	.word	0x20000062
- 8003100:	200024f0 	.word	0x200024f0
+ 8003100:	200024fc 	.word	0x200024fc
  8003104:	20000065 	.word	0x20000065
  8003108:	40004400 	.word	0x40004400
 
@@ -6984,7 +6984,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8003126:	46bd      	mov	sp, r7
  8003128:	b002      	add	sp, #8
  800312a:	bd80      	pop	{r7, pc}
- 800312c:	20000294 	.word	0x20000294
+ 800312c:	20000298 	.word	0x20000298
 
 08003130 <weoInit>:
 	void USART_AS_SPI_sendDAT(uint8_t byte) //(Without CS and D/C)
@@ -7111,7 +7111,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  80031fc:	bd80      	pop	{r7, pc}
  80031fe:	46c0      	nop			; (mov r8, r8)
  8003200:	40004800 	.word	0x40004800
- 8003204:	20000310 	.word	0x20000310
+ 8003204:	20000314 	.word	0x20000314
 
 08003208 <weoClear>:
 	void weoClear(void) {
@@ -8431,19 +8431,19 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8003aa6:	2200      	movs	r2, #0
  8003aa8:	701a      	strb	r2, [r3, #0]
  8003aaa:	e02d      	b.n	8003b08 <answer2CPU+0x3cc>
- 8003aac:	20000366 	.word	0x20000366
+ 8003aac:	2000036a 	.word	0x2000036a
  8003ab0:	50000800 	.word	0x50000800
- 8003ab4:	200003ac 	.word	0x200003ac
+ 8003ab4:	200003b8 	.word	0x200003b8
  8003ab8:	40004400 	.word	0x40004400
- 8003abc:	20000365 	.word	0x20000365
- 8003ac0:	200003c0 	.word	0x200003c0
- 8003ac4:	200001f4 	.word	0x200001f4
- 8003ac8:	20000288 	.word	0x20000288
- 8003acc:	200003a9 	.word	0x200003a9
+ 8003abc:	20000369 	.word	0x20000369
+ 8003ac0:	200003cc 	.word	0x200003cc
+ 8003ac4:	200001f8 	.word	0x200001f8
+ 8003ac8:	2000028c 	.word	0x2000028c
+ 8003acc:	200003b5 	.word	0x200003b5
  8003ad0:	200000a0 	.word	0x200000a0
- 8003ad4:	20000429 	.word	0x20000429
- 8003ad8:	200001f1 	.word	0x200001f1
- 8003adc:	200002f4 	.word	0x200002f4
+ 8003ad4:	20000435 	.word	0x20000435
+ 8003ad8:	200001f4 	.word	0x200001f4
+ 8003adc:	200002f8 	.word	0x200002f8
  8003ae0:	20000000 	.word	0x20000000
 					myCS = myCS + ans[i];
  8003ae4:	200e      	movs	r0, #14
@@ -8968,7 +8968,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 					while(ans[i])
  8003e54:	e01f      	b.n	8003e96 <answer2CPU+0x75a>
  8003e56:	46c0      	nop			; (mov r8, r8)
- 8003e58:	200003ac 	.word	0x200003ac
+ 8003e58:	200003b8 	.word	0x200003b8
  8003e5c:	40004400 	.word	0x40004400
  8003e60:	20000014 	.word	0x20000014
  8003e64:	20000020 	.word	0x20000020
@@ -9172,9 +9172,9 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8003fb0:	b004      	add	sp, #16
  8003fb2:	bd80      	pop	{r7, pc}
  8003fb4:	40004400 	.word	0x40004400
- 8003fb8:	200003ac 	.word	0x200003ac
- 8003fbc:	20000300 	.word	0x20000300
- 8003fc0:	200001f2 	.word	0x200001f2
+ 8003fb8:	200003b8 	.word	0x200003b8
+ 8003fbc:	20000304 	.word	0x20000304
+ 8003fc0:	200001f5 	.word	0x200001f5
 
 08003fc4 <MEM_Reset>:
 //==================================================================================================================================
@@ -9451,7 +9451,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8004188:	ffffdfe4 	.word	0xffffdfe4
  800418c:	ffffdfef 	.word	0xffffdfef
  8004190:	00002018 	.word	0x00002018
- 8004194:	200004e8 	.word	0x200004e8
+ 8004194:	200004f4 	.word	0x200004f4
  8004198:	20000032 	.word	0x20000032
  800419c:	00002013 	.word	0x00002013
  80041a0:	00002014 	.word	0x00002014
@@ -9459,7 +9459,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  80041a8:	50000800 	.word	0x50000800
  80041ac:	ffff7fff 	.word	0xffff7fff
  80041b0:	200000b0 	.word	0x200000b0
- 80041b4:	200004f0 	.word	0x200004f0
+ 80041b4:	200004fc 	.word	0x200004fc
  80041b8:	0000201c 	.word	0x0000201c
 
 080041bc <weoShowSmallImage>:
@@ -9885,11 +9885,11 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  80044c0:	0000201f 	.word	0x0000201f
  80044c4:	ffffdfe8 	.word	0xffffdfe8
  80044c8:	0000201e 	.word	0x0000201e
- 80044cc:	200004e8 	.word	0x200004e8
+ 80044cc:	200004f4 	.word	0x200004f4
  80044d0:	00002018 	.word	0x00002018
  80044d4:	40004400 	.word	0x40004400
  80044d8:	00002027 	.word	0x00002027
- 80044dc:	20000366 	.word	0x20000366
+ 80044dc:	2000036a 	.word	0x2000036a
  80044e0:	0000202c 	.word	0x0000202c
 
 080044e4 <MEM_GetID>:
@@ -10329,18 +10329,18 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  800477e:	b002      	add	sp, #8
  8004780:	bd80      	pop	{r7, pc}
  8004782:	46c0      	nop			; (mov r8, r8)
- 8004784:	200024f0 	.word	0x200024f0
- 8004788:	200003c0 	.word	0x200003c0
+ 8004784:	200024fc 	.word	0x200024fc
+ 8004788:	200003cc 	.word	0x200003cc
  800478c:	40004400 	.word	0x40004400
- 8004790:	20000365 	.word	0x20000365
- 8004794:	200001f4 	.word	0x200001f4
- 8004798:	20000288 	.word	0x20000288
- 800479c:	200003a9 	.word	0x200003a9
+ 8004790:	20000369 	.word	0x20000369
+ 8004794:	200001f8 	.word	0x200001f8
+ 8004798:	2000028c 	.word	0x2000028c
+ 800479c:	200003b5 	.word	0x200003b5
  80047a0:	200000a0 	.word	0x200000a0
- 80047a4:	20000429 	.word	0x20000429
+ 80047a4:	20000435 	.word	0x20000435
  80047a8:	50000800 	.word	0x50000800
- 80047ac:	200001f1 	.word	0x200001f1
- 80047b0:	200002f4 	.word	0x200002f4
+ 80047ac:	200001f4 	.word	0x200001f4
+ 80047b0:	200002f8 	.word	0x200002f8
 
 080047b4 <printASCIIarray>:
 //========================================================================================================================
@@ -10667,13 +10667,13 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  80049de:	46bd      	mov	sp, r7
  80049e0:	b02c      	add	sp, #176	; 0xb0
  80049e2:	bdb0      	pop	{r4, r5, r7, pc}
- 80049e4:	200004e8 	.word	0x200004e8
+ 80049e4:	200004f4 	.word	0x200004f4
  80049e8:	0800e9bc 	.word	0x0800e9bc
  80049ec:	20000064 	.word	0x20000064
  80049f0:	20000030 	.word	0x20000030
  80049f4:	20000031 	.word	0x20000031
  80049f8:	50000800 	.word	0x50000800
- 80049fc:	20000366 	.word	0x20000366
+ 80049fc:	2000036a 	.word	0x2000036a
 
 08004a00 <squeak_single>:
 //=============================================================================================================
@@ -10819,7 +10819,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8004b0c:	40dfffc0 	.word	0x40dfffc0
  8004b10:	ffffeff0 	.word	0xffffeff0
  8004b14:	00001010 	.word	0x00001010
- 8004b18:	2000036c 	.word	0x2000036c
+ 8004b18:	20000370 	.word	0x20000370
  8004b1c:	00001014 	.word	0x00001014
 
 08004b20 <squeak_long>:
@@ -11014,9 +11014,9 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8004c8c:	40dfffc0 	.word	0x40dfffc0
  8004c90:	ffffeff0 	.word	0xffffeff0
  8004c94:	00001010 	.word	0x00001010
- 8004c98:	2000036c 	.word	0x2000036c
+ 8004c98:	20000370 	.word	0x20000370
  8004c9c:	50000800 	.word	0x50000800
- 8004ca0:	20000366 	.word	0x20000366
+ 8004ca0:	2000036a 	.word	0x2000036a
  8004ca4:	00001014 	.word	0x00001014
 
 08004ca8 <squeak_double>:
@@ -11171,7 +11171,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8004dc8:	40dfffc0 	.word	0x40dfffc0
  8004dcc:	ffffeff0 	.word	0xffffeff0
  8004dd0:	00001010 	.word	0x00001010
- 8004dd4:	2000036c 	.word	0x2000036c
+ 8004dd4:	20000370 	.word	0x20000370
  8004dd8:	00001014 	.word	0x00001014
 
 08004ddc <squeak_triple>:
@@ -11338,7 +11338,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8004f10:	40dfffc0 	.word	0x40dfffc0
  8004f14:	ffffeff0 	.word	0xffffeff0
  8004f18:	00001010 	.word	0x00001010
- 8004f1c:	2000036c 	.word	0x2000036c
+ 8004f1c:	20000370 	.word	0x20000370
  8004f20:	00001014 	.word	0x00001014
 
 08004f24 <Error_Handler>:
@@ -11835,7 +11835,7 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* hi2s)
  80051d0:	40013000 	.word	0x40013000
  80051d4:	40021000 	.word	0x40021000
  80051d8:	50000400 	.word	0x50000400
- 80051dc:	2000048c 	.word	0x2000048c
+ 80051dc:	20000498 	.word	0x20000498
  80051e0:	40020008 	.word	0x40020008
 
 080051e4 <HAL_SPI_MspInit>:
@@ -12098,7 +12098,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  800535c:	50000400 	.word	0x50000400
  8005360:	20000194 	.word	0x20000194
  8005364:	4002001c 	.word	0x4002001c
- 8005368:	2000042c 	.word	0x2000042c
+ 8005368:	20000438 	.word	0x20000438
  800536c:	40020030 	.word	0x40020030
 
 08005370 <HAL_TIM_Base_MspInit>:
@@ -12452,7 +12452,7 @@ void HAL_USART_MspInit(USART_HandleTypeDef* husart)
  8005560:	40004800 	.word	0x40004800
  8005564:	40021000 	.word	0x40021000
  8005568:	50000400 	.word	0x50000400
- 800556c:	200001f8 	.word	0x200001f8
+ 800556c:	200001fc 	.word	0x200001fc
  8005570:	40020044 	.word	0x40020044
 
 08005574 <LL_USART_IsActiveFlag_FE>:
@@ -12683,7 +12683,7 @@ void DMA1_Channel1_IRQHandler(void)
  800565e:	46bd      	mov	sp, r7
  8005660:	bd80      	pop	{r7, pc}
  8005662:	46c0      	nop			; (mov r8, r8)
- 8005664:	2000048c 	.word	0x2000048c
+ 8005664:	20000498 	.word	0x20000498
 
 08005668 <DMA1_Channel2_3_IRQHandler>:
 
@@ -12715,7 +12715,7 @@ void DMA1_Channel2_3_IRQHandler(void)
  8005680:	bd80      	pop	{r7, pc}
  8005682:	46c0      	nop			; (mov r8, r8)
  8005684:	20000194 	.word	0x20000194
- 8005688:	2000042c 	.word	0x2000042c
+ 8005688:	20000438 	.word	0x20000438
 
 0800568c <DMA1_Ch4_7_DMAMUX1_OVR_IRQHandler>:
 
@@ -12742,7 +12742,7 @@ void DMA1_Ch4_7_DMAMUX1_OVR_IRQHandler(void)
  800569a:	46bd      	mov	sp, r7
  800569c:	bd80      	pop	{r7, pc}
  800569e:	46c0      	nop			; (mov r8, r8)
- 80056a0:	200001f8 	.word	0x200001f8
+ 80056a0:	200001fc 	.word	0x200001fc
 
 080056a4 <I2C1_IRQHandler>:
 
@@ -12810,7 +12810,7 @@ void SPI1_IRQHandler(void)
  80056e2:	46bd      	mov	sp, r7
  80056e4:	bd80      	pop	{r7, pc}
  80056e6:	46c0      	nop			; (mov r8, r8)
- 80056e8:	2000036c 	.word	0x2000036c
+ 80056e8:	20000370 	.word	0x20000370
 
 080056ec <SPI2_IRQHandler>:
 
@@ -12968,7 +12968,7 @@ void USART3_4_LPUART1_IRQHandler(void)
  80057b2:	46bd      	mov	sp, r7
  80057b4:	bd80      	pop	{r7, pc}
  80057b6:	46c0      	nop			; (mov r8, r8)
- 80057b8:	20000294 	.word	0x20000294
+ 80057b8:	20000298 	.word	0x20000298
 
 080057bc <SystemInit>:
   * @brief  Setup the microcontroller system.
@@ -13092,7 +13092,7 @@ LoopForever:
   ldr r2, =_sbss
  800581c:	20000040 	.word	0x20000040
   ldr r4, =_ebss
- 8005820:	20002510 	.word	0x20002510
+ 8005820:	2000251c 	.word	0x2000251c
 
 08005824 <ADC1_COMP_IRQHandler>:
  * @retval None
@@ -13295,7 +13295,7 @@ __weak void HAL_IncTick(void)
  8005914:	bd80      	pop	{r7, pc}
  8005916:	46c0      	nop			; (mov r8, r8)
  8005918:	2000003c 	.word	0x2000003c
- 800591c:	2000250c 	.word	0x2000250c
+ 800591c:	20002518 	.word	0x20002518
 
 08005920 <HAL_GetTick>:
   * @note This function is declared as __weak to be overwritten in case of other
@@ -13314,7 +13314,7 @@ __weak uint32_t HAL_GetTick(void)
  800592a:	46bd      	mov	sp, r7
  800592c:	bd80      	pop	{r7, pc}
  800592e:	46c0      	nop			; (mov r8, r8)
- 8005930:	2000250c 	.word	0x2000250c
+ 8005930:	20002518 	.word	0x20002518
 
 08005934 <HAL_Delay>:
   *       implementations in user file.

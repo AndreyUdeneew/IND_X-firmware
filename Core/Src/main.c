@@ -169,6 +169,7 @@ uint8_t  Y_increment=0x0E;
 uint8_t  ASCII_height=0x0E;
 uint8_t dataASCII[16], I2Cbuf[5];
 uint16_t uartData[10];
+int16_t xVal, yVal, zVal = 0x00;
 uint32_t MEM_ID = 0;
 uint16_t PAGE_SIZE = 4096;
 extern uint32_t addr;
@@ -178,6 +179,7 @@ extern uint8_t imInfo[6];
 extern uint8_t keyboard, cmdLen;
 extern uint8_t currentVolume = 0x09;
 uint8_t cmd[25];
+uint8_t accelBuff[6];
 uint16_t ans[10];
 uint8_t bf=0x7F;
 uint8_t tmp_str[10];
@@ -246,6 +248,8 @@ void squeak_triple(void);
 void MEM_Write(uint32_t addr);
 void LIS3DHsetup(void);
 uint8_t LIS3DHreadReg(uint8_t reg);
+uint8_t LIS3DHreadData(void);
+uint16_t Accel_ReadAcc(void);
 void Demo(void);
 void weoDrawRectangleFilled(unsigned char start_x, unsigned char start_y,
 		unsigned char end_x, unsigned char end_y, unsigned char color,
@@ -2020,8 +2024,26 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 	uint8_t LIS3DHreadReg(uint8_t reg){
 			uint8_t value;
 //			HAL_I2C_Master_Receive(&hi2c1, (uint16_t) 0x33, reg,&value, 1, 0x10000);	//33h - address for reading
-			HAL_I2C_Mem_Read(&hi2c1, (uint16_t) 0x33, reg,I2C_MEMADD_SIZE_8BIT,&value, 1, 0x10000);	//33h - address for reading
+			HAL_I2C_Mem_Read(&hi2c1, (uint8_t) 0x33, reg,I2C_MEMADD_SIZE_8BIT,&value, 1, 0x10000);	//33h - address for reading
 			return value;
+	}
+//=============================================================================================================
+	uint8_t LIS3DHreadData(void){
+			accelBuff[0]=LIS3DHreadReg(OUTXH);
+			accelBuff[1]=LIS3DHreadReg(OUTXL);
+			accelBuff[2]=LIS3DHreadReg(OUTYH);
+			accelBuff[3]=LIS3DHreadReg(OUTYL);
+			accelBuff[4]=LIS3DHreadReg(OUTZH);
+			accelBuff[5]=LIS3DHreadReg(OUTZL);
+	}
+//=============================================================================================================
+	uint16_t Accel_ReadAcc(void){
+	        int16_t buffer[3] = {0};
+	        uint16_t tmp16 = 0;
+	        Accel_GetXYZ(buffer);
+	  xVal = buffer[0];
+	  yVal = buffer[1];
+	  zVal = buffer[2];
 	}
 //=============================================================================================================
 	void LIS3DHsetup(void){
