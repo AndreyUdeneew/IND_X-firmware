@@ -203,6 +203,17 @@ uint8_t dma_spi_fl=0;
 uint16_t dma_spi_cnt=1;
 uint16_t len;
 uint8_t MEM_Buffer[8192];
+uint32_t address;
+uint32_t curAddr;
+
+
+
+//volatile bool end_of_file_reached = false;
+//volatile bool read_next_chunk = false;
+volatile uint16_t* signal_play_buff = NULL;
+volatile uint16_t* signal_read_buff = NULL;
+//volatile uint16_t signal_buff1[4096];
+//volatile uint16_t signal_buff2[4096];
 //FATFS USBDISKFatFs;
 
 //FIL WavFile;
@@ -999,21 +1010,20 @@ void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi2)
   		GPIOA->ODR |= 1 << 7;	//set   dc of DISPLAY
   		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,len);
   	}
-  	if(cmd2Execute==0x13){
-
-//  	  		HAL_SPI_Transmit_DMA(&hspi1, MEM_Buffer,len);
+  	if(cmd2Execute==0x14){
+  	  		HAL_I2S_Transmit_DMA(&hi2s1, MEM_Buffer,len*2);
   	  	}
 
 }
 //==========================================================
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi2)
 {
-//	if(cmd2Execute==0x11){
+	if(cmd2Execute==0x11){
 		GPIOC->ODR |= 1 << 15; // set cs
-//	}
-//	if(cmd2Execute==0x13){
-//
-//	}
+	}
+	if(cmd2Execute==0x14){
+
+	}
 }
 //==============================================================
 void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
@@ -1033,7 +1043,28 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 //	GPIOC->ODR |= 1 << 6;	//set BF
 //	cmd2Execute=0;
 }
-//==============================================================
+//======================================================================================================================
+void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
+	uint8_t addr[4];
+    if ((curAddr+sizeof(MEM_Buffer))<(address+len)){
+
+    	addr[0]=curAddr & 0xFF;
+		addr[1]=(curAddr >> 8) & 0xFF;
+		addr[2]=(curAddr >> 16) & 0xFF;
+		addr[3]=(curAddr >> 24) & 0xFF;
+
+		uint8_t memCMD = 0x13; //read command with 4-byte address
+    	GPIOC->ODR &= ~(1 << 15); //reset cs
+		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
+		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[3], 1, 50); //send address
+		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[2], 1, 50); //send address
+		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[1], 1, 50); //send address
+		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[0], 1, 50); //send address
+		HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) &MEM_Buffer ,len);
+		curAddr+=sizeof(MEM_Buffer);
+    }
+}
+//=======================================================================================================================
 	void cmdReceive (uint16_t dt1)
 	{
 //	  uint8_t inputCS=0;
@@ -1648,7 +1679,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 			uint8_t memCMD,addr_l,addr_L,addr_h,addr_H;
 			uint8_t MEM_Buffer[8192], soundInfo[9],addrINFO[4],addr[4],length[4];
 			uint16_t i, len;
-			uint32_t addrInfo,address,firstImAddr;
+			uint32_t addrInfo,firstImAddr;
 			memCMD = 0x13; //read command with 4-byte address
 
 			address=startAddressForSoundInfo+(soundNum*0x09);
