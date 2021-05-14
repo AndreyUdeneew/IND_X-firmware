@@ -76,12 +76,12 @@ void Error_Handler(void);
 #define MEM_WP_GPIO_Port GPIOC
 #define MEM_CS_Pin LL_GPIO_PIN_15
 #define MEM_CS_GPIO_Port GPIOC
-#define KEY_1_Pin LL_GPIO_PIN_0
-#define KEY_1_GPIO_Port GPIOA
+#define KEY_3_Pin LL_GPIO_PIN_0
+#define KEY_3_GPIO_Port GPIOA
 #define KEY_2_Pin LL_GPIO_PIN_1
 #define KEY_2_GPIO_Port GPIOA
-#define KEY_3_Pin LL_GPIO_PIN_4
-#define KEY_3_GPIO_Port GPIOA
+#define KEY_1_Pin LL_GPIO_PIN_4
+#define KEY_1_GPIO_Port GPIOA
 #define DISP_SDI_Pin LL_GPIO_PIN_5
 #define DISP_SDI_GPIO_Port GPIOA
 #define DISP_CS_Pin LL_GPIO_PIN_6

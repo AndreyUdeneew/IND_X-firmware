@@ -900,10 +900,10 @@ static void MX_GPIO_Init(void)
   LL_GPIO_Init(MEM_CS_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = KEY_1_Pin;
+  GPIO_InitStruct.Pin = KEY_3_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  LL_GPIO_Init(KEY_1_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(KEY_3_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = KEY_2_Pin;
@@ -912,10 +912,10 @@ static void MX_GPIO_Init(void)
   LL_GPIO_Init(KEY_2_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = KEY_3_Pin;
+  GPIO_InitStruct.Pin = KEY_1_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  LL_GPIO_Init(KEY_3_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(KEY_1_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = DISP_CS_Pin;
@@ -956,6 +956,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(TEST_2_GPIO_Port, &GPIO_InitStruct);
+
   	  GPIO_InitStruct.Pin = KEY_4_Pin;
   	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
@@ -1019,7 +1020,7 @@ void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi2)
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi2)
 {
 	if(cmd2Execute==0x11){
-		GPIOC->ODR |= 1 << 15; // set cs
+		GPIOB->ODR |= 1 << 9; // set cs
 	}
 	if(cmd2Execute==0x14){
 
@@ -1054,7 +1055,7 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		addr[3]=(curAddr >> 24) & 0xFF;
 
 		uint8_t memCMD = 0x13; //read command with 4-byte address
-    	GPIOC->ODR &= ~(1 << 15); //reset cs
+    	GPIOB->ODR &= ~(1 << 9); //reset cs
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[3], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[2], 1, 50); //send address
@@ -1283,13 +1284,13 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		ans[0] = cmd[0]|0x80;
 //==================================================================================================
 			if ((cmd[0] >= 0x10)&&(cmd[0] < 0x16)) { //answer is keyboard + stuff information                  0003
-				if ((GPIOA->IDR & (1 << 0)) == 0) {
+				if ((GPIOA->IDR & (1 << 4)) == 0) {
 					keyboard &= 0b11111110;
 				}
 				if ((GPIOA->IDR & (1 << 1)) == 0) {
 					keyboard &= 0b11111101;
 				}
-				if ((GPIOA->IDR & (1 << 4)) == 0) {
+				if ((GPIOA->IDR & (1 << 0)) == 0) {
 					keyboard &= 0b11111011;
 				}
 				if ((GPIOA->IDR & (1 << 13)) == 0) {
@@ -1488,26 +1489,26 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 	void MEM_Reset(void) {
 		uint8_t memCMD;
 		HAL_Delay(1); //200 ms by Andrew
-		GPIOC->ODR &= ~(1 << 15); //reset cs
+		GPIOB->ODR &= ~(1 << 9); //reset cs
 		memCMD = 0x66;
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 5); //reset enable
-		GPIOC->ODR |= 1 << 15; // set cs
+		GPIOB->ODR |= 1 << 9; // set cs
 		asm("NOP");
 		__NOP();
 		asm("NOP");
 		__NOP();			//May be less NOPs?
 		asm("NOP");
 		__NOP();
-		GPIOC->ODR &= ~(1 << 15);			//reset cs
+		GPIOB->ODR &= ~(1 << 9);			//reset cs
 		memCMD = 0x99;
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 5); //reset memory
-		GPIOC->ODR |= 1 << 15; // set cs
+		GPIOB->ODR |= 1 << 9; // set cs
 		HAL_Delay(1); //200 ms by Andrew
 //=============================================================================================================
 		memCMD = 0xB7;												//	Activation 0f 4-bytes address mode
-		GPIOC->ODR &= ~(1 << 15); //reset cs
+		GPIOB->ODR &= ~(1 << 9); //reset cs
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 5); //reset enable
-		GPIOC->ODR |= 1 << 15; // set cs
+		GPIOB->ODR |= 1 << 9; // set cs
 		HAL_Delay(1); //200 ms by Andrew
 	}
 //==================================================================================================================================
@@ -1525,14 +1526,14 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		addrArray[2]=(addr >> 16) & 0xFF;
 		addrArray[3]=(addr >> 24) & 0xFF;
 
-		GPIOC->ODR &= ~(1 << 15); //reset cs
+		GPIOB->ODR &= ~(1 << 9); //reset cs
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[3], 1, 50); //send address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2], 1, 50); //send address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1], 1, 50); //send address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0], 1, 50); //send address
 			HAL_SPI_Receive(&hspi2, (uint8_t*) &MEM_Buffer,8192, 5000);
-		GPIOC->ODR |= 1 << 15; // set cs
+		GPIOB->ODR |= 1 << 9; // set cs
 
 		weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, MEM_Buffer); // Здесь ещё работает
 
@@ -1561,7 +1562,7 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		addrArray[2]=(addr >> 16) & 0xFF;
 		addrArray[3]=(addr >> 24) & 0xFF;
 
-		GPIOC->ODR &= ~(1 << 15); //reset cs
+		GPIOB->ODR &= ~(1 << 9); //reset cs
 
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[3], 1, 50); //send address
@@ -1589,14 +1590,14 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		addrArray[2]=(addr >> 16) & 0xFF;
 		addrArray[3]=(addr >> 24) & 0xFF;
 
-		GPIOC->ODR &= ~(1 << 15); //reset cs
+		GPIOB->ODR &= ~(1 << 9); //reset cs
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[3], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0], 1, 50); //send address
 		HAL_SPI_Receive(&hspi2, (uint8_t*) &imInfo,2, 5000);
-		GPIOC->ODR |= 1 << 15; // set cs
+		GPIOB->ODR |= 1 << 9; // set cs
 
 		width=imInfo[0];
 		height=imInfo[1];
@@ -1612,14 +1613,14 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		USART2->ICR|=USART_ICR_ORECF;
 		memCMD = 0x13; //read command with 4-byte address
 
-		GPIOC->ODR &= ~(1 << 15);	//reset cs
+		GPIOB->ODR &= ~(1 <<9);	//reset cs
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50);//read command with 4-byte address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[3],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0],1, 50);	//send address
 		HAL_SPI_Receive(&hspi2, (uint8_t*) &MEM_Buffer,len, 5000);// 7 information bits about the image
-		GPIOC->ODR |= 1 << 15;	// set cs
+		GPIOB->ODR |= 1 << 9;	// set cs
 
 		decY=0x01;
 		if(imY % 2 !=0){
@@ -1645,14 +1646,14 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		addrArray[2]=(addr >> 16) & 0xFF;
 		addrArray[3]=(addr >> 24) & 0xFF;
 
-		GPIOC->ODR &= ~(1 << 15); //reset cs
+		GPIOB->ODR &= ~(1 << 9); //reset cs
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[3], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0], 1, 50); //send address
 		HAL_SPI_Receive(&hspi2, (uint8_t*) &imInfo,2, 5000);
-		GPIOC->ODR |= 1 << 15; // set cs
+		GPIOB->ODR |= 1 << 9; // set cs
 
 		width=imInfo[0];
 		height=imInfo[1];
@@ -1666,7 +1667,7 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		USART2->ICR|=USART_ICR_ORECF;
 		memCMD = 0x13; //read command with 4-byte address
 
-		GPIOC->ODR &= ~(1 << 15);	//reset cs
+		GPIOB->ODR &= ~(1 <<9);	//reset cs
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50);//read command with 4-byte address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[3],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2],1, 50);	//send address
@@ -1689,14 +1690,14 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			addrINFO[2]=(address >> 16) & 0xFF;
 			addrINFO[3]=(address >> 24) & 0xFF;
 
-			GPIOC->ODR &= ~(1 << 15); //reset cs
+			GPIOB->ODR &= ~(1 << 9); //reset cs
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[3], 1, 50); //send address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[2], 1, 50); //send address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[1], 1, 50); //send address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[0], 1, 50); //send address
 			HAL_SPI_Receive(&hspi2, (uint8_t*) &soundInfo,9, 5000);//9 bits of soundInfo
-			GPIOC->ODR |= 1 << 15; // set cs
+			GPIOB->ODR |= 1 << 9; // set cs
 
 			addr[0]=soundInfo[4];
 			addr[1]=soundInfo[3];
@@ -1716,7 +1717,7 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			len<<=8;
 			len|=length[0];
 
-			GPIOC->ODR &= ~(1 << 15); //reset cs
+			GPIOB->ODR &= ~(1 << 9); //reset cs
 
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[3], 1, 50); //send address
@@ -1727,35 +1728,35 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		}
 	void MEM_Write(uint32_t addr) {
 		uint8_t dat;
-		GPIOC->ODR &= ~(1 << 15);	//reset cs
+		GPIOB->ODR &= ~(1 <<9);	//reset cs
 		dat = 0x06;
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &dat, 1, 5);//write enable Is it neccessary, if WP pin is used????????????????????????????
-		GPIOC->ODR |= 1 << 15;	// set cs
+		GPIOB->ODR |= 1 << 9;	// set cs
 //	GPIOC->ODR |= 1 << 14;// Write Enable
 		asm("NOP");
 		asm("NOP");
 		addr *= DATA_COUNT;
-		GPIOC->ODR &= ~(1 << 15);	//reset cs
+		GPIOB->ODR &= ~(1 <<9);	//reset cs
 		dat = 0x12;
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &dat, 1, 5);//write command with 4-byte address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr, 4, 5);	//send address
 		for (uint16_t i = 0; i < DATA_COUNT; i++) {
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &MEM_Buffer[i], 1, 5000);	//
 		}
-		GPIOC->ODR |= 1 << 15;	// set cs
+		GPIOB->ODR |= 1 << 9;	// set cs
 		asm("NOP");
 		asm("NOP");
-		GPIOC->ODR &= ~(1 << 15);	//reset cs
+		GPIOB->ODR &= ~(1 <<9);	//reset cs
 		dat = 0x04;
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &dat, 1, 5);//write disable Is it neccessary, if WP pin is used????????????????????????????
-		GPIOC->ODR |= 1 << 15;	// set cs
+		GPIOB->ODR |= 1 << 9;	// set cs
 //    GPIOC->ODR &= ~(1 << 14);//Write Disable
 	}
 	uint32_t MEM_GetID(void) {
 		uint8_t dat;
 		uint8_t tmp[1] = { 0x00 };
 		dat = 0x9E;
-		GPIOC->ODR &= ~(1 << 15);	//reset cs
+		GPIOB->ODR &= ~(1 <<9);	//reset cs
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &dat, 1, 50);	//read ID command
 		HAL_SPI_Receive(&hspi2, tmp, 1, 1000);
 		MEM_ID = (uint32_t) tmp[0];
@@ -1765,20 +1766,20 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		MEM_ID <<= 8;
 		HAL_SPI_Receive(&hspi2, tmp, 1, 1000);
 		MEM_ID += (uint32_t) tmp[0];
-		GPIOC->ODR |= 1 << 15;                    			// set cs
+		GPIOB->ODR |= 1 << 9;                    			// set cs
 		return (MEM_ID);
 	}
 	void MEM_EraseImg(unsigned long addr) {
-		GPIOC->ODR &= ~(1 << 15);                    			//reset cs
+		GPIOB->ODR &= ~(1 << 9);                    			//reset cs
 		uint8_t dat;
 		dat = 0x06;
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &dat, 1, 5); //write enable Is it neccessary, if WP pin is used????????????????????????????
-		GPIOC->ODR |= 1 << 15;                    			// set cs
+		GPIOB->ODR |= 1 << 9;                    			// set cs
 		//	GPIOC->ODR |= 1 << 14;// Write Enable
 		asm("NOP");
 		asm("NOP");
 		addr = addr * PAGE_SIZE;
-		GPIOC->ODR &= ~(1 << 15);    //reset cs
+		GPIOB->ODR &= ~(1 << 9);    //reset cs
 		dat = 0x21;
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &dat, 1, 5); //subSector (4096 bytes) erase command
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr, 4, 5);    //send address
@@ -1786,13 +1787,13 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		dat = 0x21;
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &dat, 1, 5); //subSector (4096 bytes) erase command
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr, 4, 5);    //send address
-		GPIOC->ODR |= 1 << 15;    // set cs
+		GPIOB->ODR |= 1 << 9;    // set cs
 		asm("NOP");
 		asm("NOP");
-		GPIOC->ODR &= ~(1 << 15);    //reset cs
+		GPIOB->ODR &= ~(1 << 9);    //reset cs
 		dat = 0x04;
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &dat, 1, 5); //write disable Is it neccessary, if WP pin is used????????????????????????????
-		GPIOC->ODR |= 1 << 15;    // set cs
+		GPIOB->ODR |= 1 << 9;    // set cs
 		//    GPIOC->ODR &= ~(1 << 14);//Write Disable
 	}
 //==================================================================================================================================
