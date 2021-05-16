@@ -1031,18 +1031,16 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 {
 	GPIOA->ODR &= ~(1 << 7);	//reset dc
 	GPIOA->ODR |= 1 << 6;	//set cs
-
-	GPIOC->ODR |= 1 << 6;	//set BF
 	cmd2Execute=0;
+	GPIOC->ODR |= 1 << 6;	//set BF
 }
 //==============================================================
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 {
 //	GPIOA->ODR &= ~(1 << 7);	//reset dc	????????????????????????????????????????????????
 //	GPIOA->ODR |= 1 << 6;	//set cs		????????????????????????????????????????????????
-
+	//	cmd2Execute=0;
 //	GPIOC->ODR |= 1 << 6;	//set BF
-//	cmd2Execute=0;
 }
 //======================================================================================================================
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
@@ -1536,9 +1534,8 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		GPIOB->ODR |= 1 << 9; // set cs
 
 		weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, MEM_Buffer); // Здесь ещё работает
-
-		GPIOC->ODR |= 1 << 6;	//set BF
 		cmd2Execute=0;
+		GPIOC->ODR |= 1 << 6;	//set BF
 	}
 //==========================================================================================================================
 
@@ -1627,8 +1624,8 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			decY=0x02;
 		}
 		weoDrawRectangleFilled(imX, imY, imX+width-1, imY+height-decY, 0xFF,MEM_Buffer);	// Здесь ещё работает 0xFF - затычка
-		GPIOC->ODR |= 1 << 6;	//set BF
 		cmd2Execute=0;
+		GPIOC->ODR |= 1 << 6;	//set BF
 	}
 	uint8_t weoShowSmallImageDMA(uint8_t picNum, uint8_t imX, uint8_t imY) {
 
@@ -1857,8 +1854,8 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				}
 			if(numSound!=0x04){
 			HAL_Delay(500);
-			GPIOC->ODR |= 1 << 6;	//set BF
 			cmd2Execute=0;
+			GPIOC->ODR |= 1 << 6;	//set BF
 			}
 		}
 		if(cmd2Execute==0x15){
@@ -1884,8 +1881,8 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				GPIOA->ODR |= 1 << 6;	//set cs
 			}
 //			bf4me=0x15;	//set BF flag 4 me
-			GPIOC->ODR |= 1 << 6;	//set BF
 			cmd2Execute=0;
+			GPIOC->ODR |= 1 << 6;	//set BF
 		}
 		if(cmd2Execute==0x16){
 			bf4me=0x16;	//set BF flag 4 me
@@ -1939,9 +1936,8 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			for(i=0;i<len;i++){
 					weoBuffer[j]=0x00;
 			}
-
-			GPIOC->ODR |= 1 << 6;	//set BF
 			cmd2Execute=0;
+			GPIOC->ODR |= 1 << 6;	//set BF
 		}
 //=============================================================================================================
 	void squeak_single(void){

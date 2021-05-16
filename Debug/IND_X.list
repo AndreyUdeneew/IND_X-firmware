@@ -6831,31 +6831,30 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
  8003036:	2140      	movs	r1, #64	; 0x40
  8003038:	430a      	orrs	r2, r1
  800303a:	615a      	str	r2, [r3, #20]
-
-	GPIOC->ODR |= 1 << 6;	//set BF
- 800303c:	4b06      	ldr	r3, [pc, #24]	; (8003058 <HAL_USART_TxCpltCallback+0x44>)
- 800303e:	695a      	ldr	r2, [r3, #20]
- 8003040:	4b05      	ldr	r3, [pc, #20]	; (8003058 <HAL_USART_TxCpltCallback+0x44>)
- 8003042:	2140      	movs	r1, #64	; 0x40
- 8003044:	430a      	orrs	r2, r1
- 8003046:	615a      	str	r2, [r3, #20]
 	cmd2Execute=0;
- 8003048:	4b04      	ldr	r3, [pc, #16]	; (800305c <HAL_USART_TxCpltCallback+0x48>)
- 800304a:	2200      	movs	r2, #0
- 800304c:	701a      	strb	r2, [r3, #0]
+ 800303c:	4b06      	ldr	r3, [pc, #24]	; (8003058 <HAL_USART_TxCpltCallback+0x44>)
+ 800303e:	2200      	movs	r2, #0
+ 8003040:	701a      	strb	r2, [r3, #0]
+	GPIOC->ODR |= 1 << 6;	//set BF
+ 8003042:	4b06      	ldr	r3, [pc, #24]	; (800305c <HAL_USART_TxCpltCallback+0x48>)
+ 8003044:	695a      	ldr	r2, [r3, #20]
+ 8003046:	4b05      	ldr	r3, [pc, #20]	; (800305c <HAL_USART_TxCpltCallback+0x48>)
+ 8003048:	2140      	movs	r1, #64	; 0x40
+ 800304a:	430a      	orrs	r2, r1
+ 800304c:	615a      	str	r2, [r3, #20]
 }
  800304e:	46c0      	nop			; (mov r8, r8)
  8003050:	46bd      	mov	sp, r7
  8003052:	b002      	add	sp, #8
  8003054:	bd80      	pop	{r7, pc}
  8003056:	46c0      	nop			; (mov r8, r8)
- 8003058:	50000800 	.word	0x50000800
- 800305c:	20000372 	.word	0x20000372
+ 8003058:	20000372 	.word	0x20000372
+ 800305c:	50000800 	.word	0x50000800
 
 08003060 <HAL_I2S_TxHalfCpltCallback>:
-
+//	GPIOA->ODR |= 1 << 6;	//set cs		????????????????????????????????????????????????
+	//	cmd2Execute=0;
 //	GPIOC->ODR |= 1 << 6;	//set BF
-//	cmd2Execute=0;
 }
 //======================================================================================================================
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
@@ -9435,8 +9434,8 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
  800418c:	200000b0 	.word	0x200000b0
 
 08004190 <weoShowFullScreenDMA>:
-		GPIOC->ODR |= 1 << 6;	//set BF
 		cmd2Execute=0;
+		GPIOC->ODR |= 1 << 6;	//set BF
 	}
 //==========================================================================================================================
 
@@ -9996,17 +9995,17 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
  8004578:	0013      	movs	r3, r2
  800457a:	0022      	movs	r2, r4
  800457c:	f7fe ff30 	bl	80033e0 <weoDrawRectangleFilled>
-		GPIOC->ODR |= 1 << 6;	//set BF
- 8004580:	4b1a      	ldr	r3, [pc, #104]	; (80045ec <weoShowSmallImage+0x320>)
- 8004582:	695a      	ldr	r2, [r3, #20]
- 8004584:	4b19      	ldr	r3, [pc, #100]	; (80045ec <weoShowSmallImage+0x320>)
- 8004586:	2140      	movs	r1, #64	; 0x40
- 8004588:	430a      	orrs	r2, r1
- 800458a:	615a      	str	r2, [r3, #20]
 		cmd2Execute=0;
- 800458c:	4b18      	ldr	r3, [pc, #96]	; (80045f0 <weoShowSmallImage+0x324>)
- 800458e:	2200      	movs	r2, #0
- 8004590:	701a      	strb	r2, [r3, #0]
+ 8004580:	4b1a      	ldr	r3, [pc, #104]	; (80045ec <weoShowSmallImage+0x320>)
+ 8004582:	2200      	movs	r2, #0
+ 8004584:	701a      	strb	r2, [r3, #0]
+		GPIOC->ODR |= 1 << 6;	//set BF
+ 8004586:	4b1a      	ldr	r3, [pc, #104]	; (80045f0 <weoShowSmallImage+0x324>)
+ 8004588:	695a      	ldr	r2, [r3, #20]
+ 800458a:	4b19      	ldr	r3, [pc, #100]	; (80045f0 <weoShowSmallImage+0x324>)
+ 800458c:	2140      	movs	r1, #64	; 0x40
+ 800458e:	430a      	orrs	r2, r1
+ 8004590:	615a      	str	r2, [r3, #20]
 	}
  8004592:	46c0      	nop			; (mov r8, r8)
  8004594:	0018      	movs	r0, r3
@@ -10034,8 +10033,8 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
  80045e0:	00002018 	.word	0x00002018
  80045e4:	40004400 	.word	0x40004400
  80045e8:	00002027 	.word	0x00002027
- 80045ec:	50000800 	.word	0x50000800
- 80045f0:	20000372 	.word	0x20000372
+ 80045ec:	20000372 	.word	0x20000372
+ 80045f0:	50000800 	.word	0x50000800
  80045f4:	0000202c 	.word	0x0000202c
 
 080045f8 <MEM_GetID>:
@@ -10315,17 +10314,17 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
  800479c:	005b      	lsls	r3, r3, #1
  800479e:	0018      	movs	r0, r3
  80047a0:	f001 f952 	bl	8005a48 <HAL_Delay>
-			GPIOC->ODR |= 1 << 6;	//set BF
- 80047a4:	4b45      	ldr	r3, [pc, #276]	; (80048bc <cmdExecute+0x1f4>)
- 80047a6:	695a      	ldr	r2, [r3, #20]
- 80047a8:	4b44      	ldr	r3, [pc, #272]	; (80048bc <cmdExecute+0x1f4>)
- 80047aa:	2140      	movs	r1, #64	; 0x40
- 80047ac:	430a      	orrs	r2, r1
- 80047ae:	615a      	str	r2, [r3, #20]
 			cmd2Execute=0;
- 80047b0:	1dfb      	adds	r3, r7, #7
- 80047b2:	2200      	movs	r2, #0
- 80047b4:	701a      	strb	r2, [r3, #0]
+ 80047a4:	1dfb      	adds	r3, r7, #7
+ 80047a6:	2200      	movs	r2, #0
+ 80047a8:	701a      	strb	r2, [r3, #0]
+			GPIOC->ODR |= 1 << 6;	//set BF
+ 80047aa:	4b44      	ldr	r3, [pc, #272]	; (80048bc <cmdExecute+0x1f4>)
+ 80047ac:	695a      	ldr	r2, [r3, #20]
+ 80047ae:	4b43      	ldr	r3, [pc, #268]	; (80048bc <cmdExecute+0x1f4>)
+ 80047b0:	2140      	movs	r1, #64	; 0x40
+ 80047b2:	430a      	orrs	r2, r1
+ 80047b4:	615a      	str	r2, [r3, #20]
 			}
 		}
 		if(cmd2Execute==0x15){
@@ -10422,17 +10421,17 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
  8004852:	615a      	str	r2, [r3, #20]
 			}
 //			bf4me=0x15;	//set BF flag 4 me
-			GPIOC->ODR |= 1 << 6;	//set BF
- 8004854:	4b19      	ldr	r3, [pc, #100]	; (80048bc <cmdExecute+0x1f4>)
- 8004856:	695a      	ldr	r2, [r3, #20]
- 8004858:	4b18      	ldr	r3, [pc, #96]	; (80048bc <cmdExecute+0x1f4>)
- 800485a:	2140      	movs	r1, #64	; 0x40
- 800485c:	430a      	orrs	r2, r1
- 800485e:	615a      	str	r2, [r3, #20]
 			cmd2Execute=0;
- 8004860:	1dfb      	adds	r3, r7, #7
- 8004862:	2200      	movs	r2, #0
- 8004864:	701a      	strb	r2, [r3, #0]
+ 8004854:	1dfb      	adds	r3, r7, #7
+ 8004856:	2200      	movs	r2, #0
+ 8004858:	701a      	strb	r2, [r3, #0]
+			GPIOC->ODR |= 1 << 6;	//set BF
+ 800485a:	4b18      	ldr	r3, [pc, #96]	; (80048bc <cmdExecute+0x1f4>)
+ 800485c:	695a      	ldr	r2, [r3, #20]
+ 800485e:	4b17      	ldr	r3, [pc, #92]	; (80048bc <cmdExecute+0x1f4>)
+ 8004860:	2140      	movs	r1, #64	; 0x40
+ 8004862:	430a      	orrs	r2, r1
+ 8004864:	615a      	str	r2, [r3, #20]
 		}
 		if(cmd2Execute==0x16){
  8004866:	1dfb      	adds	r3, r7, #7
@@ -10795,18 +10794,17 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
  8004ad8:	429a      	cmp	r2, r3
  8004ada:	d3eb      	bcc.n	8004ab4 <printASCIIarray+0x1ec>
 			}
-
-			GPIOC->ODR |= 1 << 6;	//set BF
- 8004adc:	4b0b      	ldr	r3, [pc, #44]	; (8004b0c <printASCIIarray+0x244>)
- 8004ade:	695a      	ldr	r2, [r3, #20]
- 8004ae0:	4b0a      	ldr	r3, [pc, #40]	; (8004b0c <printASCIIarray+0x244>)
- 8004ae2:	2140      	movs	r1, #64	; 0x40
- 8004ae4:	430a      	orrs	r2, r1
- 8004ae6:	615a      	str	r2, [r3, #20]
 			cmd2Execute=0;
- 8004ae8:	4b09      	ldr	r3, [pc, #36]	; (8004b10 <printASCIIarray+0x248>)
- 8004aea:	2200      	movs	r2, #0
- 8004aec:	701a      	strb	r2, [r3, #0]
+ 8004adc:	4b0b      	ldr	r3, [pc, #44]	; (8004b0c <printASCIIarray+0x244>)
+ 8004ade:	2200      	movs	r2, #0
+ 8004ae0:	701a      	strb	r2, [r3, #0]
+			GPIOC->ODR |= 1 << 6;	//set BF
+ 8004ae2:	4b0b      	ldr	r3, [pc, #44]	; (8004b10 <printASCIIarray+0x248>)
+ 8004ae4:	695a      	ldr	r2, [r3, #20]
+ 8004ae6:	4b0a      	ldr	r3, [pc, #40]	; (8004b10 <printASCIIarray+0x248>)
+ 8004ae8:	2140      	movs	r1, #64	; 0x40
+ 8004aea:	430a      	orrs	r2, r1
+ 8004aec:	615a      	str	r2, [r3, #20]
 		}
  8004aee:	46c0      	nop			; (mov r8, r8)
  8004af0:	0018      	movs	r0, r3
@@ -10818,8 +10816,8 @@ void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
  8004b00:	20000064 	.word	0x20000064
  8004b04:	20000030 	.word	0x20000030
  8004b08:	20000031 	.word	0x20000031
- 8004b0c:	50000800 	.word	0x50000800
- 8004b10:	20000372 	.word	0x20000372
+ 8004b0c:	20000372 	.word	0x20000372
+ 8004b10:	50000800 	.word	0x50000800
 
 08004b14 <squeak_single>:
 //=============================================================================================================
