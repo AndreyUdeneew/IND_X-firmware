@@ -209,7 +209,7 @@ uint8_t decY;
 
  uint16_t signal[1024];
  uint16_t nsamples=1024;
- uint8_t soundReady=0;
+ uint8_t soundReady=1;
 //uint8_t BFEN=1;
 
 
@@ -389,11 +389,14 @@ int main(void)
 	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 
 	squeak_generate();
-squeak_triple(signal);
+//squeak_triple(signal);
 squeak_triple(signal);
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
 		cmdExecute(cmd2Execute);
+		USART2->ICR|=USART_ICR_ORECF;
+		USART2->ICR|=USART_ICR_FECF;
+		USART2->ICR|=USART_ICR_NECF;
 //		squeak_single();
 		Scount();
 	}
@@ -1060,7 +1063,9 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 }
 //======================================================================================================================
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
+//	if(numSound==1){
 	soundReady=1;
+//	}
 //	GPIOC->ODR |= 1 << 6;	//set BF
 //	uint8_t addr[4];
 //    if ((curAddr+sizeof(MEM_Buffer))<(address+len)){
@@ -1342,6 +1347,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				ans[3] = myCS;
 				i=0;
 //======================================================================================================================================
+				USART2->CR1 &= ~USART_CR1_RE;
 				while(!(USART2->ISR & USART_ISR_TXE)){};
 				USART2->TDR = ans[0]|0x0100;
 				for(i=1;i<myLength;i++)
@@ -1349,6 +1355,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				    while(!(USART2->ISR & USART_ISR_TXE)){};
 				    USART2->TDR = (uint8_t)ans[i];
 				  }
+				USART2->CR1 |= USART_CR1_RE;
 //				BFEN=1;
 //=======================================================================================================================================
 				if (cmd[0] == 0x11) {//Show full screen background;
@@ -1836,6 +1843,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //====================================================================================================================
 	uint8_t cmdExecute(uint8_t cmd2Execute){
 		if(cmd[0]==0x10){return;}	// protection against short peaks while cmd 10h
+		if(soundReady==0){return;}
 //		if(cmd[0]==00){return;}
 		if (bf4me!=0x00){return;}	// protection against false BF resets
 		USART2->ICR|=USART_ICR_ORECF;
@@ -1877,27 +1885,31 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			printASCIIarray(imX,imY, strLen,dataASCII);
 				}
 		if(cmd2Execute==0x14){
-			if(soundReady!=1){return;}
+//			if(soundReady!=1){return;}
 			bf4me=0x14;	//set BF flag 4 me
 			if(numSound==0x01){
+				if(soundReady!=0){
 				soundReady=0;
+				USART2->ICR|=USART_ICR_ORECF;
 				squeak_single(signal);
+				USART2->ICR|=USART_ICR_ORECF;
+				}
 			}
 			if(numSound==0x02){
-				soundReady=0;
+//				soundReady=0;
 				squeak_double(signal);
 			}
 			if(numSound==0x03){
-				soundReady=0;
+//				soundReady=0;
 				squeak_triple(signal);
 				}
 			if(numSound==0x04){
-				soundReady=0;
+//				soundReady=0;
 				squeak_long(signal);
 				}
-			if(numSound!=1){
-			HAL_Delay(500);
-			}
+//			if(numSound!=1){
+//			HAL_Delay(500);
+//			}
 			cmd2Execute=0;
 //			while(BFEN==0){};
 			GPIOC->ODR |= 1 << 6;	//set BF
@@ -2007,8 +2019,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		I2C_SOUND_ChangePage(0x01);
 //		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 //		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-		HAL_I2S_Transmit_DMA(&hi2s1, (const uint16_t*)signal, nsamples);
-//		HAL_Delay(500);
+		HAL_I2S_Transmit_DMA(&hi2s1, (const uint16_t*)signal, nsamples); //HAL_MAX_DELAY
+		USART2->ICR|=USART_ICR_ORECF;
+		USART2->ICR|=USART_ICR_FECF;
+		USART2->ICR|=USART_ICR_NECF;
+//		HAL_Delay(100);
 //		GPIOC->ODR |= 1 << 6;	//set BF
 //		cmd2Execute=0;
 	}
