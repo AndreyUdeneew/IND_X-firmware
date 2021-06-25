@@ -266,7 +266,7 @@ void squeak_generate(void);
 void MEM_Write(uint32_t addr);
 void LIS3DHsetup(void);
 uint8_t LIS3DHreadReg(uint8_t reg);
-uint8_t LIS3DHreadData(void);
+void LIS3DHreadData(void);
 uint16_t Accel_ReadAcc(void);
 void Demo(void);
 void weoDrawRectangleFilled(unsigned char start_x, unsigned char start_y,
@@ -393,12 +393,13 @@ int main(void)
 squeak_triple(signal);
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
-		cmdExecute(cmd2Execute);
+		LIS3DHreadData();
+//		cmdExecute(cmd2Execute);
 		USART2->ICR|=USART_ICR_ORECF;
 		USART2->ICR|=USART_ICR_FECF;
 		USART2->ICR|=USART_ICR_NECF;
 //		squeak_single();
-		Scount();
+//		Scount();
 	}
     /* USER CODE END WHILE */
 
@@ -970,15 +971,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(TEST_2_GPIO_Port, &GPIO_InitStruct);
 
-  	  GPIO_InitStruct.Pin = KEY_4_Pin;
-  	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-  	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  	  LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
-  	  /**/
-  	    GPIO_InitStruct.Pin = KEY_5_Pin;
-  	    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-  	    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
+//  	  GPIO_InitStruct.Pin = KEY_4_Pin;
+//  	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+//  	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+//  	  LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
+//  	  /**/
+//  	    GPIO_InitStruct.Pin = KEY_5_Pin;
+//  	    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+//  	    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+//  	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   LL_SYSCFG_EnableFastModePlus(LL_SYSCFG_I2C_FASTMODEPLUS_PB9);
@@ -1838,6 +1839,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //==================================================================================================================================
 
 	uint16_t Scount(void){
+		LIS3DHreadData();
 
 	}
 //====================================================================================================================
@@ -2101,13 +2103,22 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			return value;
 	}
 //=============================================================================================================
-	uint8_t LIS3DHreadData(void){
+	void LIS3DHreadData(void){
 			accelBuff[0]=LIS3DHreadReg(OUTXH);
 			accelBuff[1]=LIS3DHreadReg(OUTXL);
 			accelBuff[2]=LIS3DHreadReg(OUTYH);
 			accelBuff[3]=LIS3DHreadReg(OUTYL);
 			accelBuff[4]=LIS3DHreadReg(OUTZH);
 			accelBuff[5]=LIS3DHreadReg(OUTZL);
+			xVal=accelBuff[0];
+			xVal=xVal<<8;
+			xVal|=accelBuff[1];
+			yVal=accelBuff[2];
+			yVal=xVal<<8;
+			yVal|=accelBuff[3];
+			zVal=accelBuff[4];
+			zVal=xVal<<8;
+			zVal|=accelBuff[5];
 	}
 //=============================================================================================================
 	uint16_t Accel_ReadAcc(void){
