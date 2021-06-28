@@ -87,6 +87,9 @@
 #define FS1 0b00100000
 #define FS0 0b00010000
 #define FULL_SCALE_2G 0x00
+#define FULL_SCALE_4G 0x10
+#define FULL_SCALE_8G 0x20
+#define FULL_SCALE_16G 0x30
 #define HR 0b00000100
 #define ST1 0b00000100
 #define ST0 0b00000010
@@ -169,7 +172,8 @@ uint8_t  Y_increment=0x0E;
 uint8_t  ASCII_height=0x0E;
 uint8_t dataASCII[16], I2Cbuf[5];
 uint16_t uartData[10];
-int16_t xVal, yVal, zVal = 0x00;
+uint8_t xVal, yVal, zVal = 0x00;
+uint16_t xFull, yFull, zFull=0;
 uint32_t MEM_ID = 0;
 uint16_t PAGE_SIZE = 4096;
 extern uint32_t addr;
@@ -210,6 +214,7 @@ uint8_t decY;
  uint16_t signal[1024];
  uint16_t nsamples=1024;
  uint8_t soundReady=1;
+	uint8_t bufAccel[] = { 0x33, 0x0F };
 //uint8_t BFEN=1;
 
 
@@ -336,6 +341,7 @@ int main(void)
 	weoClear();
 	MEM_GetID();
 	soundSetup();
+	LIS3DHsetup();
 
 	USART2->CR1 |= (USART_CR1_UE | USART_CR1_RE | USART_CR1_TE|USART_CR1_M); // Enable USART, Receive and Transmit
 
@@ -393,11 +399,34 @@ int main(void)
 squeak_triple(signal);
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
-		LIS3DHreadData();
+//		LIS3DHreadData();
 //		cmdExecute(cmd2Execute);
 		USART2->ICR|=USART_ICR_ORECF;
 		USART2->ICR|=USART_ICR_FECF;
 		USART2->ICR|=USART_ICR_NECF;
+		xVal=0;
+		HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x29,I2C_MEMADD_SIZE_8BIT,&xVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+		xFull=xVal;
+		xFull<<=8;
+		xVal=0;
+		HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x28,I2C_MEMADD_SIZE_8BIT,&xVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+		xFull|=xVal;
+				yVal=0;
+				HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2B,I2C_MEMADD_SIZE_8BIT,&yVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+				yFull=yVal;
+				yFull<<=8;
+				yVal=0;
+				HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2A,I2C_MEMADD_SIZE_8BIT,&yVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+				yFull|=yVal;
+						zVal=0;
+						HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2D,I2C_MEMADD_SIZE_8BIT,&zVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+						zFull=zVal;
+						zFull<<=8;
+						zVal=0;
+						HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2C,I2C_MEMADD_SIZE_8BIT,&zVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+						zFull|=zVal;
+//		HAL_I2C_Master_Transmit(&hi2c1, (uint16_t) 0x33, bufAccel, 2, 1000);	//(uint8_t*)&
+		HAL_Delay(1);
 //		squeak_single();
 //		Scount();
 	}
@@ -2099,36 +2128,38 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 	uint8_t LIS3DHreadReg(uint8_t reg){
 			uint8_t value;
 //			HAL_I2C_Master_Receive(&hi2c1, (uint16_t) 0x33, reg,&value, 1, 0x10000);	//33h - address for reading
-			HAL_I2C_Mem_Read(&hi2c1, (uint8_t) 0x33, reg,I2C_MEMADD_SIZE_8BIT,&value, 1, 0x10000);	//33h - address for reading
+//			HAL_I2C_Mem_Read(&hi2c1, (uint8_t) 0x33, reg,I2C_MEMADD_SIZE_8BIT,&value, 1, 0x10000);	//33h - address for reading
+			HAL_I2C_Mem_Read(&hi2c1, (uint8_t) 0x32, reg,1,&value, 1, 0x10000);	//33h - address for reading
+			xVal=value;
 			return value;
 	}
 //=============================================================================================================
-	void LIS3DHreadData(void){
-			accelBuff[0]=LIS3DHreadReg(OUTXH);
-			accelBuff[1]=LIS3DHreadReg(OUTXL);
-			accelBuff[2]=LIS3DHreadReg(OUTYH);
-			accelBuff[3]=LIS3DHreadReg(OUTYL);
-			accelBuff[4]=LIS3DHreadReg(OUTZH);
-			accelBuff[5]=LIS3DHreadReg(OUTZL);
-			xVal=accelBuff[0];
-			xVal=xVal<<8;
-			xVal|=accelBuff[1];
-			yVal=accelBuff[2];
-			yVal=xVal<<8;
-			yVal|=accelBuff[3];
-			zVal=accelBuff[4];
-			zVal=xVal<<8;
-			zVal|=accelBuff[5];
-	}
+//	void LIS3DHreadData(void){
+//			accelBuff[0]=LIS3DHreadReg(OUTXH);
+//			accelBuff[1]=LIS3DHreadReg(OUTXL);
+//			accelBuff[2]=LIS3DHreadReg(OUTYH);
+//			accelBuff[3]=LIS3DHreadReg(OUTYL);
+//			accelBuff[4]=LIS3DHreadReg(OUTZH);
+//			accelBuff[5]=LIS3DHreadReg(OUTZL);
+//			xVal=accelBuff[0];
+//			xVal=xVal<<8;
+//			xVal|=accelBuff[1];
+//			yVal=accelBuff[2];
+//			yVal=yVal<<8;
+//			yVal|=accelBuff[3];
+//			zVal=accelBuff[4];
+//			zVal=zVal<<8;
+//			zVal|=accelBuff[5];
+//	}
 //=============================================================================================================
-	uint16_t Accel_ReadAcc(void){
-	        int16_t buffer[3] = {0};
-	        uint16_t tmp16 = 0;
-	        Accel_GetXYZ(buffer);
-	  xVal = buffer[0];
-	  yVal = buffer[1];
-	  zVal = buffer[2];
-	}
+//	uint16_t Accel_ReadAcc(void){
+//	        int16_t buffer[3] = {0};
+//	        uint16_t tmp16 = 0;
+//	        Accel_GetXYZ(buffer);
+//	  xVal = buffer[0];
+//	  yVal = buffer[1];
+//	  zVal = buffer[2];
+//	}
 //=============================================================================================================
 	void LIS3DHsetup(void){
 		uint8_t CTRL_REG1_val=0x00;
@@ -2140,11 +2171,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		uint8_t INT_1_CFG_val=0x00;
 		uint8_t INT_1_SRC_val=0x00;
 
-		LIS3DHsendCMD(CTRL_REG1,CTRL_REG1_val|accelDataRate_25_Hz|Xen|Yen|Zen);//data rate selection
+		LIS3DHsendCMD(CTRL_REG1,(CTRL_REG1_val|accelDataRate_25_Hz|Xen|Yen|Zen));//data rate selection
 //		LIS3DHsendCMD(CTRL_REG2,);//HPFilter
 //		LIS3DHsendCMD(CTRL_REG3,);
-		LIS3DHsendCMD(CTRL_REG4,CTRL_REG4_val|BDU|FULL_SCALE_2G|HR);
-		LIS3DHsendCMD(CTRL_REG5,CTRL_REG4_val|FIFO_EN);
+		LIS3DHsendCMD(CTRL_REG4,(CTRL_REG4_val|BDU|FULL_SCALE_2G|HR));
+//		LIS3DHsendCMD(CTRL_REG5,CTRL_REG4_val|FIFO_EN);
 //		LIS3DHsendCMD(CTRL_REG6,);
 //		LIS3DHsendCMD(FIFO_CTRL_REG,FIFO_CTRL_REG_val);	//	2B configured
 //		LIS3DHsendCMD(FIFO_SRC_REG,FIFO_SRC_REG_val);	//	2B configured
