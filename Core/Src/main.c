@@ -26,6 +26,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "FONT_X.h"
+#include "F1.h"
+#include "F2.h"
 //#include "monocond12.h"
 /* USER CODE END Includes */
 
@@ -400,33 +402,33 @@ squeak_triple(signal);
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
 //		LIS3DHreadData();
-//		cmdExecute(cmd2Execute);
-		USART2->ICR|=USART_ICR_ORECF;
-		USART2->ICR|=USART_ICR_FECF;
-		USART2->ICR|=USART_ICR_NECF;
-		xVal=0;
-		HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x29,I2C_MEMADD_SIZE_8BIT,&xVal, 1, HAL_MAX_DELAY);	//33h - address for reading
-		xFull=xVal;
-		xFull<<=8;
-		xVal=0;
-		HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x28,I2C_MEMADD_SIZE_8BIT,&xVal, 1, HAL_MAX_DELAY);	//33h - address for reading
-		xFull|=xVal;
-				yVal=0;
-				HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2B,I2C_MEMADD_SIZE_8BIT,&yVal, 1, HAL_MAX_DELAY);	//33h - address for reading
-				yFull=yVal;
-				yFull<<=8;
-				yVal=0;
-				HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2A,I2C_MEMADD_SIZE_8BIT,&yVal, 1, HAL_MAX_DELAY);	//33h - address for reading
-				yFull|=yVal;
-						zVal=0;
-						HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2D,I2C_MEMADD_SIZE_8BIT,&zVal, 1, HAL_MAX_DELAY);	//33h - address for reading
-						zFull=zVal;
-						zFull<<=8;
-						zVal=0;
-						HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2C,I2C_MEMADD_SIZE_8BIT,&zVal, 1, HAL_MAX_DELAY);	//33h - address for reading
-						zFull|=zVal;
+		cmdExecute(cmd2Execute);
+//		USART2->ICR|=USART_ICR_ORECF;
+//		USART2->ICR|=USART_ICR_FECF;
+//		USART2->ICR|=USART_ICR_NECF;
+//		xVal=0;
+//		HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x29,I2C_MEMADD_SIZE_8BIT,&xVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+//		xFull=xVal;
+//		xFull<<=8;
+//		xVal=0;
+//		HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x28,I2C_MEMADD_SIZE_8BIT,&xVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+//		xFull|=xVal;
+//				yVal=0;
+//				HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2B,I2C_MEMADD_SIZE_8BIT,&yVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+//				yFull=yVal;
+//				yFull<<=8;
+//				yVal=0;
+//				HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2A,I2C_MEMADD_SIZE_8BIT,&yVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+//				yFull|=yVal;
+//						zVal=0;
+//						HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2D,I2C_MEMADD_SIZE_8BIT,&zVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+//						zFull=zVal;
+//						zFull<<=8;
+//						zVal=0;
+//						HAL_I2C_Mem_Read(&hi2c1, 0x33, 0x2C,I2C_MEMADD_SIZE_8BIT,&zVal, 1, HAL_MAX_DELAY);	//33h - address for reading
+//						zFull|=zVal;
 //		HAL_I2C_Master_Transmit(&hi2c1, (uint16_t) 0x33, bufAccel, 2, 1000);	//(uint8_t*)&
-		HAL_Delay(1);
+//		HAL_Delay(1);
 //		squeak_single();
 //		Scount();
 	}
@@ -1000,15 +1002,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(TEST_2_GPIO_Port, &GPIO_InitStruct);
 
-//  	  GPIO_InitStruct.Pin = KEY_4_Pin;
-//  	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-//  	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-//  	  LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
-//  	  /**/
-//  	    GPIO_InitStruct.Pin = KEY_5_Pin;
-//  	    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-//  	    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-//  	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
+  	  GPIO_InitStruct.Pin = KEY_4_Pin;
+  	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+  	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  	  LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
+  	  /**/
+  	    GPIO_InitStruct.Pin = KEY_5_Pin;
+  	    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+  	    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   LL_SYSCFG_EnableFastModePlus(LL_SYSCFG_I2C_FASTMODEPLUS_PB9);
@@ -2005,7 +2007,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 
 			for (i=0;i<strLen;i++){
 				for(j=0;j<49;j++){
-					weoBuffer[j]=FONT_X[dataASCII[i]][j];
+					weoBuffer[j]=F1[dataASCII[i]][j];
 					}
 				if(imY > 0x7F){
 					imY &=0x7F;

@@ -47,7 +47,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  C:/Users/Stasy/STM32Cube/Repository/STM32Cube_FW_G0_V1.4.0/Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_utils.h \
  C:/Users/Stasy/STM32Cube/Repository/STM32Cube_FW_G0_V1.4.0/Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_pwr.h \
  C:/Users/Stasy/STM32Cube/Repository/STM32Cube_FW_G0_V1.4.0/Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_dma.h \
- ../Core/Inc/FONT_X.h
+ ../Core/Inc/FONT_X.h ../Core/Inc/F1.h ../Core/Inc/F2.h
 
 ../Core/Inc/main.h:
 
@@ -148,3 +148,7 @@ C:/Users/Stasy/STM32Cube/Repository/STM32Cube_FW_G0_V1.4.0/Drivers/STM32G0xx_HAL
 C:/Users/Stasy/STM32Cube/Repository/STM32Cube_FW_G0_V1.4.0/Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_ll_dma.h:
 
 ../Core/Inc/FONT_X.h:
+
+../Core/Inc/F1.h:
+
+../Core/Inc/F2.h:
