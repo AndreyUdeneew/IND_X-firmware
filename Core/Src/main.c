@@ -402,7 +402,7 @@ int main(void)
 	squeak_generate();
 //	HAL_Delay(100);
 //squeak_triple(signal);
-squeak_single(signal);
+squeak_long(signal);
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
 //		LIS3DHreadData();
@@ -2104,16 +2104,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		I2C_SOUND_ChangePage(0x01);
 		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
 //		HAL_Delay(500);
 		GPIOC->ODR |= 1 << 6;	//set BF
 		cmd2Execute=0;
