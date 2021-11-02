@@ -25,9 +25,10 @@
 #include "string.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "FONT_X.h"
+//#include "FONT_X.h"
 #include "F1.h"
 #include "F2.h"
+#include "F3.h"
 //#include "monocond12.h"
 /* USER CODE END Includes */
 
@@ -212,9 +213,11 @@ uint8_t MEM_Buffer[8192];
 uint32_t address;
 uint32_t curAddr;
 uint8_t decY;
+uint8_t fontInfo;
+uint8_t color;
 
- uint16_t signal[1024];
- uint16_t nsamples=1024;
+ uint16_t signal[2048];
+ uint16_t nsamples=2048;
  uint8_t soundReady=1;
 	uint8_t bufAccel[] = { 0x33, 0x0F };
 //uint8_t BFEN=1;
@@ -263,7 +266,7 @@ uint8_t answer2CPU(uint8_t cmd[]);
 uint16_t Scount(void);
 //uint8_t cmd2Execute;
 uint8_t cmdExecute(uint8_t cmd2Execute);
-uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]);
+uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t fontInfo,uint8_t dataASCII[]);
 uint32_t MEM_GetID(void);
 void squeak_single(uint16_t* signal);
 void squeak_long(uint16_t* signal);
@@ -392,13 +395,14 @@ int main(void)
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
 
-	I2C_SOUND_ChangePage(0x01);
+//	I2C_SOUND_ChangePage(0x01);
 //	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 
 	squeak_generate();
+//	HAL_Delay(100);
 //squeak_triple(signal);
-squeak_triple(signal);
+squeak_single(signal);
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
 //		LIS3DHreadData();
@@ -1412,9 +1416,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //					GPIOC->ODR &= ~(1 << 6);//reset BF
 					imX = cmd[2];
 					imY = cmd[3];
+					fontInfo= cmd[4];
+					color=fontInfo|0xF0;
 					strLen = cmd[1] -0x03;
 					for (i = 0; i <strLen; i++) {
-					dataASCII[i] = cmd[i+4];
+					dataASCII[i] = cmd[i+5];
 				}
 					cmd2Execute=0x13;
 //					cmd[0]=0xFF;
@@ -1915,7 +1921,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 
 //			printASCIIarray_old(imX,imY, strLen,dataASCII);
-			printASCIIarray(imX,imY, strLen,dataASCII);
+			printASCIIarray(imX,imY,strLen,fontInfo,dataASCII);
 				}
 		if(cmd2Execute==0x14){
 //			if(soundReady!=1){return;}
@@ -1992,13 +1998,30 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		USART2->ICR|=USART_ICR_ORECF;
 	}
 //========================================================================================================================
-	uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]){
-			uint8_t j,Y_height,X_width,ASCII_X,decY;
+	uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t fontInfo,uint8_t dataASCII[]){
+			uint8_t j,X_increment,Y_height,X_width,ASCII_X,decY,fontCur;
 			uint8_t weoBuffer1[49],weoBuffer2[49],weoBuffer[49];
-			uint16_t i;
+			uint16_t i, symLen;
 			ASCII_X=imX;
 
-			len=49;
+			if((fontInfo|0x00==0)){
+			symLen=49;
+			fontCur=0;
+			X_increment=0x07;
+			Y_height=0x0E;
+			}
+			if((fontInfo|0x01==0)){
+				symLen=99;
+				fontCur=1;
+				X_increment=0x07;
+				Y_height=0x12;
+			}
+			if((fontInfo|0x02)==0){
+				symLen=304;
+				fontCur=2;
+				X_increment=0x10;
+				Y_height=0x26;
+			}
 
 			decY=0x01;
 			if(imY % 2 !=0){
@@ -2006,31 +2029,41 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			}
 
 			for (i=0;i<strLen;i++){
-				for(j=0;j<49;j++){
+				for(j=0;j<symLen;j++){
+					if(fontCur=0){
 					weoBuffer[j]=F1[dataASCII[i]][j];
 					}
+					if(fontCur=1){
+					weoBuffer[j]=F2[dataASCII[i]][j];
+					}
+					if(fontCur=2){
+					weoBuffer[j]=F3[dataASCII[i+32]][j];
+					}
+				}
 				if(imY > 0x7F){
 					imY &=0x7F;
+
 					dimmer=1;
-				for (uint8_t k=0;k<49;k++){
+				for (uint8_t k=0;k<symLen;k++){
 					weoBuffer1[k]=(weoBuffer[k]&0x0F)>>dimmer;
 					weoBuffer2[k]=(weoBuffer[k]&0xF0)>>dimmer;
 				}
 
-				for (uint8_t k=0;k<49;k++){
+				for (uint8_t k=0;k<symLen;k++){
 					weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
 				}
 				}
 				weoDrawRectangleFilled(ASCII_X,imY,ASCII_X+X_increment-1,imY+ASCII_height-decY,0xFF,weoBuffer);
 				ASCII_X += X_increment+0;
 			}
-			for(i=0;i<len;i++){
+			for(i=0;i<symLen;i++){
 					weoBuffer[j]=0x00;
 			}
 			cmd2Execute=0;
 //			while(BFEN==0){};
 			GPIOC->ODR |= 1 << 6;	//set BF
-		}
+
+	}
 //=============================================================================================================
 	void squeak_generate(void){
 			    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
@@ -2050,8 +2083,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit_DMA(&hi2s1, (const uint16_t*)signal, nsamples); //HAL_MAX_DELAY
 		USART2->ICR|=USART_ICR_ORECF;
 		USART2->ICR|=USART_ICR_FECF;
@@ -2069,8 +2102,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
@@ -2094,8 +2127,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
@@ -2110,8 +2143,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//		HAL_Delay(1000);
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
