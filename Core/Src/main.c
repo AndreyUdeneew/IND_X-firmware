@@ -280,7 +280,7 @@ void LIS3DHreadData(void);
 uint16_t Accel_ReadAcc(void);
 void Demo(void);
 void weoDrawRectangleFilled(unsigned char start_x, unsigned char start_y,
-		unsigned char end_x, unsigned char end_y, unsigned char color,
+		unsigned char end_x, unsigned char end_y, unsigned char contrast,
 		uint8_t *MEM_Buffer);
 void weoDrawRectangleInit(unsigned char start_x, unsigned char start_y,
 		unsigned char end_x, unsigned char end_y);
@@ -359,17 +359,25 @@ int main(void)
 
 	USART2->ICR|=USART_ICR_ORECF;
 
+	squeak_generate();
+
 	I2C_SOUND_ChangePage(0x01);
 	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-//    squeak_triple();
-//    HAL_Delay(500);
+    squeak_triple(signal);
 //    squeak_long();
 
-	uint8_t x=0x02;
-	uint8_t y=0x04;
-	uint8_t decY;
-
+//	uint8_t ASCII_X=0x02;
+//	uint8_t imY=0x04;
+//	uint8_t ASCII_height;
+//	uint8_t X_increment;
+//	uint8_t decY=1;
+//	uint16_t j;
+//	uint8_t fontInfo=0xF1;
+//	uint8_t fontCur;
+//	uint8_t curStr[4]={89,70,80,33};
+//	uint8_t strLen=4;
+//	uint8_t symLen;
 //	GPIOA->ODR &= ~(1 << 6);	//reset cs
 //					GPIOA->ODR &= ~(1 << 7);	// reset dc
 //					USART_AS_SPI_sendCMD(0x81);	//Contrast Level
@@ -383,6 +391,40 @@ int main(void)
 //					decY=0x02;
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),y+(localHeight-decY),0xFF,frame);
+//	if((fontInfo & 0x00)==0){
+//		fontCur=0;
+//	}
+//	if((fontInfo & 0x01)==1){
+//		fontCur=1;
+//	}
+//	if(fontCur==0){
+//		symLen=49;
+//		uint8_t weoBuffer[symLen];
+//		X_increment=0x07;
+//		ASCII_height=0x0E;
+//		for(i=0;i<strLen;i++){
+//			for(j=0;j<symLen;j++){
+//			weoBuffer[j]=F1[curStr[i]][j];
+//			}
+//		weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+//		ASCII_X += X_increment+0;
+//		}
+//	}
+//	if(fontCur==1){
+//		symLen=99;
+//		uint8_t weoBuffer[symLen];
+//		X_increment=0x07;
+//		ASCII_height=0x12;
+//		for(i=0;i<strLen;i++){
+//			for(j=0;j<symLen;j++){
+//				weoBuffer[j]=F2[curStr[i]][j];
+//			}
+//		weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+//		ASCII_X += X_increment+0;
+//		}
+//	}
+
+
 //	uint8_t shiftX=0x02;
 //	uint8_t shiftY=0x02;
 //	x+=shiftX;
@@ -395,14 +437,6 @@ int main(void)
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
 
-//	I2C_SOUND_ChangePage(0x01);
-//	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-//	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-
-	squeak_generate();
-//	HAL_Delay(100);
-//squeak_triple(signal);
-squeak_long(signal);
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
 //		LIS3DHreadData();
@@ -844,7 +878,7 @@ static void MX_USART3_Init(void)
 
   /* USER CODE END USART3_Init 1 */
   husart3.Instance = USART3;
-  husart3.Init.BaudRate = 4000000;
+  husart3.Init.BaudRate = 8000000;
   husart3.Init.WordLength = USART_WORDLENGTH_8B;
   husart3.Init.StopBits = USART_STOPBITS_1;
   husart3.Init.Parity = USART_PARITY_NONE;
@@ -859,7 +893,7 @@ static void MX_USART3_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
-  husart3.Init.BaudRate = 7000000;
+  husart3.Init.BaudRate = 8000000;
   /* USER CODE END USART3_Init 2 */
 
 }
@@ -1212,7 +1246,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 	}
 //========================================================================================================================
 	void weoDrawRectangleFilled(unsigned char start_x, unsigned char start_y,
-				unsigned char end_x, unsigned char end_y, unsigned char color,
+				unsigned char end_x, unsigned char end_y, unsigned char contrast,
 				uint8_t MEM_Buffer[]) {
 			uint16_t i = 0;
 			uint8_t start_x_New,start_y_New,end_x_New,end_y_New;
@@ -1234,6 +1268,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 					USART_AS_SPI_sendCMD(SET_DISPLAY_COL_ADD);
 					USART_AS_SPI_sendCMD(start_y_New/2);
 					USART_AS_SPI_sendCMD(end_y_New/2);
+//					USART_AS_SPI_sendCMD(0x81);	//Contrast Level
+//					USART_AS_SPI_sendCMD(contrast);
 			GPIOA->ODR |= 1 << 7;	//set dc
 			GPIOA->ODR |= 1 << 6;	//set cs
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
@@ -1247,6 +1283,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //			while(!(USART3->ISR & USART_ISR_TXE)){};
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
 //			USART_AS_SPI_sendCMD(0xBB);	// command for NOP
+//			USART_AS_SPI_sendCMD(0x81);	//Contrast Level
+//			USART_AS_SPI_sendCMD(0xFF);
 			HAL_Delay(1);
 //			GPIOA->ODR &= ~(1 << 7);	//reset dc
 			GPIOA->ODR |= 1 << 6;	//set cs
@@ -1999,66 +2037,76 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 	}
 //========================================================================================================================
 	uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t fontInfo,uint8_t dataASCII[]){
-			uint8_t j,X_increment,Y_height,X_width,ASCII_X,decY,fontCur;
-			uint8_t weoBuffer1[49],weoBuffer2[49],weoBuffer[49];
-			uint16_t i, symLen;
+			uint8_t X_increment,ASCII_height,X_width,ASCII_X,decY,fontCur,contrast;
+//			uint8_t weoBuffer1[49],weoBuffer2[49],weoBuffer[49];
+			uint16_t i,j, symLen;
 			ASCII_X=imX;
 
-			if((fontInfo|0x00==0)){
-			symLen=49;
-			fontCur=0;
-			X_increment=0x07;
-			Y_height=0x0E;
-			}
-			if((fontInfo|0x01==0)){
-				symLen=99;
-				fontCur=1;
-				X_increment=0x07;
-				Y_height=0x12;
-			}
-			if((fontInfo|0x02)==0){
-				symLen=304;
-				fontCur=2;
-				X_increment=0x10;
-				Y_height=0x26;
-			}
+			contrast = (fontInfo & 0xF0)>>4;
+//			contrast=0x33;
 
 			decY=0x01;
-			if(imY % 2 !=0){
-				decY=0x02;
+//			if(imY % 2 !=0){
+//				decY=0x02;
+//			}
+			if((fontInfo & 0x00)==0){
+				fontCur=0;
+			}
+			if((fontInfo & 0x01)==1){
+				fontCur=1;
+			}
+//			fontCur=1;
+			if(fontCur==0){
+				symLen=49;
+				uint8_t weoBuffer[symLen];
+				uint8_t weoBuffer1[symLen];
+				uint8_t weoBuffer2[symLen];
+				X_increment=0x07;
+				ASCII_height=0x0E;
+				for(i=0;i<strLen;i++){
+					for(j=0;j<symLen;j++){
+						weoBuffer[j]=F1[dataASCII[i]][j];
+							}
+					for (uint8_t k=0;k<symLen;k++){
+							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
+							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
+						}
+					for (uint8_t k=0;k<symLen;k++){
+							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+						}
+				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+				ASCII_X += X_increment;
+				}
+				for(i=0;i<symLen;i++){
+									weoBuffer[j]=0x00;
+							}
+			}
+			if(fontCur==1){
+				symLen=99;
+				uint8_t weoBuffer[symLen];
+				uint8_t weoBuffer1[symLen];
+				uint8_t weoBuffer2[symLen];
+				X_increment=0x07;
+				ASCII_height=0x12;
+				for(i=0;i<strLen;i++){
+					for(j=0;j<symLen;j++){
+						weoBuffer[j]=F2[dataASCII[i]][j];
+							}
+					for (uint8_t k=0;k<symLen;k++){
+							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
+							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
+						}
+					for (uint8_t k=0;k<symLen;k++){
+							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+						}
+				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+				ASCII_X += X_increment;
+				}
+				for(i=0;i<symLen;i++){
+									weoBuffer[j]=0x00;
+							}
 			}
 
-			for (i=0;i<strLen;i++){
-				for(j=0;j<symLen;j++){
-					if(fontCur=0){
-					weoBuffer[j]=F1[dataASCII[i]][j];
-					}
-					if(fontCur=1){
-					weoBuffer[j]=F2[dataASCII[i]][j];
-					}
-					if(fontCur=2){
-					weoBuffer[j]=F3[dataASCII[i+32]][j];
-					}
-				}
-				if(imY > 0x7F){
-					imY &=0x7F;
-
-					dimmer=1;
-				for (uint8_t k=0;k<symLen;k++){
-					weoBuffer1[k]=(weoBuffer[k]&0x0F)>>dimmer;
-					weoBuffer2[k]=(weoBuffer[k]&0xF0)>>dimmer;
-				}
-
-				for (uint8_t k=0;k<symLen;k++){
-					weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
-				}
-				}
-				weoDrawRectangleFilled(ASCII_X,imY,ASCII_X+X_increment-1,imY+ASCII_height-decY,0xFF,weoBuffer);
-				ASCII_X += X_increment+0;
-			}
-			for(i=0;i<symLen;i++){
-					weoBuffer[j]=0x00;
-			}
 			cmd2Execute=0;
 //			while(BFEN==0){};
 			GPIOC->ODR |= 1 << 6;	//set BF
