@@ -367,17 +367,18 @@ int main(void)
     squeak_triple(signal);
 //    squeak_long();
 
-//	uint8_t ASCII_X=0x02;
-//	uint8_t imY=0x04;
-//	uint8_t ASCII_height;
-//	uint8_t X_increment;
-//	uint8_t decY=1;
-//	uint16_t j;
+	uint8_t ASCII_X=0x02;
+	uint8_t imY=0x04;
+//	uint8_t ASCII_height=0x26;
+//	uint8_t X_increment=0x10;
+	uint8_t decY=1;
+	uint16_t k,j;
 //	uint8_t fontInfo=0xF1;
 //	uint8_t fontCur;
-//	uint8_t curStr[4]={89,70,80,33};
-//	uint8_t strLen=4;
-//	uint8_t symLen;
+//	uint8_t curStr=1;
+	uint8_t curStr[4]={1,2,3,4};
+	uint8_t strLen=4;
+	uint16_t symLen;
 //	GPIOA->ODR &= ~(1 << 6);	//reset cs
 //					GPIOA->ODR &= ~(1 << 7);	// reset dc
 //					USART_AS_SPI_sendCMD(0x81);	//Contrast Level
@@ -398,17 +399,17 @@ int main(void)
 //		fontCur=1;
 //	}
 //	if(fontCur==0){
-//		symLen=49;
-//		uint8_t weoBuffer[symLen];
-//		X_increment=0x07;
-//		ASCII_height=0x0E;
-//		for(i=0;i<strLen;i++){
-//			for(j=0;j<symLen;j++){
-//			weoBuffer[j]=F1[curStr[i]][j];
-//			}
-//		weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
-//		ASCII_X += X_increment+0;
-//		}
+		symLen=304;
+		uint8_t weoBuffer[symLen];
+		X_increment=0x10;
+		ASCII_height=0x26;
+		for(k=0;k<strLen;k++){
+			for(j=0;j<symLen;j++){
+			weoBuffer[j]=F3[curStr[k]][j];
+			}
+		weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+		ASCII_X += X_increment+0;
+		}
 //	}
 //	if(fontCur==1){
 //		symLen=99;
@@ -1456,7 +1457,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 					imY = cmd[3];
 					fontInfo= cmd[4];
 					color=fontInfo|0xF0;
-					strLen = cmd[1] -0x03;
+					strLen = cmd[1] - 0x04;
 					for (i = 0; i <strLen; i++) {
 					dataASCII[i] = cmd[i+5];
 				}
@@ -2039,23 +2040,26 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 	uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t fontInfo,uint8_t dataASCII[]){
 			uint8_t X_increment,ASCII_height,X_width,ASCII_X,decY,fontCur,contrast;
 //			uint8_t weoBuffer1[49],weoBuffer2[49],weoBuffer[49];
-			uint16_t i,j, symLen;
+			uint16_t i,j,k, symLen;
 			ASCII_X=imX;
 
 			contrast = (fontInfo & 0xF0)>>4;
 //			contrast=0x33;
 
 			decY=0x01;
-//			if(imY % 2 !=0){
-//				decY=0x02;
-//			}
+			if(imY % 2 !=0){
+				decY=0x02;
+			}
 			if((fontInfo & 0x00)==0){
 				fontCur=0;
 			}
 			if((fontInfo & 0x01)==1){
 				fontCur=1;
 			}
-//			fontCur=1;
+			if((fontInfo & 0x02)==2){
+				fontCur=2;
+			}
+//			fontCur=2;
 			if(fontCur==0){
 				symLen=49;
 				uint8_t weoBuffer[symLen];
@@ -2067,11 +2071,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 					for(j=0;j<symLen;j++){
 						weoBuffer[j]=F1[dataASCII[i]][j];
 							}
-					for (uint8_t k=0;k<symLen;k++){
+					for (k=0;k<symLen;k++){
 							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
 							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
 						}
-					for (uint8_t k=0;k<symLen;k++){
+					for (k=0;k<symLen;k++){
 							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
 						}
 				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
@@ -2092,11 +2096,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 					for(j=0;j<symLen;j++){
 						weoBuffer[j]=F2[dataASCII[i]][j];
 							}
-					for (uint8_t k=0;k<symLen;k++){
+					for (k=0;k<symLen;k++){
 							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
 							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
 						}
-					for (uint8_t k=0;k<symLen;k++){
+					for (k=0;k<symLen;k++){
 							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
 						}
 				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
@@ -2106,7 +2110,70 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 									weoBuffer[j]=0x00;
 							}
 			}
+			if(fontCur==2){
+				symLen=304;
+				uint8_t weoBuffer[symLen];
+				uint8_t weoBuffer1[symLen];
+				uint8_t weoBuffer2[symLen];
+				X_increment=0x10;
+				ASCII_height=0x26;
+				for(i=0;i<strLen;i++){
 
+					if(dataASCII[i]==0x01){dataASCII[i]=0x0c;}
+					if(dataASCII[i]==0x02){dataASCII[i]=0x0d;}
+					if(dataASCII[i]==0x03){dataASCII[i]=0x0e;}
+
+					if(dataASCII[i]==0x20){dataASCII[i]=0x00;}
+					if(dataASCII[i]==0x21){dataASCII[i]=0x01;}
+					if(dataASCII[i]==0x25){dataASCII[i]=0x02;}
+					if(dataASCII[i]==0x28){dataASCII[i]=0x03;}
+					if(dataASCII[i]==0x29){dataASCII[i]=0x04;}
+					if(dataASCII[i]==0x2a){dataASCII[i]=0x05;}
+					if(dataASCII[i]==0x2b){dataASCII[i]=0x06;}
+					if(dataASCII[i]==0x2c){dataASCII[i]=0x07;}
+					if(dataASCII[i]==0x2d){dataASCII[i]=0x08;}
+					if(dataASCII[i]==0x2e){dataASCII[i]=0x09;}
+					if(dataASCII[i]==0x2f){dataASCII[i]=0x0a;}
+					if(dataASCII[i]==0x30){dataASCII[i]=0x0b;}
+					if(dataASCII[i]==0x31){dataASCII[i]=0x0c;}
+					if(dataASCII[i]==0x32){dataASCII[i]=0x0d;}
+					if(dataASCII[i]==0x33){dataASCII[i]=0x0e;}
+					if(dataASCII[i]==0x34){dataASCII[i]=0x0f;}
+					if(dataASCII[i]==0x35){dataASCII[i]=0x10;}
+					if(dataASCII[i]==0x36){dataASCII[i]=0x11;}
+					if(dataASCII[i]==0x37){dataASCII[i]=0x12;}
+					if(dataASCII[i]==0x38){dataASCII[i]=0x13;}
+					if(dataASCII[i]==0x39){dataASCII[i]=0x14;}
+					if(dataASCII[i]==0x3a){dataASCII[i]=0x15;}
+					if(dataASCII[i]==0x3b){dataASCII[i]=0x16;}
+					if(dataASCII[i]==0x3c){dataASCII[i]=0x17;}
+					if(dataASCII[i]==0x3d){dataASCII[i]=0x18;}
+					if(dataASCII[i]==0x3e){dataASCII[i]=0x19;}
+					if(dataASCII[i]==0x3f){dataASCII[i]=0x1a;}
+					if(dataASCII[i]==0x5b){dataASCII[i]=0x1b;}
+					if(dataASCII[i]==0x5c){dataASCII[i]=0x1c;}
+					if(dataASCII[i]==0x5d){dataASCII[i]=0x1d;}
+					if(dataASCII[i]==0x5f){dataASCII[i]=0x1e;}
+					if(dataASCII[i]==0x7c){dataASCII[i]=0x1f;}
+				}
+				for(i=0;i<strLen;i++){
+					for(j=0;j<symLen;j++){
+						weoBuffer[j]=F3[dataASCII[i]][j];
+							}
+					for (k=0;k<symLen;k++){
+							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
+							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
+						}
+					for (k=0;k<symLen;k++){
+							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+						}
+				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+				ASCII_X += X_increment;
+				}
+				for(i=0;i<symLen;i++){
+									weoBuffer[j]=0x00;
+							}
+			}
 			cmd2Execute=0;
 //			while(BFEN==0){};
 			GPIOC->ODR |= 1 << 6;	//set BF
