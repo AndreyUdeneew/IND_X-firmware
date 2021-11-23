@@ -160,6 +160,7 @@ USART_HandleTypeDef husart3;
 DMA_HandleTypeDef hdma_usart3_tx;
 
 /* USER CODE BEGIN PV */
+uint8_t isReceiverDisabled;
 uint8_t dataReceived = 0; // признак данное получено
 uint8_t dataTransmitted = 1; // признак данное передано
 uint8_t PCB_type[17] = { 0b00000010, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66,
@@ -173,7 +174,7 @@ uint8_t picNum, numSound, volume, contrast, currentUARTspeed,strLen;
 uint8_t  X_increment=0x07;
 uint8_t  Y_increment=0x0E;
 uint8_t  ASCII_height=0x0E;
-uint8_t dataASCII[16], I2Cbuf[5];
+uint8_t dataASCII[18], I2Cbuf[5];
 uint16_t uartData[10];
 uint8_t xVal, yVal, zVal = 0x00;
 uint16_t xFull, yFull, zFull=0;
@@ -440,6 +441,7 @@ int main(void)
 
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
+//		weoShowSmallImage(0x02,0x70,0x00);
 //		LIS3DHreadData();
 		cmdExecute(cmd2Execute);
 //		USART2->ICR|=USART_ICR_ORECF;
@@ -1070,11 +1072,10 @@ static void MX_GPIO_Init(void)
 //	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
 void  USART2_RX_Callback(void)
 {
-
   dt1 = LL_USART_ReceiveData9(USART2);// LL implementaion of 1 byte receive
-	dt1 = (uint16_t)(USART2->RDR & 0x01FF);//CMSIS implementaion of 1 byte receive
+//	dt1 = (uint16_t)(USART2->RDR & 0x01FF);//CMSIS implementaion of 1 byte receive
   ByteReceived=1;
-  if(dt1>0xFF){
+  if(dt1 & 0x100){
 	  cmd[0]=dt1;
 	  ind = 0;
 	  firstByteReceived=1;
@@ -1176,9 +1177,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			 for(i=0;i<(cmd[1]+2);i++){
 				 inputCS+=cmd[i];
 			 }
-			 if((inputCS==0)&&(i==cmd[1]+2)){
+			 if(!(inputCS==0x00)&&(ind==cmd[1]+2)){
 //			 	LL_USART_TransmitData9(USART2,(uint16_t*)cmd[2]);
-			 	answer2CPU(cmd);
+//				 firstByteReceived=0;
+				 firstByteReceived=0;
+				 				 for (i=0;i<cmd[1]+2;i++){
+				 					 cmd[i]=0;
+				 				 }
+			 }
+			 else{
+				 answer2CPU(cmd);
 			 }
 //			 if(inputCS!=0){
 //				 GPIOC->ODR |= 1 << 6;	//set BF
@@ -1281,12 +1289,12 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				while(!(USART3->ISR & USART_ISR_TXE)){};
 				USART3->TDR =MEM_Buffer[i];
 			}
-//			while(!(USART3->ISR & USART_ISR_TXE)){};
+			while(!(USART3->ISR & USART_ISR_TXE)){};
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
 //			USART_AS_SPI_sendCMD(0xBB);	// command for NOP
 //			USART_AS_SPI_sendCMD(0x81);	//Contrast Level
 //			USART_AS_SPI_sendCMD(0xFF);
-			HAL_Delay(1);
+//			HAL_Delay(1);
 //			GPIOA->ODR &= ~(1 << 7);	//reset dc
 			GPIOA->ODR |= 1 << 6;	//set cs
 		}
@@ -1379,7 +1387,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		uint8_t i;
 		uint8_t myCS = 0;					//   COMMON PART FOR EVERY COMMAND
 		uint8_t myLength;
-		uint16_t ind = 0;
+		isReceiverDisabled=1;
 
 		cmd2Execute=0;
 		cmd[0]&=~0x100;
@@ -1422,7 +1430,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				ans[3] = myCS;
 				i=0;
 //======================================================================================================================================
-				USART2->CR1 &= ~USART_CR1_RE;
+
 				while(!(USART2->ISR & USART_ISR_TXE)){};
 				USART2->TDR = ans[0]|0x0100;
 				for(i=1;i<myLength;i++)
@@ -1430,7 +1438,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				    while(!(USART2->ISR & USART_ISR_TXE)){};
 				    USART2->TDR = (uint8_t)ans[i];
 				  }
+//				HAL_Delay(1);
 				USART2->CR1 |= USART_CR1_RE;
+				isReceiverDisabled=0;
 //				BFEN=1;
 //=======================================================================================================================================
 				if (cmd[0] == 0x11) {//Show full screen background;
