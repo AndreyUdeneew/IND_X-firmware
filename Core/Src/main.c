@@ -286,6 +286,7 @@ void weoDrawRectangleFilled(unsigned char start_x, unsigned char start_y,
 void weoDrawRectangleInit(unsigned char start_x, unsigned char start_y,
 		unsigned char end_x, unsigned char end_y);
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi);
+void GPIO_2_3state(void);
 
 /* USER CODE END PFP */
 
@@ -312,7 +313,6 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -438,7 +438,7 @@ int main(void)
 //					decY=0x02;
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
-
+//    GPIOB->PUPDR &= ~0x3F000;
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
 //		weoShowSmallImage(0x02,0x70,0x00);
@@ -2048,12 +2048,15 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 	}
 //========================================================================================================================
 	uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t fontInfo,uint8_t dataASCII[]){
-			uint8_t X_increment,ASCII_height,X_width,ASCII_X,decY,fontCur,contrast;
+			uint8_t X_increment,ASCII_height,X_width,ASCII_X,decY,fontCur,contrast,contrastH,contrastL;
 //			uint8_t weoBuffer1[49],weoBuffer2[49],weoBuffer[49];
 			uint16_t i,j,k, symLen;
 			ASCII_X=imX;
 
-			contrast = (fontInfo & 0xF0)>>4;
+			contrastL = (fontInfo & 0xF0)>>4;
+			contrastH = (contrastL)<<4;
+			contrast = contrastH|contrastL;
+//			contrast = (fontInfo & 0xF0)>>4;
 //			contrast=0x33;
 
 			decY=0x01;
@@ -2081,13 +2084,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 					for(j=0;j<symLen;j++){
 						weoBuffer[j]=F1[dataASCII[i]][j];
 							}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
+//							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
+//						}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+//						}
 					for (k=0;k<symLen;k++){
-							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
-							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
-						}
-					for (k=0;k<symLen;k++){
-							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
-						}
+						weoBuffer[k]=weoBuffer[k] & contrast;
+					}
 				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
 				ASCII_X += X_increment;
 				}
@@ -2106,13 +2112,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 					for(j=0;j<symLen;j++){
 						weoBuffer[j]=F2[dataASCII[i]][j];
 							}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
+//							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
+//						}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+//						}
 					for (k=0;k<symLen;k++){
-							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
-							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
-						}
-					for (k=0;k<symLen;k++){
-							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
-						}
+						weoBuffer[k]=weoBuffer[k] & contrast;
+					}
 				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
 				ASCII_X += X_increment;
 				}
@@ -2165,13 +2174,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 					for(j=0;j<symLen;j++){
 						weoBuffer[j]=F3[dataASCII[i]][j];
 							}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
+//							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
+//						}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+//						}
 					for (k=0;k<symLen;k++){
-							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
-							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
-						}
-					for (k=0;k<symLen;k++){
-							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
-						}
+						weoBuffer[k]=weoBuffer[k] & contrast;
+					}
 				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
 				ASCII_X += X_increment;
 				}
@@ -2337,6 +2349,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //		LIS3DHsendCMD(FIFO_SRC_REG,FIFO_SRC_REG_val);	//	2B configured
 //		LIS3DHsendCMD(INT_1_CFG,INT_1_CFG_val);	//	2B configured
 //		LIS3DHsendCMD(INT_1_SRC_val,INT_1_SRC_val);	//	2B configured
+	}
+	void GPIO_2_3state(void){
+//		GPIOB->CRH &= ~(0x)
 	}
 //============================================================================================================
 
