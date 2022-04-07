@@ -25,9 +25,10 @@
 #include "string.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "FONT_X.h"
+//#include "FONT_X.h"
 #include "F1.h"
 #include "F2.h"
+#include "F3.h"
 //#include "monocond12.h"
 /* USER CODE END Includes */
 
@@ -159,6 +160,7 @@ USART_HandleTypeDef husart3;
 DMA_HandleTypeDef hdma_usart3_tx;
 
 /* USER CODE BEGIN PV */
+uint8_t isReceiverDisabled;
 uint8_t dataReceived = 0; // признак данное получено
 uint8_t dataTransmitted = 1; // признак данное передано
 uint8_t PCB_type[17] = { 0b00000010, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66,
@@ -172,7 +174,7 @@ uint8_t picNum, numSound, volume, contrast, currentUARTspeed,strLen;
 uint8_t  X_increment=0x07;
 uint8_t  Y_increment=0x0E;
 uint8_t  ASCII_height=0x0E;
-uint8_t dataASCII[16], I2Cbuf[5];
+uint8_t dataASCII[18], I2Cbuf[5];
 uint16_t uartData[10];
 uint8_t xVal, yVal, zVal = 0x00;
 uint16_t xFull, yFull, zFull=0;
@@ -212,9 +214,11 @@ uint8_t MEM_Buffer[8192];
 uint32_t address;
 uint32_t curAddr;
 uint8_t decY;
+uint8_t fontInfo;
+uint8_t color;
 
- uint16_t signal[1024];
- uint16_t nsamples=1024;
+ uint16_t signal[2048];
+ uint16_t nsamples=2048;
  uint8_t soundReady=1;
 	uint8_t bufAccel[] = { 0x33, 0x0F };
 //uint8_t BFEN=1;
@@ -263,7 +267,7 @@ uint8_t answer2CPU(uint8_t cmd[]);
 uint16_t Scount(void);
 //uint8_t cmd2Execute;
 uint8_t cmdExecute(uint8_t cmd2Execute);
-uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]);
+uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t fontInfo,uint8_t dataASCII[]);
 uint32_t MEM_GetID(void);
 void squeak_single(uint16_t* signal);
 void squeak_long(uint16_t* signal);
@@ -277,11 +281,12 @@ void LIS3DHreadData(void);
 uint16_t Accel_ReadAcc(void);
 void Demo(void);
 void weoDrawRectangleFilled(unsigned char start_x, unsigned char start_y,
-		unsigned char end_x, unsigned char end_y, unsigned char color,
+		unsigned char end_x, unsigned char end_y, unsigned char contrast,
 		uint8_t *MEM_Buffer);
 void weoDrawRectangleInit(unsigned char start_x, unsigned char start_y,
 		unsigned char end_x, unsigned char end_y);
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi);
+void GPIO_2_3state(void);
 
 /* USER CODE END PFP */
 
@@ -308,7 +313,6 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -356,30 +360,76 @@ int main(void)
 
 	USART2->ICR|=USART_ICR_ORECF;
 
+	squeak_generate();
+
 	I2C_SOUND_ChangePage(0x01);
 	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-//    squeak_triple();
-//    HAL_Delay(500);
+    squeak_triple(signal);
 //    squeak_long();
 
-	uint8_t x=0x02;
-	uint8_t y=0x04;
-	uint8_t decY;
-
+	uint8_t ASCII_X=0x02;
+	uint8_t imY=0x04;
+	uint8_t ASCII_height=0x26;
+	uint8_t X_increment=0x10;
+	uint8_t decY=1;
+	uint16_t k,j;
+	uint8_t fontInfo=0xF1;
+	uint8_t fontCur;
+	uint8_t curStr=1;
+//	uint8_t curStr[4]={1,2,3,4};
+	uint8_t strLen=4;
+	uint16_t symLen;
 //	GPIOA->ODR &= ~(1 << 6);	//reset cs
 //					GPIOA->ODR &= ~(1 << 7);	// reset dc
 //					USART_AS_SPI_sendCMD(0x81);	//Contrast Level
 //					USART_AS_SPI_sendCMD(0xFF);
 //					GPIOA->ODR |= 1 << 7;	//set dc
 //					GPIOA->ODR |= 1 << 6;	//set cs
-//		uint8_t localWidth=0x0B;
-//		uint8_t localHeight=0x12;
-//				decY=0x01;
-//				if(y % 2 !=0){
-//					decY=0x02;
-//				}
-//	weoDrawRectangleFilled(x,y,(x+localWidth-1),y+(localHeight-decY),0xFF,frame);
+
+	uint8_t localWidth=0x07;
+		uint8_t localHeight=0x0E;
+		uint8_t x = 0x7F - 0x7F;
+		uint8_t y = 0;
+				decY=0x01;
+				if(y % 2 !=0){
+					decY=0x02;
+				}
+	weoDrawRectangleFilled(x,y,(x+localWidth-1),y+(localHeight-decY),0xFF,aim);
+//	if((fontInfo & 0x00)==0){
+//		fontCur=0;
+//	}
+//	if((fontInfo & 0x01)==1){
+//		fontCur=1;
+//	}
+//	if(fontCur==0){
+//		symLen=304;
+//		uint8_t weoBuffer[symLen];
+//		X_increment=0x10;
+//		ASCII_height=0x26;
+//		for(k=0;k<strLen;k++){
+//			for(j=0;j<symLen;j++){
+//			weoBuffer[j]=F3[curStr[k]][j];
+//			}
+//		weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+//		ASCII_X += X_increment+0;
+//		}
+//	}
+//	if(fontCur==1){
+//		symLen=99;
+//		uint8_t weoBuffer[symLen];
+//		X_increment=0x07;
+//		ASCII_height=0x12;
+//		for(i=0;i<strLen;i++){
+//			for(j=0;j<symLen;j++){
+//				weoBuffer[j]=F2[curStr[i]][j];
+//			}
+//		weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+//		ASCII_X += X_increment+0;
+//		}
+//	}
+
+
 //	uint8_t shiftX=0x02;
 //	uint8_t shiftY=0x02;
 //	x+=shiftX;
@@ -391,16 +441,10 @@ int main(void)
 //					decY=0x02;
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
-
-	I2C_SOUND_ChangePage(0x01);
-//	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-
-	squeak_generate();
-//squeak_triple(signal);
-squeak_triple(signal);
+//    GPIOB->PUPDR &= ~0x3F000;
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
+//		weoShowSmallImage(0x02,0x70,0x00);
 //		LIS3DHreadData();
 		cmdExecute(cmd2Execute);
 //		USART2->ICR|=USART_ICR_ORECF;
@@ -840,7 +884,7 @@ static void MX_USART3_Init(void)
 
   /* USER CODE END USART3_Init 1 */
   husart3.Instance = USART3;
-  husart3.Init.BaudRate = 4000000;
+  husart3.Init.BaudRate = 8000000;
   husart3.Init.WordLength = USART_WORDLENGTH_8B;
   husart3.Init.StopBits = USART_STOPBITS_1;
   husart3.Init.Parity = USART_PARITY_NONE;
@@ -855,7 +899,7 @@ static void MX_USART3_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
-  husart3.Init.BaudRate = 7000000;
+  husart3.Init.BaudRate = 8000000;
   /* USER CODE END USART3_Init 2 */
 
 }
@@ -1031,11 +1075,10 @@ static void MX_GPIO_Init(void)
 //	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
 void  USART2_RX_Callback(void)
 {
-
   dt1 = LL_USART_ReceiveData9(USART2);// LL implementaion of 1 byte receive
-	dt1 = (uint16_t)(USART2->RDR & 0x01FF);//CMSIS implementaion of 1 byte receive
+//	dt1 = (uint16_t)(USART2->RDR & 0x01FF);//CMSIS implementaion of 1 byte receive
   ByteReceived=1;
-  if(dt1>0xFF){
+  if(dt1 & 0x100){
 	  cmd[0]=dt1;
 	  ind = 0;
 	  firstByteReceived=1;
@@ -1137,9 +1180,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			 for(i=0;i<(cmd[1]+2);i++){
 				 inputCS+=cmd[i];
 			 }
-			 if((inputCS==0)&&(i==cmd[1]+2)){
+			 if(!(inputCS==0x00)&&(ind==cmd[1]+2)){
 //			 	LL_USART_TransmitData9(USART2,(uint16_t*)cmd[2]);
-			 	answer2CPU(cmd);
+//				 firstByteReceived=0;
+				 firstByteReceived=0;
+				 				 for (i=0;i<cmd[1]+2;i++){
+				 					 cmd[i]=0;
+				 				 }
+			 }
+			 else{
+				 answer2CPU(cmd);
 			 }
 //			 if(inputCS!=0){
 //				 GPIOC->ODR |= 1 << 6;	//set BF
@@ -1172,8 +1222,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		USART_AS_SPI_sendCMD(0xAF);
 		USART_AS_SPI_sendCMD(0xA0);	//Set Re-map
 //		USART_AS_SPI_sendCMD(0x54);
-//		USART_AS_SPI_sendCMD(0b00010100);
-		USART_AS_SPI_sendCMD(0x51); //	0x51 is a proper remap!
+//		USART_AS_SPI_sendCMD(0x51);
+		USART_AS_SPI_sendCMD(0b01010010);// 0b01010010 = 0x52 is a proper remap 4 my bmp_2_bin converter, but pictures must b turned right @ 90 degrees.
+//		USART_AS_SPI_sendCMD(0x41); //	0x51 is a proper remap 4 lcd image converter // 0b01010010 is a proper remap 4 left-turned images
 		USART_AS_SPI_sendCMD(0x81);	//Contrast Level
 		USART_AS_SPI_sendCMD(0xFF);
 		USART_AS_SPI_sendCMD(0xA1);	//Set Display Start Line
@@ -1208,7 +1259,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 	}
 //========================================================================================================================
 	void weoDrawRectangleFilled(unsigned char start_x, unsigned char start_y,
-				unsigned char end_x, unsigned char end_y, unsigned char color,
+				unsigned char end_x, unsigned char end_y, unsigned char contrast,
 				uint8_t MEM_Buffer[]) {
 			uint16_t i = 0;
 			uint8_t start_x_New,start_y_New,end_x_New,end_y_New;
@@ -1218,9 +1269,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			}
 
 			start_x_New=start_x;
-			start_y_New=0x7F-end_y;
+			start_y_New=start_y;
 			end_x_New=end_x;
-			end_y_New=0x7F-start_y;
+			end_y_New=end_y;
 
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
@@ -1230,6 +1281,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 					USART_AS_SPI_sendCMD(SET_DISPLAY_COL_ADD);
 					USART_AS_SPI_sendCMD(start_y_New/2);
 					USART_AS_SPI_sendCMD(end_y_New/2);
+//					USART_AS_SPI_sendCMD(0x81);	//Contrast Level
+//					USART_AS_SPI_sendCMD(contrast);
 			GPIOA->ODR |= 1 << 7;	//set dc
 			GPIOA->ODR |= 1 << 6;	//set cs
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
@@ -1240,10 +1293,13 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				while(!(USART3->ISR & USART_ISR_TXE)){};
 				USART3->TDR =MEM_Buffer[i];
 			}
-//			while(!(USART3->ISR & USART_ISR_TXE)){};
+			while(!(USART3->ISR & USART_ISR_TXE)){};
+			HAL_Delay(1);
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
 //			USART_AS_SPI_sendCMD(0xBB);	// command for NOP
-			HAL_Delay(1);
+//			USART_AS_SPI_sendCMD(0x81);	//Contrast Level
+//			USART_AS_SPI_sendCMD(0xFF);
+
 //			GPIOA->ODR &= ~(1 << 7);	//reset dc
 			GPIOA->ODR |= 1 << 6;	//set cs
 		}
@@ -1336,7 +1392,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		uint8_t i;
 		uint8_t myCS = 0;					//   COMMON PART FOR EVERY COMMAND
 		uint8_t myLength;
-		uint16_t ind = 0;
+		isReceiverDisabled=1;
 
 		cmd2Execute=0;
 		cmd[0]&=~0x100;
@@ -1379,7 +1435,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				ans[3] = myCS;
 				i=0;
 //======================================================================================================================================
-				USART2->CR1 &= ~USART_CR1_RE;
+
 				while(!(USART2->ISR & USART_ISR_TXE)){};
 				USART2->TDR = ans[0]|0x0100;
 				for(i=1;i<myLength;i++)
@@ -1387,7 +1443,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				    while(!(USART2->ISR & USART_ISR_TXE)){};
 				    USART2->TDR = (uint8_t)ans[i];
 				  }
+//				HAL_Delay(1);
 				USART2->CR1 |= USART_CR1_RE;
+				isReceiverDisabled=0;
 //				BFEN=1;
 //=======================================================================================================================================
 				if (cmd[0] == 0x11) {//Show full screen background;
@@ -1412,9 +1470,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //					GPIOC->ODR &= ~(1 << 6);//reset BF
 					imX = cmd[2];
 					imY = cmd[3];
-					strLen = cmd[1] -0x03;
+					fontInfo= cmd[4];
+					color=fontInfo|0xF0;
+					strLen = cmd[1] - 0x04;
 					for (i = 0; i <strLen; i++) {
-					dataASCII[i] = cmd[i+4];
+					dataASCII[i] = cmd[i+5];
 				}
 					cmd2Execute=0x13;
 //					cmd[0]=0xFF;
@@ -1696,7 +1756,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		if(imY % 2 !=0){
 			decY=0x02;
 		}
-		weoDrawRectangleFilled(imX, imY, imX+width-1, imY+height-decY, 0xFF,MEM_Buffer);	// Здесь ещё работает 0xFF - затычка
+//		imX = 128-imX-width;
+//		weoDrawRectangleFilled(imX, imY, imX+width-1, imY+height-decY, 0xFF,MEM_Buffer);//classic	// Здесь ещё работает 0xFF - затычка
+		weoDrawRectangleFilled(imX, imY, (imX+width-1), imY+height-decY, 0xFF,MEM_Buffer);
 		cmd2Execute=0;
 //		while(BFEN==0){};
 		GPIOC->ODR |= 1 << 6;	//set BF
@@ -1915,7 +1977,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 
 //			printASCIIarray_old(imX,imY, strLen,dataASCII);
-			printASCIIarray(imX,imY, strLen,dataASCII);
+			printASCIIarray(imX,imY,strLen,fontInfo,dataASCII);
 				}
 		if(cmd2Execute==0x14){
 //			if(soundReady!=1){return;}
@@ -1992,45 +2054,155 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		USART2->ICR|=USART_ICR_ORECF;
 	}
 //========================================================================================================================
-	uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t dataASCII[]){
-			uint8_t j,Y_height,X_width,ASCII_X,decY;
-			uint8_t weoBuffer1[49],weoBuffer2[49],weoBuffer[49];
-			uint16_t i;
+	uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t fontInfo,uint8_t dataASCII[]){
+			uint8_t X_increment,ASCII_height,X_width,ASCII_X,decY,fontCur,contrast,contrastH,contrastL;
+//			uint8_t weoBuffer1[49],weoBuffer2[49],weoBuffer[49];
+			uint16_t i,j,k, symLen;
 			ASCII_X=imX;
 
-			len=49;
+			contrastL = (fontInfo & 0xF0)>>4;
+			contrastH = (contrastL)<<4;
+			contrast = contrastH|contrastL;
+//			contrast = (fontInfo & 0xF0)>>4;
+//			contrast=0x33;
 
 			decY=0x01;
 			if(imY % 2 !=0){
 				decY=0x02;
 			}
-
-			for (i=0;i<strLen;i++){
-				for(j=0;j<49;j++){
-					weoBuffer[j]=F1[dataASCII[i]][j];
-					}
-				if(imY > 0x7F){
-					imY &=0x7F;
-					dimmer=1;
-				for (uint8_t k=0;k<49;k++){
-					weoBuffer1[k]=(weoBuffer[k]&0x0F)>>dimmer;
-					weoBuffer2[k]=(weoBuffer[k]&0xF0)>>dimmer;
-				}
-
-				for (uint8_t k=0;k<49;k++){
-					weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
-				}
-				}
-				weoDrawRectangleFilled(ASCII_X,imY,ASCII_X+X_increment-1,imY+ASCII_height-decY,0xFF,weoBuffer);
-				ASCII_X += X_increment+0;
+			if((fontInfo & 0x00)==0){
+				fontCur=0;
 			}
-			for(i=0;i<len;i++){
-					weoBuffer[j]=0x00;
+			if((fontInfo & 0x01)==1){
+				fontCur=1;
+			}
+			if((fontInfo & 0x02)==2){
+				fontCur=2;
+			}
+//			fontCur=2;
+			if(fontCur==0){
+				symLen=49;
+				uint8_t weoBuffer[symLen];
+				uint8_t weoBuffer1[symLen];
+				uint8_t weoBuffer2[symLen];
+				X_increment=0x07;
+				ASCII_height=0x0E;
+				for(i=0;i<strLen;i++){
+					for(j=0;j<symLen;j++){
+						weoBuffer[j]=F1[dataASCII[i]][j];
+							}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
+//							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
+//						}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+//						}
+					for (k=0;k<symLen;k++){
+						weoBuffer[k]=weoBuffer[k] & contrast;
+					}
+				weoDrawRectangleFilled(ASCII_X, imY, (ASCII_X+X_increment-1), imY + ASCII_height - decY, 0xFF, weoBuffer);
+				ASCII_X += X_increment;
+				}
+				for(i=0;i<symLen;i++){
+									weoBuffer[j]=0x00;
+							}
+			}
+			if(fontCur==1){
+				symLen=99;
+				uint8_t weoBuffer[symLen];
+				uint8_t weoBuffer1[symLen];
+				uint8_t weoBuffer2[symLen];
+				X_increment=0x07;
+				ASCII_height=0x12;
+				for(i=0;i<strLen;i++){
+					for(j=0;j<symLen;j++){
+						weoBuffer[j]=F2[dataASCII[i]][j];
+							}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
+//							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
+//						}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+//						}
+					for (k=0;k<symLen;k++){
+						weoBuffer[k]=weoBuffer[k] & contrast;
+					}
+				weoDrawRectangleFilled(ASCII_X, imY, (ASCII_X+X_increment-1), imY + ASCII_height - decY, 0xFF, weoBuffer);
+				ASCII_X += X_increment;
+				}
+				for(i=0;i<symLen;i++){
+									weoBuffer[j]=0x00;
+							}
+			}
+			if(fontCur==2){
+				symLen=304;
+				uint8_t weoBuffer[symLen];
+				uint8_t weoBuffer1[symLen];
+				uint8_t weoBuffer2[symLen];
+				X_increment=0x10;
+				ASCII_height=0x26;
+				for(i=0;i<strLen;i++){
+					if(dataASCII[i]==0x20){dataASCII[i]=0x00;}
+					if(dataASCII[i]==0x21){dataASCII[i]=0x01;}
+					if(dataASCII[i]==0x25){dataASCII[i]=0x02;}
+					if(dataASCII[i]==0x28){dataASCII[i]=0x03;}
+					if(dataASCII[i]==0x29){dataASCII[i]=0x04;}
+					if(dataASCII[i]==0x2a){dataASCII[i]=0x05;}
+					if(dataASCII[i]==0x2b){dataASCII[i]=0x06;}
+					if(dataASCII[i]==0x2c){dataASCII[i]=0x07;}
+					if(dataASCII[i]==0x2d){dataASCII[i]=0x08;}
+					if(dataASCII[i]==0x2e){dataASCII[i]=0x09;}
+					if(dataASCII[i]==0x2f){dataASCII[i]=0x0a;}
+					if(dataASCII[i]==0x30){dataASCII[i]=0x0b;}
+					if(dataASCII[i]==0x31){dataASCII[i]=0x0c;}
+					if(dataASCII[i]==0x32){dataASCII[i]=0x0d;}
+					if(dataASCII[i]==0x33){dataASCII[i]=0x0e;}
+					if(dataASCII[i]==0x34){dataASCII[i]=0x0f;}
+					if(dataASCII[i]==0x35){dataASCII[i]=0x10;}
+					if(dataASCII[i]==0x36){dataASCII[i]=0x11;}
+					if(dataASCII[i]==0x37){dataASCII[i]=0x12;}
+					if(dataASCII[i]==0x38){dataASCII[i]=0x13;}
+					if(dataASCII[i]==0x39){dataASCII[i]=0x14;}
+					if(dataASCII[i]==0x3a){dataASCII[i]=0x15;}
+					if(dataASCII[i]==0x3b){dataASCII[i]=0x16;}
+					if(dataASCII[i]==0x3c){dataASCII[i]=0x17;}
+					if(dataASCII[i]==0x3d){dataASCII[i]=0x18;}
+					if(dataASCII[i]==0x3e){dataASCII[i]=0x19;}
+					if(dataASCII[i]==0x3f){dataASCII[i]=0x1a;}
+					if(dataASCII[i]==0x5b){dataASCII[i]=0x1b;}
+					if(dataASCII[i]==0x5c){dataASCII[i]=0x1c;}
+					if(dataASCII[i]==0x5d){dataASCII[i]=0x1d;}
+					if(dataASCII[i]==0x5f){dataASCII[i]=0x1e;}
+					if(dataASCII[i]==0x7c){dataASCII[i]=0x1f;}
+				}
+				for(i=0;i<strLen;i++){
+					for(j=0;j<symLen;j++){
+						weoBuffer[j]=F3[dataASCII[i]][j];
+							}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
+//							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
+//						}
+//					for (k=0;k<symLen;k++){
+//							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
+//						}
+					for (k=0;k<symLen;k++){
+						weoBuffer[k]=weoBuffer[k] & contrast;
+					}
+				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+				ASCII_X += X_increment;
+				}
+				for(i=0;i<symLen;i++){
+									weoBuffer[j]=0x00;
+							}
 			}
 			cmd2Execute=0;
 //			while(BFEN==0){};
 			GPIOC->ODR |= 1 << 6;	//set BF
-		}
+
+	}
 //=============================================================================================================
 	void squeak_generate(void){
 			    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
@@ -2050,8 +2222,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit_DMA(&hi2s1, (const uint16_t*)signal, nsamples); //HAL_MAX_DELAY
 		USART2->ICR|=USART_ICR_ORECF;
 		USART2->ICR|=USART_ICR_FECF;
@@ -2069,18 +2241,18 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
 //		HAL_Delay(500);
 		GPIOC->ODR |= 1 << 6;	//set BF
 		cmd2Execute=0;
@@ -2094,8 +2266,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
@@ -2110,8 +2282,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
 	//	I2C_SOUND_ChangePage(0x00);
 		I2C_SOUND_ChangePage(0x01);
-//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//		HAL_Delay(1000);
+		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
 		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
@@ -2184,65 +2357,68 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //		LIS3DHsendCMD(INT_1_CFG,INT_1_CFG_val);	//	2B configured
 //		LIS3DHsendCMD(INT_1_SRC_val,INT_1_SRC_val);	//	2B configured
 	}
+	void GPIO_2_3state(void){
+//		GPIOB->CRH &= ~(0x)
+	}
 //============================================================================================================
 
 //=============================================================================================================
-//uint8_t test[49] = {
-//	    //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
-//	    //∙∙█████████∙∙∙
-//	    //∙∙∙███████∙∙∙∙
-//	    //∙∙∙∙█████∙∙∙∙∙
-//	    //∙∙∙∙∙███∙∙∙∙∙∙
-//	    //∙∙∙∙∙∙█∙∙∙∙∙∙∙
-//	    //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
-//	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-//	    0x00, 0xff, 0xff, 0xff, 0xff, 0xf0, 0x00,
-//	    0x00, 0x0f, 0xff, 0xff, 0xff, 0x00, 0x00,
-//	    0x00, 0x00, 0xff, 0xff, 0xf0, 0x00, 0x00,
-//	    0x00, 0x00, 0x0f, 0xff, 0x00, 0x00, 0x00,
-//	    0x00, 0x00, 0x00, 0xf0, 0x00, 0x00, 0x00,
-//	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-//	};
-//uint8_t aim[49]={
-//	    //██████████████
-//	    //█∙∙∙███∙∙∙∙∙∙█
-//	    //█∙∙∙█∙∙██∙∙∙∙█
-//	    //█∙∙∙█∙∙∙∙██∙∙█
-//	    //█∙██████████∙█
-//	    //█∙∙∙█∙∙∙∙∙∙∙∙█
-//	    //██████████████
-//	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-//	    0xf0, 0x00, 0xff, 0xf0, 0x00, 0x00, 0x0f,
-//	    0xf0, 0x00, 0xf0, 0x0f, 0xf0, 0x00, 0x0f,
-//	    0xf0, 0x00, 0xf0, 0x00, 0x0f, 0xf0, 0x0f,
-//	    0xf0, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f,
-//	    0xf0, 0x00, 0xf0, 0x00, 0x00, 0x00, 0x0f,
-//	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-//};
-//uint8_t frame[99]={
-//	    //██████████████████
-//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-//	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
-//	    //██████████████████
-//	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-//	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-//	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-//};
+uint8_t test[49] = {
+	    //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
+	    //∙∙█████████∙∙∙
+	    //∙∙∙███████∙∙∙∙
+	    //∙∙∙∙█████∙∙∙∙∙
+	    //∙∙∙∙∙███∙∙∙∙∙∙
+	    //∙∙∙∙∙∙█∙∙∙∙∙∙∙
+	    //∙∙∙∙∙∙∙∙∙∙∙∙∙∙
+	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	    0x00, 0xff, 0xff, 0xff, 0xff, 0xf0, 0x00,
+	    0x00, 0x0f, 0xff, 0xff, 0xff, 0x00, 0x00,
+	    0x00, 0x00, 0xff, 0xff, 0xf0, 0x00, 0x00,
+	    0x00, 0x00, 0x0f, 0xff, 0x00, 0x00, 0x00,
+	    0x00, 0x00, 0x00, 0xf0, 0x00, 0x00, 0x00,
+	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	};
+uint8_t aim[49]={
+	    //██████████████
+	    //█∙∙∙███∙∙∙∙∙∙█
+	    //█∙∙∙█∙∙██∙∙∙∙█
+	    //█∙∙∙█∙∙∙∙██∙∙█
+	    //█∙██████████∙█
+	    //█∙∙∙█∙∙∙∙∙∙∙∙█
+	    //██████████████
+	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	    0xf0, 0x00, 0xff, 0xf0, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0xf0, 0x0f, 0xf0, 0x00, 0x0f,
+	    0xf0, 0x00, 0xf0, 0x00, 0x0f, 0xf0, 0x0f,
+	    0xf0, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f,
+	    0xf0, 0x00, 0xf0, 0x00, 0x00, 0x00, 0x0f,
+	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+};
+uint8_t frame[99]={
+	    //██████████████████
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //█∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙█
+	    //██████████████████
+	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
+	    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+};
 /* USER CODE END 4 */
 
 /**
