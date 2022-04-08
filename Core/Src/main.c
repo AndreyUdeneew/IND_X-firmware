@@ -389,8 +389,8 @@ int main(void)
 
 	uint8_t localWidth=0x07;
 		uint8_t localHeight=0x0E;
-		uint8_t x = 0x7F - 0x7F;
-		uint8_t y = 0;
+		uint8_t x = 1;
+		uint8_t y = 1;
 				decY=0x01;
 				if(y % 2 !=0){
 					decY=0x02;
@@ -1732,7 +1732,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		width=imInfo[0];
 		height=imInfo[1];
 
-		len=width*height/2+2;
+		len=width*height/2+0;
 
 		addrData=addr+0x02;
 		addrArray[0]=addrData & 0xFF;
