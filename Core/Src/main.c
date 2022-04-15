@@ -1223,7 +1223,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		USART_AS_SPI_sendCMD(0xA0);	//Set Re-map
 //		USART_AS_SPI_sendCMD(0x54);
 //		USART_AS_SPI_sendCMD(0x51);
-		USART_AS_SPI_sendCMD(0b01010010);// 0b01010010 = 0x52 is a proper remap 4 my bmp_2_bin converter, but pictures must b turned right @ 90 degrees.
+		USART_AS_SPI_sendCMD(0x52);// 0b01010010 = 0x52 is a proper remap 4 my bmp_2_bin converter, but pictures must b turned right @ 90 degrees. 0b01000001 = 0x is good if turn display on 180 degrees.
 //		USART_AS_SPI_sendCMD(0x41); //	0x51 is a proper remap 4 lcd image converter // 0b01010010 is a proper remap 4 left-turned images
 		USART_AS_SPI_sendCMD(0x81);	//Contrast Level
 		USART_AS_SPI_sendCMD(0xFF);
@@ -1732,7 +1732,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		width=imInfo[0];
 		height=imInfo[1];
 
-		len=width*height/2+0;
+		len=(width*(height/2))+1;
 
 		addrData=addr+0x02;
 		addrArray[0]=addrData & 0xFF;

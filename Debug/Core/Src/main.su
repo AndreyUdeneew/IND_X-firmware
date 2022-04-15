@@ -47,7 +47,7 @@
 ../Core/Src/main.c:1618:7:MEM_Reset	16	static,ignoring_inline_asm
 ../Core/Src/main.c:1644:10:weoShowFullScreen	8240	static
 ../Core/Src/main.c:1674:10:weoShowFullScreenDMA	8232	static
-../Core/Src/main.c:1705:10:weoShowSmallImage	8248	static
+../Core/Src/main.c:1705:10:weoShowSmallImage	8256	static
 ../Core/Src/main.c:1766:10:weoShowSmallImageDMA	8248	static
 ../Core/Src/main.c:1812:10:soundPlay	8256	static
 ../Core/Src/main.c:1862:7:MEM_Write	32	static,ignoring_inline_asm
