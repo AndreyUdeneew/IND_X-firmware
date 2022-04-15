@@ -389,8 +389,8 @@ int main(void)
 
 	uint8_t localWidth=0x07;
 		uint8_t localHeight=0x0E;
-		uint8_t x = 1;
-		uint8_t y = 1;
+		uint8_t x = 0;
+		uint8_t y = 0;
 				decY=0x01;
 				if(y % 2 !=0){
 					decY=0x02;
@@ -1732,7 +1732,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		width=imInfo[0];
 		height=imInfo[1];
 
-		len=(width*(height/2))+1;
+		len=(width*height/2)+0;
 
 		addrData=addr+0x02;
 		addrArray[0]=addrData & 0xFF;
@@ -1756,9 +1756,10 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		if(imY % 2 !=0){
 			decY=0x02;
 		}
-//		imX = 128-imX-width;
+//		imX = 0;
+//		imY = 0;
 //		weoDrawRectangleFilled(imX, imY, imX+width-1, imY+height-decY, 0xFF,MEM_Buffer);//classic	// Здесь ещё работает 0xFF - затычка
-		weoDrawRectangleFilled(imX, imY, (imX+width-1), imY+height-decY, 0xFF,MEM_Buffer);
+		weoDrawRectangleFilled(imX, imY, imX + 14, imY + 14, 0xFF, MEM_Buffer);
 		cmd2Execute=0;
 //		while(BFEN==0){};
 		GPIOC->ODR |= 1 << 6;	//set BF
@@ -2109,7 +2110,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 							}
 			}
 			if(fontCur==1){
-				symLen=99;
+				symLen=63;
 				uint8_t weoBuffer[symLen];
 				uint8_t weoBuffer1[symLen];
 				uint8_t weoBuffer2[symLen];
