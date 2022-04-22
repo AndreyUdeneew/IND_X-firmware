@@ -1223,7 +1223,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		USART_AS_SPI_sendCMD(0xA0);	//Set Re-map
 //		USART_AS_SPI_sendCMD(0x54);
 //		USART_AS_SPI_sendCMD(0x51);
-		USART_AS_SPI_sendCMD(0x52);// 0b01010010 = 0x52 is a proper remap 4 my bmp_2_bin converter, but pictures must b turned right @ 90 degrees. 0b01000001 = 0x is good if turn display on 180 degrees.
+		USART_AS_SPI_sendCMD(0b01010010);// 0b01010010 = 0x52 is a proper remap 4 my bmp_2_bin converter, but pictures must b turned right @ 90 degrees. 0b01000001 = 0x is good if turn display on 180 degrees.
 //		USART_AS_SPI_sendCMD(0x41); //	0x51 is a proper remap 4 lcd image converter // 0b01010010 is a proper remap 4 left-turned images
 		USART_AS_SPI_sendCMD(0x81);	//Contrast Level
 		USART_AS_SPI_sendCMD(0xFF);
@@ -1290,6 +1290,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 
 			for (i = 0; i < ((end_x_New - start_x_New + 1) * (end_y_New/2 - start_y_New /2 + 1));i++) {
 //			for (i = 0; i < len;i++) {
+//				if (i%((end_y-start_y))==0){
+//					MEM_Buffer[i] &=0xF0 ;
+//				}
 				while(!(USART3->ISR & USART_ISR_TXE)){};
 				USART3->TDR =MEM_Buffer[i];
 			}
@@ -1732,7 +1735,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		width=imInfo[0];
 		height=imInfo[1];
 
-		len=(width*height/2)+0;
+//		if(height % 2 ==0){
+//			height-=0x01;
+//		}
+
+//		len=(width*(height/2));
+
+//		if(width % 2 !=0){
+//			width-=0x01;
+//		}
+		len=((width+0)*((height)/2));
 
 		addrData=addr+0x02;
 		addrArray[0]=addrData & 0xFF;
@@ -1752,14 +1764,14 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		HAL_SPI_Receive(&hspi2, (uint8_t*) &MEM_Buffer,len, 5000);// 7 information bits about the image
 		GPIOB->ODR |= 1 << 9;	// set cs
 
-		decY=0x01;
+		decY=1;
 		if(imY % 2 !=0){
-			decY=0x02;
+			decY=2;
 		}
 //		imX = 0;
 //		imY = 0;
 //		weoDrawRectangleFilled(imX, imY, imX+width-1, imY+height-decY, 0xFF,MEM_Buffer);//classic	// Здесь ещё работает 0xFF - затычка
-		weoDrawRectangleFilled(imX, imY, imX + 14, imY + 14, 0xFF, MEM_Buffer);
+		weoDrawRectangleFilled(imX, imY, imX + width-1, (imY + height-decY), 0xFF, MEM_Buffer);
 		cmd2Execute=0;
 //		while(BFEN==0){};
 		GPIOC->ODR |= 1 << 6;	//set BF
