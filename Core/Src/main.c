@@ -126,7 +126,7 @@
 
 //#define X_increment 8
 //#define startAddressForImageInfo 0x00000000
-#define startAddressForSoundInfo 0x01400900
+#define startAddressForSoundInfo 0x400000
 #define USART_ISR_RXNE                      ((uint32_t)0x00000020U)
 #define USART_ISR_TXE                      ((uint32_t)0x00000080U)
 
@@ -366,6 +366,7 @@ int main(void)
 	WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 	WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
     squeak_triple(signal);
+//    soundPlay(4);
 //    squeak_long();
 
 	uint8_t ASCII_X=0x02;
@@ -447,6 +448,7 @@ int main(void)
 //		weoShowSmallImage(0x02,0x70,0x00);
 //		LIS3DHreadData();
 		cmdExecute(cmd2Execute);
+//		soundPlay(4);
 //		USART2->ICR|=USART_ICR_ORECF;
 //		USART2->ICR|=USART_ICR_FECF;
 //		USART2->ICR|=USART_ICR_NECF;
@@ -1100,11 +1102,19 @@ void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi2)
 //  				decY=0x02;
 //  			}
 //  	if(cmd2Execute==0x11){
-  	GPIOA->ODR &= ~(1 << 6);	//reset cs of DISPLAY
-  		GPIOA->ODR |= 1 << 7;	//set   dc of DISPLAY
-  		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,len);
+//  	GPIOA->ODR &= ~(1 << 6);	//reset cs of DISPLAY
+//  		GPIOA->ODR |= 1 << 7;	//set   dc of DISPLAY
+//  		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,len);
 //  	}
 //  	if(cmd2Execute==0x14){
+//	I2C_SOUND_ChangePage(0x01);
+//			WriteReg_I2C_SOUND(0x01, 0x00);
+//			I2C_SOUND_ChangePage(0x00);
+//			WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+//		//	I2C_SOUND_ChangePage(0x00);
+//			I2C_SOUND_ChangePage(0x01);
+//			WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//			WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 //  	  		HAL_I2S_Transmit_DMA(&hi2s1, MEM_Buffer,len*2);
 //  	  	}
 
@@ -1298,12 +1308,12 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			}
 			while(!(USART3->ISR & USART_ISR_TXE)){};
 			HAL_Delay(1);
-			GPIOA->ODR &= ~(1 << 7);	// reset dc
+//			GPIOA->ODR &= ~(1 << 7);	// reset dc
 //			USART_AS_SPI_sendCMD(0xBB);	// command for NOP
 //			USART_AS_SPI_sendCMD(0x81);	//Contrast Level
 //			USART_AS_SPI_sendCMD(0xFF);
 
-//			GPIOA->ODR &= ~(1 << 7);	//reset dc
+			GPIOA->ODR &= ~(1 << 7);	//reset dc
 			GPIOA->ODR |= 1 << 6;	//set cs
 		}
 //========================================================================================================================
@@ -1765,13 +1775,13 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		GPIOB->ODR |= 1 << 9;	// set cs
 
 		decY=1;
-		if(imY % 2 !=0){
-			decY=2;
-		}
+//		if(imY % 2 !=0){
+//			decY=2;
+//		}
 //		imX = 0;
 //		imY = 0;
 //		weoDrawRectangleFilled(imX, imY, imX+width-1, imY+height-decY, 0xFF,MEM_Buffer);//classic	// Здесь ещё работает 0xFF - затычка
-		weoDrawRectangleFilled(imX, imY, imX + width-1, (imY + height-decY), 0xFF, MEM_Buffer);
+		weoDrawRectangleFilled(imX, imY, imX + width-1, (imY + height-1), 0xFF, MEM_Buffer);
 		cmd2Execute=0;
 //		while(BFEN==0){};
 		GPIOC->ODR |= 1 << 6;	//set BF
@@ -1870,7 +1880,17 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[2], 1, 50); //send address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[1], 1, 50); //send address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[0], 1, 50); //send address
-			HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) &MEM_Buffer ,len);
+			HAL_SPI_Receive(&hspi2, (uint8_t*) &MEM_Buffer ,len*2,5000);
+			I2C_SOUND_ChangePage(0x01);
+					WriteReg_I2C_SOUND(0x01, 0x00);
+					I2C_SOUND_ChangePage(0x00);
+					WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+				//	I2C_SOUND_ChangePage(0x00);
+					I2C_SOUND_ChangePage(0x01);
+					WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+					WriteReg_I2C_SOUND(0x2E, 0x24);
+			HAL_I2S_Transmit(&hi2s1, (uint8_t*) &MEM_Buffer,len*2,5000);
+//		squeak_double(signal);
 		}
 	void MEM_Write(uint32_t addr) {
 		uint8_t dat;
