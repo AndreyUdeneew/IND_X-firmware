@@ -1893,7 +1893,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			soundLen = len;
 			bufCount = len / bufLen;
 			}
-
+			if(curBuf == bufCount + 15){
+				return;
+			}
 			addrSound += (bufLen * curBuf);
 			if (curBuf != 0){
 			addr[0]=addrSound & 0xFF;
