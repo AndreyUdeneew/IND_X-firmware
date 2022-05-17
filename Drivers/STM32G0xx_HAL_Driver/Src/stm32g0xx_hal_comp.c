@@ -6,11 +6,20 @@
   *          This file provides firmware functions to manage the following
   *          functionalities of the COMP peripheral:
   *           + Initialization and de-initialization functions
-  *           + Start/Stop operation functions in polling mode
-  *           + Start/Stop operation functions in interrupt mode (through EXTI interrupt)
   *           + Peripheral control functions
   *           + Peripheral state functions
   *
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2018 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
   @verbatim
 ================================================================================
           ##### COMP Peripheral features #####
@@ -145,18 +154,6 @@
   @endverbatim
   ******************************************************************************
 
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2018 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
   */
 
 /* Includes ------------------------------------------------------------------*/
@@ -240,7 +237,7 @@ HAL_StatusTypeDef HAL_COMP_Init(COMP_HandleTypeDef *hcomp)
 #if defined(COMP3)
   __IO uint32_t * comp_common_odd;
   __IO uint32_t * comp_common_even;
-#endif
+#endif /* COMP3 */
 
   /* Check the COMP handle allocation and lock status */
   if(hcomp == NULL)
@@ -425,7 +422,7 @@ HAL_StatusTypeDef HAL_COMP_Init(COMP_HandleTypeDef *hcomp)
         CLEAR_BIT(COMP12_COMMON->CSR_EVEN, COMP_CSR_WINOUT);
         break;
     }
-#endif
+#endif /* COMP3 */
 
     /* Delay for COMP scaler bridge voltage stabilization */
     /* Apply the delay if voltage scaler bridge is required and not already enabled */
@@ -436,7 +433,7 @@ HAL_StatusTypeDef HAL_COMP_Init(COMP_HandleTypeDef *hcomp)
       /* Note: Variable divided by 2 to compensate partially              */
       /*       CPU processing cycles, scaling in us split to not          */
       /*       exceed 32 bits register capacity and handle low frequency. */
-      wait_loop_index = ((COMP_DELAY_VOLTAGE_SCALER_STAB_US / 10UL) * (SystemCoreClock / (100000UL * 2UL)));
+      wait_loop_index = ((COMP_DELAY_VOLTAGE_SCALER_STAB_US / 10UL) * ((SystemCoreClock / (100000UL * 2UL)) + 1UL));
       while(wait_loop_index != 0UL)
       {
         wait_loop_index--;
@@ -811,7 +808,7 @@ HAL_StatusTypeDef HAL_COMP_Start(COMP_HandleTypeDef *hcomp)
       /* Note: Variable divided by 2 to compensate partially              */
       /*       CPU processing cycles, scaling in us split to not          */
       /*       exceed 32 bits register capacity and handle low frequency. */
-      wait_loop_index = ((COMP_DELAY_STARTUP_US / 10UL) * (SystemCoreClock / (100000UL * 2UL)));
+      wait_loop_index = ((COMP_DELAY_STARTUP_US / 10UL) * ((SystemCoreClock / (100000UL * 2UL)) + 1UL));
       while(wait_loop_index != 0UL)
       {
         wait_loop_index--;
@@ -907,7 +904,7 @@ void HAL_COMP_IRQHandler(COMP_HandleTypeDef *hcomp)
     comparator_window_mode = READ_BIT(COMP12_COMMON->CSR_ODD, COMP_CSR_WINMODE);
     comparator_window_mode |= READ_BIT(COMP12_COMMON->CSR_EVEN, COMP_CSR_WINMODE);
     comparator_window_exti_lines = (COMP_EXTI_LINE_COMP1 | COMP_EXTI_LINE_COMP2);
-#endif
+#endif /* COMP3 */
 
   /* Check COMP EXTI flag */
   if(LL_EXTI_IsActiveRisingFlag_0_31(exti_line) != 0UL)
@@ -1152,5 +1149,3 @@ uint32_t HAL_COMP_GetError(COMP_HandleTypeDef *hcomp)
 /**
   * @}
   */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

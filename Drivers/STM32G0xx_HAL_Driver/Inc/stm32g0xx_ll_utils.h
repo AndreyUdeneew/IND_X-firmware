@@ -3,6 +3,17 @@
   * @file    stm32g0xx_ll_utils.h
   * @author  MCD Application Team
   * @brief   Header file of UTILS LL module.
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2018 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
   @verbatim
   ==============================================================================
                      ##### How to use this driver #####
@@ -15,17 +26,6 @@
       (+) PLL configuration functions
 
   @endverbatim
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2018 STMicroelectronics. 
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the 
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
   ******************************************************************************
   */
 
@@ -178,7 +178,7 @@ typedef struct
 #define LL_UTILS_PACKAGETYPE_QFN32_PD       0x00000005U /*!< UFQFPN32 / LQFP32 Power Delivery (PD) package type  */
 #define LL_UTILS_PACKAGETYPE_QFN48          0x00000008U /*!< UFQFPN48 / LQFP488 package type                     */
 #define LL_UTILS_PACKAGETYPE_QFP64          0x0000000CU /*!< LQPF64 package type                                 */
-#endif
+#endif /* STM32G0C1xx || STM32G0B1xx || STM32G0B0xx */
 /**
   * @}
   */
@@ -274,7 +274,7 @@ __STATIC_INLINE uint32_t LL_GetPackageType(void)
   return (uint32_t)(READ_REG(*((uint32_t *)PACKAGE_BASE_ADDRESS)) & 0x1FU);
 #else
   return (uint32_t)(READ_REG(*((uint32_t *)PACKAGE_BASE_ADDRESS)) & 0xFU);
-#endif
+#endif /* STM32G0C1xx || STM32G0B1xx || STM32G0B0xx */
 }
 
 /**
@@ -341,5 +341,3 @@ ErrorStatus LL_SetFlashLatency(uint32_t HCLKFrequency);
 #endif
 
 #endif /* STM32G0xx_LL_UTILS_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
