@@ -442,8 +442,8 @@ int main(void)
 //		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 //		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
 //		squeak_single(signal);
-		soundPlay(7);
-//		HAL_Delay(500);
+		soundPlay(0);
+		HAL_Delay(21000);
 //		USART2->ICR|=USART_ICR_ORECF;
 //		USART2->ICR|=USART_ICR_FECF;
 //		USART2->ICR|=USART_ICR_NECF;
@@ -1080,7 +1080,7 @@ void  USART2_RX_Callback(void)
 //====================================================================================================================
 void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi2)
 {
-	HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND1, bufLen);
+//	HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND1, bufLen);
 //  	GPIOA->ODR |= 1 << 11;	//set test 1
 //  	GPIOA->ODR &= ~(1 << 11);	//reset test 1
 //  	decY=0x01;
@@ -1110,7 +1110,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi2)
 {
 //	if(cmd2Execute==0x11){
 		GPIOB->ODR |= 1 << 9; // set cs
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND1, bufLen);
+//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND1, bufLen);
 //	}
 //	if(cmd2Execute==0x14){
 //return;
@@ -1893,9 +1893,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			soundLen = len;
 			bufCount = len / bufLen;
 			}
-			if(curBuf == bufCount + 15){
-				return;
-			}
+//			if(curBuf == bufCount + 15){
+//				return;
+//			}
 			addrSound += (bufLen * curBuf);
 			if (curBuf != 0){
 			addr[0]=addrSound & 0xFF;
