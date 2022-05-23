@@ -1245,6 +1245,22 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		GPIOA->ODR &= ~(1 << 6);	//reset cs
 		GPIOA->ODR &= ~(1 << 7);	// reset dc
 		USART_AS_SPI_sendCMD(0xAF);
+		USART_AS_SPI_sendCMD(0xB8);
+		USART_AS_SPI_sendCMD(0);
+		USART_AS_SPI_sendCMD(0);
+		USART_AS_SPI_sendCMD(1);
+		USART_AS_SPI_sendCMD(2);
+		USART_AS_SPI_sendCMD(4);
+		USART_AS_SPI_sendCMD(7);
+		USART_AS_SPI_sendCMD(11);
+		USART_AS_SPI_sendCMD(14);
+		USART_AS_SPI_sendCMD(18);
+		USART_AS_SPI_sendCMD(23);
+		USART_AS_SPI_sendCMD(27);
+		USART_AS_SPI_sendCMD(33);
+		USART_AS_SPI_sendCMD(40);
+		USART_AS_SPI_sendCMD(49);
+		USART_AS_SPI_sendCMD(63);
 		USART_AS_SPI_sendCMD(0xA0);	//Set Re-map
 //		USART_AS_SPI_sendCMD(0x54);
 //		USART_AS_SPI_sendCMD(0x51);
@@ -1916,11 +1932,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 				SOUND2[i] = SOUND1[i];
 			}
 			if (curBuf == 0){
-				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND2, bufLen/2);
+				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND2, bufLen);
 			}
 			while (!soundReady){}
 			if (curBuf != 0){
-			HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND2, bufLen/2);
+			HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND2, bufLen);
 			}
 
 //			HAL_Delay(500);
