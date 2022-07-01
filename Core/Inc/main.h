@@ -70,12 +70,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define MEM_HOLD_Pin LL_GPIO_PIN_9
-#define MEM_HOLD_GPIO_Port GPIOB
+#define MEM_CS_Pin LL_GPIO_PIN_9
+#define MEM_CS_GPIO_Port GPIOB
 #define MEM_WP_Pin LL_GPIO_PIN_14
 #define MEM_WP_GPIO_Port GPIOC
-#define MEM_CS_Pin LL_GPIO_PIN_15
-#define MEM_CS_GPIO_Port GPIOC
+#define MEM_HOLD_Pin LL_GPIO_PIN_15
+#define MEM_HOLD_GPIO_Port GPIOC
 #define KEY_3_Pin LL_GPIO_PIN_0
 #define KEY_3_GPIO_Port GPIOA
 #define KEY_2_Pin LL_GPIO_PIN_1
