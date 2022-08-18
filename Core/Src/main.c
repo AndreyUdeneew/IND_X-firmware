@@ -147,7 +147,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
- COMP_HandleTypeDef hcomp1;
+COMP_HandleTypeDef hcomp1;
 
 I2C_HandleTypeDef hi2c1;
 
@@ -217,22 +217,23 @@ uint8_t decY;
 uint8_t fontInfo;
 uint8_t color;
 uint32_t len;
-// int16_t signal[4096];
-//uint16_t nsamples = 4096;
+ int16_t signal[4096];
+uint16_t nsamples = 4096;
 uint32_t curBuf;
 uint32_t bufCount;
 //uint32_t lenOfsound;
-uint16_t SOUND1[2048];
-uint16_t SOUND2[2048];
-//const uint16_t ethanol1[];
-//const uint16_t ethanol2[];
- uint16_t bufLen = 2048;
+ uint8_t soundBuf[4096];
+//uint16_t SOUND2[2048];
+const uint16_t ethanol1[];
+const uint16_t ethanol2[];
+ uint16_t bufLen = 4096;
+ uint8_t half_of_buf = 0;
 
 // uint8_t soundReady=1;
 	uint8_t bufAccel[] = { 0x33, 0x0F };
 	uint32_t soundLen;
-	uint32_t addrSound;
-
+volatile uint32_t addrSound = 0;
+	uint8_t soundReady, isSoundOver;
 
 /* USER CODE END PV */
 
@@ -250,7 +251,10 @@ static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 uint8_t weoShowFullScreen(uint8_t picNum);
 uint8_t weoShowFullScreenDMA(uint8_t picNum);
-uint8_t soundLoad(uint8_t soundNum, uint8_t soundReady, uint8_t isSoundOver);
+void setVolume(uint8_t drvGain, uint8_t digGain, uint8_t spkAttn);
+void sound_half_transfer_callback();
+void sound_full_transfer_callback();
+uint8_t soundLoad(uint8_t soundNum);
 uint8_t soundPlay(uint8_t soundNum);
 uint8_t weoShowSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY);
 uint8_t weoShowSmallImageDMA(uint8_t picNum, uint8_t imX, uint8_t imY);
@@ -338,7 +342,7 @@ int main(void)
 	MEM_Reset();
 
 	weoInit();
-	HAL_Delay(2);
+	HAL_Delay(1);
 	weoClear();
 	MEM_GetID();
 	soundSetup();
@@ -444,11 +448,15 @@ int main(void)
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
 //    GPIOB->PUPDR &= ~0x3F000;
-//	while(2){
-//			HAL_I2S_Transmit(&hi2s1, (uint16_t*)ethanol2, 7823, HAL_MAX_DELAY);
-//			HAL_Delay(500);
-//	}
-	GPIOC->ODR |= 1 << 6;
+	for(uint8_t k = 0; k < 1; k += 1){
+			GPIOC->ODR |= 1 << 6;	//set BF
+			GPIOC->ODR &= ~(1 << 6);	//reset BF
+			HAL_I2S_Transmit(&hi2s1, (uint16_t*)&ethanol2[0], 7823, 5000);
+			HAL_Delay(500);
+	}
+
+
+//	GPIOC->ODR |= 1 << 6;
 //	uint8_t soundNumber = 3;
 //	j = 11;
 //	GPIOC->ODR |= 1 << 6;	//set BF
@@ -457,7 +465,9 @@ int main(void)
 //	{
 //		GPIOC->ODR |= 1 << 6;	//set BF
 //		GPIOC->ODR &= ~(1 << 6);	//reset BF
-	while(3){
+	GPIOC->ODR &= ~(1 << 6);	//reset BF
+//	HAL_Delay(100);
+	for(uint8_t k = 0; k < 2; k += 1){
 //	GPIOC->ODR |= 1 << 6;	//set BF
 //	GPIOC->ODR &= ~(1 << 6);	//reset BF
 //	uint8_t memCMD = 0x13;
@@ -472,15 +482,14 @@ int main(void)
 //	GPIOB->ODR |= 1 << 9;	//set FLASH CS
 //				GPIOC->ODR |= 1 << 6;	//set BF
 //				GPIOC->ODR &= ~(1 << 6);	//reset BF
-//	HAL_I2S_Transmit(&hi2s1, (uint16_t*)&SOUND1, 7823,5000);
+//	HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)&SOUND1, 7823);
 //	HAL_Delay(21000);
 	soundPlay(0);
-	HAL_Delay(500);
 //			GPIOC->ODR |= 1 << 6;	//set BF
 //			GPIOC->ODR &= ~(1 << 6);	//reset BF
-//	HAL_Delay(2000);
+	HAL_Delay(1000);
 	}
-//	GPIOC->ODR &= ~(1 << 6);	//reset BF
+
 //	HAL_Delay(21000);
 //	}
 
@@ -862,7 +871,7 @@ static void MX_USART2_UART_Init(void)
   */
   GPIO_InitStruct.Pin = LL_GPIO_PIN_2;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
@@ -870,9 +879,9 @@ static void MX_USART2_UART_Init(void)
 
   GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -998,7 +1007,7 @@ static void MX_GPIO_Init(void)
   LL_GPIO_SetOutputPin(DISP_D_C_GPIO_Port, DISP_D_C_Pin);
 
   /**/
-  LL_GPIO_SetOutputPin(BF_GPIO_Port, BF_Pin);
+  LL_GPIO_ResetOutputPin(BF_GPIO_Port, BF_Pin);
 
   /**/
   LL_GPIO_ResetOutputPin(TEST_1_GPIO_Port, TEST_1_Pin);
@@ -1069,7 +1078,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(BF_GPIO_Port, &GPIO_InitStruct);
 
   /**/
@@ -1168,7 +1177,7 @@ void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 	GPIOA->ODR |= 1 << 6;	//set cs
 	cmd2Execute=0;
 //	while(BFEN==0){};
-	GPIOC->ODR |= 1 << 6;	//set BF
+//	GPIOC->ODR |= 1 << 6;	//set BF
 }
 //==============================================================
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
@@ -1179,28 +1188,14 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
 //	GPIOC->ODR |= 1 << 6;	//set BF
 }
 //======================================================================================================================
-void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1) {
-	curBuf += 1;
-//				GPIOC->ODR |= 1 << 6;	//set BF
-//				GPIOC->ODR &= ~(1 << 6);	//reset BF
-	soundLoad(soundNum, 0, 0);
+void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s1)
+{
+	sound_half_transfer_callback();
 }
 //======================================================================================================================
-void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
-//	GPIOC->ODR |= 1 << 6;	//set BF
-//	GPIOC->ODR &= ~(1 << 6);	//set BF
-
-	if(curBuf < bufCount){
-
-//		GPIOC->ODR |= 1 << 6;	//set BF
-	soundLoad(soundNum, 1, 0);
-	}
-	else
-	{
-//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND2, bufLen/2);
-
-		soundLoad(soundNum, 1, 1);
-	}
+void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
+{
+	sound_full_transfer_callback();
 }
 //=======================================================================================================================
 	void cmdReceive (uint16_t dt1)
@@ -1438,14 +1433,24 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		WriteReg_I2C_SOUND(0x2E, 0x00);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000)
 		WriteReg_I2C_SOUND(0x30, 0x10);	//SPK driver Gain=6.0dB (P1, R48, D6-D4=001)
 		WriteReg_I2C_SOUND(0x2D, 0x02);	//SPK powered up (P1, R45, D1=1)
-		I2C_SOUND_ChangePage(0x00);
 		//////////////////////////////////////////////////////////////////////////
+		I2C_SOUND_ChangePage(0x00);
 		WriteReg_I2C_SOUND(0x3F, 0x90);	//DAC powered up, Soft step 1 per Fs. (P0, R63, D7=1, D5-D4=01, D3-D2=00, D1-D0=00)
 		// 1<<7|1<<4|2 by SB
 		WriteReg_I2C_SOUND(0x41, 0x00);	//DAC digital gain 0dB (P0, R65, D7-D0=00000000) cnDacValueOn by SB
 		WriteReg_I2C_SOUND(0x40, 0x04);	//DAC volume not muted. (P0, R64, D3=0, D2=1) 1<<4 by SB
 	}
 //=============================================================================================
+	void setVolume(uint8_t drvGain, uint8_t digGain, uint8_t spkAttn)
+	{
+		I2C_SOUND_ChangePage(0x00);
+		WriteReg_I2C_SOUND(0x41, digGain);	//DAC digital gain 0dB (P0, R65, D7-D0=00000000) cnDacValueOn by SB
+			I2C_SOUND_ChangePage(0x01);
+			WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+			WriteReg_I2C_SOUND(0x2E, spkAttn);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000)
+			WriteReg_I2C_SOUND(0x30, drvGain);	//SPK driver Gain=6.0dB (P1, R48, D6-D4=001)
+	}
+	//=============================================================================================
 	uint8_t answer2CPU(uint8_t cmd[]) {
 		uint8_t keyboard = 0xFF;
 //		uint16_t ans[10];
@@ -1456,10 +1461,10 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 
 		cmd2Execute=0;
 		cmd[0]&=~0x100;
-		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x13)||(cmd[0] == 0x14)||(cmd[0] == 0x15)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
+//		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x13)||(cmd[0] == 0x14)||(cmd[0] == 0x15)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
 		if (cmd[0] == 0x11) {
 //			GPIOC->ODR &= ~(1 << 6);
-			GPIOC->ODR &=~ GPIO_ODR_OD6;
+//			GPIOC->ODR &=~ GPIO_ODR_OD6;
 		}//reset BF
 		ans[0] = cmd[0]|0x80;
 //==================================================================================================
@@ -1727,7 +1732,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		weoDrawRectangleFilled(0x00, 0x00, 0x7F, 0x7F, 0xFF, MEM_Buffer); // Здесь ещё работает
 		cmd2Execute=0;
 //		while(BFEN==0){};
-		GPIOC->ODR |= 1 << 6;	//set BF
+//		GPIOC->ODR |= 1 << 6;	//set BF
 	}
 //==========================================================================================================================
 
@@ -1737,7 +1742,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		uint8_t DUMMY_Buffer[8192], firstImAddrArray[4],addrArray[4];
 		uint16_t i;
 		uint32_t addrInfo,addr;
-		GPIOC->ODR &= ~(1 << 6);
+//		GPIOC->ODR &= ~(1 << 6);
 
 		weoDrawRectangleInit(0x00, 0x00, 0x7F, 0x7F); // Здесь ещё работает
 
@@ -1831,7 +1836,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		weoDrawRectangleFilled(imX, imY, imX + width-1, (imY + height-1), 0xFF, MEM_Buffer);
 		cmd2Execute=0;
 //		while(BFEN==0){};
-		GPIOC->ODR |= 1 << 6;	//set BF
+//		GPIOC->ODR |= 1 << 6;	//set BF
 	}
 	uint8_t weoShowSmallImageDMA(uint8_t picNum, uint8_t imX, uint8_t imY) {
 
@@ -1879,176 +1884,414 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) &MEM_Buffer ,len);
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	uint8_t soundLoad(uint8_t soundNum, uint8_t soundReady, uint8_t isSoundOver) {
-			uint8_t memCMD;
-			uint8_t soundInfo[9],addrINFO[4],addr[4],length[4];
-			uint32_t i;
-			memCMD = 0x13; //read command with 4-byte address
+	uint8_t soundLoad(uint8_t soundNum) {
+//			uint8_t memCMD;
+//			uint8_t soundInfo[9],addrINFO[4],addr[4],length[4];
+//			uint32_t i;
+//			memCMD = 0x13; //read command with 4-byte address
+////						GPIOC->ODR |= 1 << 6;	//set BF
+////						GPIOC->ODR &= ~(1 << 6);	//reset BF
+//			if(isSoundOver == 1)
+//			{
+//				GPIOC->ODR &= ~(1 << 6);	//reset BF
+//				curBuf = 0;
+//				return;
+//			}
+//
+//				if (curBuf == 0){
+//					address=startAddressForSoundInfo+(soundNum*0x09)+0xabcfFF;
+////					GPIOC->ODR |= 1 << 6;	//set BF
+////					GPIOC->ODR &= ~(1 << 6);	//set BF
+//					addrINFO[0]=address & 0xFF;
+//					addrINFO[1]=(address >> 8) & 0xFF;
+//					addrINFO[2]=(address >> 16) & 0xFF;
+//					addrINFO[3]=(address >> 24) & 0xFF;
+//
+//					GPIOB->ODR &= ~(1 << 9); //reset cs
+//					HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
+//					HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[3], 1, 50); //send address
+//					HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[2], 1, 50); //send address
+//					HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[1], 1, 50); //send address
+//					HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[0], 1, 50); //send address
+//					HAL_SPI_Receive(&hspi2, (uint8_t*) &soundInfo, 9, 5000);//9 bytes of soundInfo
+//					GPIOB->ODR |= 1 << 9; // set cs
+//
+//
+//					addr[0]=soundInfo[4];
+//					addr[1]=soundInfo[3];
+//					addr[2]=soundInfo[2];
+//					addr[3]=soundInfo[1];
+//
+//					addr[0]=0;
+//					addr[1]=0;
+//					addr[2]=0;
+//					addr[3]=0;
+//
+//
+//					length[0]=soundInfo[8];
+//					length[1]=soundInfo[7];
+//					length[2]=soundInfo[6];
+//					length[3]=soundInfo[5];
+//
+//					uint32_t lenOfsound = 0;
+//
+//					lenOfsound |= length[3];
+//					lenOfsound <<= 8;
+//					lenOfsound |= length[2];
+//					lenOfsound <<= 8;
+//					lenOfsound |= length[1];
+//					lenOfsound <<= 8;
+//					lenOfsound |= length[0];
+//
+//					addrSound|=addr[3];
+//					addrSound<<=8;
+//					addrSound|=addr[2];
+//					addrSound<<=8;
+//					addrSound|=addr[1];
+//					addrSound<<=8;
+//					addrSound|=addr[0];
+//
+//					lenOfsound = 15646;
+//
+//					soundLen = lenOfsound;
+//					bufCount = (lenOfsound / bufLen) -0;
+//			}
+//
+//				addrSound += bufLen;
+//				if (curBuf != 0){
+//					addr[0]=addrSound & 0xFF;
+//					addr[1]=(addrSound >> 8) & 0xFF;
+//					addr[2]=(addrSound >> 16) & 0xFF;
+//					addr[3]=(addrSound >> 24) & 0xFF;
+//				}
+//
+////			if(soundReady == 0){
+//
+//				GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
+//				HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
+//				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[3], 1, 50); //send address
+//				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[2], 1, 50); //send address
+//				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[1], 1, 50); //send address
+//				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[0], 1, 50); //send address
+//				HAL_SPI_Receive(&hspi2, (uint8_t*)SOUND1, bufLen, 5000);
+//				GPIOB->ODR |= 1 << 9;	//set FLASH CS
+//
+//				for (i = 0; i < bufLen; i+=1){
+////					SOUND2[i] = SOUND1[i];
+//					SOUND2[i] = ethanol2[i];
+//				}
+//
+////				if (curBuf != 0){
+////				for (uint8_t k = 0; k<255; k++){
+//				while(1){
+////					GPIOC->ODR |= 1 << 6;	//set BF
+//					half_of_buf = 0;
+//					soundReady = 1;
+//					while(curBuf < bufCount){
+////						GPIOC->ODR |= 1 << 6;	//set BF
+////						GPIOC->ODR &= ~(1 << 6);	//reset BF
+//						if(soundReady == 1){
+//							GPIOC->ODR |= 1 << 6;	//set BF
+//							GPIOC->ODR &= ~(1 << 6);	//reset BF
+//					HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)&SOUND2[(curBuf*bufLen)>>1], bufLen>>1);
+////					GPIOC->ODR |= 1 << 6;	//set BF
+////					GPIOC->ODR &= ~(1 << 6);	//reset BF
+//					soundReady = 0;
+//					half_of_buf = 0;
+////						HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)&ethanol2[0], 7823);
+//if(half_of_buf == 0){
+//	addrSound += bufLen;
+////	GPIOC->ODR |= 1 << 6;	//set BF
+////	GPIOC->ODR &= ~(1 << 6);	//reset BF
+//					addr[0]=addrSound & 0xFF;
+//					addr[1]=(addrSound >> 8) & 0xFF;
+//					addr[2]=(addrSound >> 16) & 0xFF;
+//					addr[3]=(addrSound >> 24) & 0xFF;
 //						GPIOC->ODR |= 1 << 6;	//set BF
 //						GPIOC->ODR &= ~(1 << 6);	//reset BF
-			if(isSoundOver == 1)
-			{
-				curBuf = 0;
-				return;
-			}
-
-			if(soundReady == 0){
-
-				if (curBuf == 0){
-//					squeak_generate();
-					address=startAddressForSoundInfo+(soundNum*0x09)+0xabcfFF;
-					GPIOC->ODR |= 1 << 6;	//set BF
-					GPIOC->ODR &= ~(1 << 6);	//set BF
-					addrINFO[0]=address & 0xFF;
-					addrINFO[1]=(address >> 8) & 0xFF;
-					addrINFO[2]=(address >> 16) & 0xFF;
-					addrINFO[3]=(address >> 24) & 0xFF;
-
-					GPIOB->ODR &= ~(1 << 9); //reset cs
-					HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
-					HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[3], 1, 50); //send address
-					HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[2], 1, 50); //send address
-					HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[1], 1, 50); //send address
-					HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrINFO[0], 1, 50); //send address
-					HAL_SPI_Receive(&hspi2, (uint8_t*) &soundInfo, 9, 5000);//9 bytes of soundInfo
-					GPIOB->ODR |= 1 << 9; // set cs
-
-
-					addr[0]=soundInfo[4];
-					addr[1]=soundInfo[3];
-					addr[2]=soundInfo[2];
-					addr[3]=soundInfo[1];
-
-					addr[0]=0;
-					addr[1]=0;
-					addr[2]=0;
-					addr[3]=0;
-
-
-					length[0]=soundInfo[8];
-					length[1]=soundInfo[7];
-					length[2]=soundInfo[6];
-					length[3]=soundInfo[5];
-
-					uint32_t lenOfsound = 0;
-
-					lenOfsound |= length[3];
-					lenOfsound <<= 8;
-					lenOfsound |= length[2];
-					lenOfsound <<= 8;
-					lenOfsound |= length[1];
-					lenOfsound <<= 8;
-					lenOfsound |= length[0];
-
-					addrSound|=addr[3];
-					addrSound<<=8;
-					addrSound|=addr[2];
-					addrSound<<=8;
-					addrSound|=addr[1];
-					addrSound<<=8;
-					addrSound|=addr[0];
-
-					lenOfsound = 15646;
-
-					soundLen = lenOfsound;
-					bufCount = lenOfsound / bufLen;
-//					bufCount = 50;
-			}
-
-				addrSound += bufLen;
-				if (curBuf != 0){
-					addr[0]=addrSound & 0xFF;
-					addr[1]=(addrSound >> 8) & 0xFF;
-					addr[2]=(addrSound >> 16) & 0xFF;
-					addr[3]=(addrSound >> 24) & 0xFF;
-				}
-
-			if(soundReady == 0){
-
-				GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
-				HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
-				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[3], 1, 50); //send address
-				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[2], 1, 50); //send address
-				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[1], 1, 50); //send address
-				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[0], 1, 50); //send address
-				HAL_SPI_Receive(&hspi2, (uint8_t*)SOUND1, bufLen, 5000);
-				GPIOB->ODR |= 1 << 9;	//set FLASH CS
-//				HAL_I2S_Transmit(&hi2s1, (uint16_t*)SOUND1, 7823,5000);
-
-//				SOUND2[0] = SOUND1[1];
-//				SOUND2[1] = SOUND1[0];
+////				GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
+////				HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
+////				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[3], 1, 50); //send address
+////				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[2], 1, 50); //send address
+////				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[1], 1, 50); //send address
+////				HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[0], 1, 50); //send address
+////				HAL_SPI_Receive(&hspi2, (uint8_t*)SOUND1, bufLen, 5000);
+//				GPIOB->ODR |= 1 << 9;	//set FLASH CS
 //				GPIOC->ODR |= 1 << 6;	//set BF
-//				for (i = 0; i < bufLen; i+=2){
-//					SOUND2[i] = SOUND1[i+1];
-//					SOUND2[i+1] = SOUND1[i];
-//				}
-
-
-				for (i = 0; i < bufLen; i+=1){
-					SOUND2[i] = SOUND1[i];
-				}
-
 //				GPIOC->ODR &= ~(1 << 6);	//reset BF
-//				while(1){
-//					HAL_I2S_Transmit(&hi2s1, (uint16_t*)SOUND2, bufLen, 5000);
-//					HAL_Delay(500);
+//				half_of_buf = 1;
+//
+//}
+//if(half_of_buf == 1){
+////		GPIOC->ODR |= 1 << 6;	//set BF
+////		GPIOC->ODR &= ~(1 << 6);	//reset BF
+//	for (uint32_t i = curBuf*bufLen; i < (curBuf * bufLen + bufLen); i+=1){
+////						SOUND2[i] = SOUND1[i];
+//						SOUND2[i] = ethanol2[i];
+//					}
+//	half_of_buf = 0;
+//}
+//curBuf +=1;
+//while (soundReady == 0){
+//
+//}
+//
+//					}
+//					}
+////					if(soundReady == 0){
+//////						GPIOC->ODR |= 1 << 6;	//set BF
+//////						GPIOC->ODR &= ~(1 << 6);	//reset BF
+////						addrSound += bufLen;
+////
+////						addr[0]=addrSound & 0xFF;
+////						addr[1]=(addrSound >> 8) & 0xFF;
+////						addr[2]=(addrSound >> 16) & 0xFF;
+////						addr[3]=(addrSound >> 24) & 0xFF;
+////
+////									GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
+////									HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50); //read command with 4-byte address
+////									HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[3], 1, 50); //send address
+////									HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[2], 1, 50); //send address
+////									HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[1], 1, 50); //send address
+////									HAL_SPI_Transmit(&hspi2, (uint8_t*) &addr[0], 1, 50); //send address
+////									HAL_SPI_Receive(&hspi2, (uint8_t*)SOUND1, bufLen, 5000);
+////									GPIOB->ODR |= 1 << 9;	//set FLASH CS
+////
+////					}
 //				}
-			}
-//			soundReady = 1;
-				if ((curBuf == 0) && (soundReady == 0)){
-
-//					HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND2, 1024);
-//					GPIOC->ODR &= ~(1 << 6);	//reset BF
-					HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND1, bufLen>>1);
-
-//				curBuf = 0;
-				}
-
-			}
-			if (soundReady ==1){
-//				if (curBuf != 0){
-//				for (uint8_t k = 0; k<255; k++){
-
-					HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND2, bufLen>>1);
-//					GPIOC->ODR &= ~(1 << 6);	//reset BF
-//					HAL_I2S_Transmit_DMA(&hi2s1, (int16_t*)signal, nsamples);
-//				HAL_I2S_Transmit_DMA(&hi2s1, (int16_t*)ethanol1, 6834);
-//				}
-//					HAL_Delay(500);
-//					while (!isSoundOver){}
-//			soundReady = 1;
-//			curBuf = 0;
-//				}
-			}
-			while (isSoundOver){}
-//			GPIOC->ODR &= ~(1 << 6);	//reset BF
-//			HAL_Delay(500);
-//			SoundPlay();
+////					HAL_I2S_Transmit_DMA(&hi2s1, (int16_t*)signal, nsamples);
+////				HAL_I2S_Transmit_DMA(&hi2s1, (int16_t*)ethanol1, 6834);
+////				}
+////					HAL_Delay(500);
+////					while (!isSoundOver){}
+////			soundReady = 1;
+////			curBuf = 0;
+////				}
+//
+////			GPIOC->ODR &= ~(1 << 6);	//reset BF
+////			HAL_Delay(500);
+////			SoundPlay();
 		}
 //=========================================================================================================================
 	uint8_t soundPlay(uint8_t soundNum) {
-//		HAL_Delay(500);
-//		GPIOC->ODR |= 1 << 6;	//set BF
-//		GPIOC->ODR &= ~(1 << 6);	//reset BF
-//		HAL_Delay(500);
-			I2C_SOUND_ChangePage(0x01);
-			WriteReg_I2C_SOUND(0x01, 0x00);
-			I2C_SOUND_ChangePage(0x00);
-			WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
-		//	I2C_SOUND_ChangePage(0x00);
-			I2C_SOUND_ChangePage(0x01);
-			WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-			WriteReg_I2C_SOUND(0x2E, 0x00);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-//			bufLen = sizeof(SOUND1);
-			curBuf = 0;
-//			lenOfsound = sizeof(SOUND2)/sizeof(SOUND2[0]);
-			soundLoad(soundNum, 0, 0);
-//			GPIOC->ODR &= ~(1 << 6);	//reset BF
-//			HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)SOUND, 16384/2); //HAL_MAX_DELAY
+		uint8_t memCMD = 0x13; //read command with 4-byte address
+		uint8_t soundInfo[9],addrINFO[4],addr[4],length[4], addr3, addr2, addr1, addr0;
+		volatile uint32_t addrSound = 0;
+		uint32_t i;
 
-//			HAL_I2S_Transmit(&hi2s1, (uint16_t*)SOUND,4096,5000);
-//		squeak_double(signal);
+
+//сюда приходит
+		setVolume(0x10, 0x30, 0x00);
+
+		curBuf = 0;
+		uint32_t lenOfsound = 0;
+		isSoundOver = 0;
+//		addrSound = 0;
+
+		if(isSoundOver == 1)
+		{
+			GPIOC->ODR &= ~(1 << 6);	//reset BF
+			curBuf = 0;
+			return;
 		}
+
+		if (curBuf == 0){
+			address = startAddressForSoundInfo+(soundNum*0x09);
+//			GPIOC->ODR |= 1 << 6;	//set BF
+//			GPIOC->ODR &= ~(1 << 6);	//set BF  Сюда приходит
+			addrINFO[0] = address & 0xFF;
+			addrINFO[1] = (address >> 8) & 0xFF;
+			addrINFO[2] = (address >> 16) & 0xFF;
+			addrINFO[3] = (address >> 24) & 0xFF;
+
+			GPIOB->ODR &= ~(1 << 9); //reset cs
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) & memCMD, 1, 50); //read command with 4-byte address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) & addrINFO[3], 1, 50); //send address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) & addrINFO[2], 1, 50); //send address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) & addrINFO[1], 1, 50); //send address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) & addrINFO[0], 1, 50); //send address
+			HAL_SPI_Receive(&hspi2, (uint8_t*) & soundInfo, 9, 5000);//9 bytes of soundInfo
+			GPIOB->ODR |= 1 << 9; // set cs
+
+			addr[0] = soundInfo[4];
+			addr[1] = soundInfo[3];
+			addr[2] = soundInfo[2];
+			addr[3] = soundInfo[1];
+
+			addr3 = 0;
+			addr2 = 0;
+			addr1 = 0;
+			addr0 = 0;
+
+			addr[0] = 0;	//just 4 test
+			addr[1] = 0;	//just 4 test
+			addr[2] = 0;	//just 4 test
+			addr[3] = 0;	//just 4 test
+
+//			length[0] = soundInfo[8];	//Commented 4 test
+//			length[1] = soundInfo[7];	//Commented 4 test
+//			length[2] = soundInfo[6];	//Commented 4 test
+//			length[3] = soundInfo[5];	//Commented 4 test
+
+			lenOfsound |= length[3];
+			lenOfsound <<= 8;
+			lenOfsound |= length[2];
+			lenOfsound <<= 8;
+			lenOfsound |= length[1];
+			lenOfsound <<= 8;
+			lenOfsound |= length[0];
+//			GPIOC->ODR |= 1 << 6;	//set BF
+//			GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
+		}
+
+			lenOfsound = 687124;
+			bufCount = lenOfsound / bufLen;
+
+			GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) & memCMD, 1, 50); //read command with 4-byte address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[3], 1, 50); //send address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[2], 1, 50); //send address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[1], 1, 50); //send address
+			HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[0], 1, 50); //send address
+			HAL_SPI_Receive(&hspi2, (uint8_t*)  & soundBuf[0], 4096, 5000);
+			GPIOB->ODR |= 1 << 9;	//set FLASH CS
+
+			HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], 2048);
+			half_of_buf = 1;
+//==================================================1st time play buffer =========================================================
+//			GPIOC->ODR |= 1 << 6;	//set BF
+//			GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
+			while(curBuf <= bufCount)
+			{
+//							GPIOC->ODR |= 1 << 6;	//set BF
+//							GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
+				if(half_of_buf == 2)
+				{
+					GPIOC->ODR |= 1 << 6;	//set BF
+//					GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
+					addrSound = (addrSound + 2048);
+
+					addr3 = 0;
+					addr2 = 0;
+					addr1 = 0;
+					addr0 = 0;
+
+					addr[0] = addrSound & 0xFF;
+					addr[1] = (addrSound >> 8) & 0xFF;
+					addr[2] = (addrSound >> 16) & 0xFF;
+					addr[3] = (addrSound >> 24) & 0xFF;
+
+					addr3 = (addrSound >> 24) & 0xFF;
+					addr2 = (addrSound >> 16) & 0xFF;
+					addr1 = (addrSound >> 8) & 0xFF;
+					addr0 = addrSound & 0xFF;
+
+					GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
+					HAL_SPI_Transmit(&hspi2, (uint8_t*) & memCMD, 1, 50); //read command with 4-byte address
+					HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr3, 1, 50); //send address
+					HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr2, 1, 50); //send address
+					HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr1, 1, 50); //send address
+					HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr0, 1, 50); //send address
+					HAL_SPI_Receive(&hspi2, (uint8_t*)&soundBuf[0], 2048, 5000);
+					GPIOB->ODR |= 1 << 9;	//set FLASH CS
+					half_of_buf = 1;
+				}
+				if(half_of_buf == 0)
+				{
+//					GPIOC->ODR |= 1 << 6;	//set BF
+					GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
+					addrSound = (addrSound + 2048);
+
+					addr[0] = 0;
+					addr[1] = 0;
+					addr[2] = 0;
+					addr[3] = 0;
+
+					addr[0] = addrSound & 0xFF;
+					addr[1] = (addrSound >> 8) & 0xFF;
+					addr[2] = (addrSound >> 16) & 0xFF;
+					addr[3] = (addrSound >> 24) & 0xFF;
+
+					addr3 = (addrSound >> 24) & 0xFF;
+					addr2 = (addrSound >> 16) & 0xFF;
+					addr1 = (addrSound >> 8) & 0xFF;
+					addr0 = addrSound & 0xFF;
+
+					GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
+					HAL_SPI_Transmit(&hspi2, (uint8_t*) & memCMD, 1, 50); //read command with 4-byte address
+					HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr3, 1, 50); //send address
+					HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr2, 1, 50); //send address
+					HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr1, 1, 50); //send address
+					HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr0, 1, 50); //send address
+					HAL_SPI_Receive(&hspi2, (uint8_t*)&soundBuf[2048], 2048, 5000);
+					GPIOB->ODR |= 1 << 9;	//set FLASH CS
+					half_of_buf = 1;
+				}
+			}
+		}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	void sound_half_transfer_callback()
+	{
+//		uint8_t memCMD = 0x13; //read command with 4-byte address
+//		uint8_t soundInfo[9],addrINFO[4],addr[4],length[4];
+
+		half_of_buf = 2;
+//		addrSound += 2048;
+//		GPIOC->ODR |= 1 << 6;	//set BF
+//		GPIOC->ODR &= ~(1 << 6);	//set BF  Сюда приходит
+//		GPIOC->ODR |= 1 << 6;	//set BF
+//		GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
+//		addrSound += 2048;
+//
+//		addr[0] = addrSound & 0xFF;
+//		addr[1] = (addrSound >> 8) & 0xFF;
+//		addr[2] = (addrSound >> 16) & 0xFF;
+//		addr[3] = (addrSound >> 24) & 0xFF;
+//
+//		GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
+//		HAL_SPI_Transmit(&hspi2, (uint8_t*) & memCMD, 1, 50); //read command with 4-byte address
+//		HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[3], 1, 50); //send address
+//		HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[2], 1, 50); //send address
+//		HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[1], 1, 50); //send address
+//		HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[0], 1, 50); //send address
+//		HAL_SPI_Receive(&hspi2, (uint8_t*)  & soundBuf[0], 2048, 5000);
+//		GPIOB->ODR |= 1 << 9;	//set FLASH CS
+
+	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	void sound_full_transfer_callback()
+	{
+		uint8_t memCMD = 0x13; //read command with 4-byte address
+//		uint8_t soundInfo[9],addrINFO[4],addr[4],length[4];
+
+//		half_of_buf = 0;
+//		GPIOC->ODR |= 1 << 6;	//set BF
+//		GPIOC->ODR &= ~(1 << 6);	//set BF  Сюда приходит
+		curBuf += 1;
+//		addrSound += 2048;
+		if(curBuf <= bufCount)
+		{
+			HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], 2048);
+			half_of_buf = 0;
+		//					GPIOC->ODR |= 1 << 6;	//set BF
+		//					GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
+//							addrSound += 2048;
+
+//							addr[0] = addrSound & 0xFF;
+//							addr[1] = (addrSound >> 8) & 0xFF;
+//							addr[2] = (addrSound >> 16) & 0xFF;
+//							addr[3] = (addrSound >> 24) & 0xFF;
+//
+//							GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
+//							HAL_SPI_Transmit(&hspi2, (uint8_t*) & memCMD, 1, 50); //read command with 4-byte address
+//							HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[3], 1, 50); //send address
+//							HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[2], 1, 50); //send address
+//							HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[1], 1, 50); //send address
+//							HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[0], 1, 50); //send address
+//							HAL_SPI_Receive(&hspi2, (uint8_t*)  & soundBuf[2048], 2048, 5000);
+//							GPIOB->ODR |= 1 << 9;	//set FLASH CS
+		}
+	}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void MEM_Write(uint32_t addr) {
@@ -2151,7 +2394,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 
 				}
 		if(cmd2Execute==0x11){
-			GPIOC->ODR &=~ GPIO_ODR_OD6;
+//			GPIOC->ODR &=~ GPIO_ODR_OD6;
 			bf4me=0x11;	//set BF flag 4 me
 //			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 			weoShowFullScreen(picNum);
@@ -2199,7 +2442,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //			}
 			cmd2Execute=0;
 //			while(BFEN==0){};
-			GPIOC->ODR |= 1 << 6;	//set BF
+//			GPIOC->ODR |= 1 << 6;	//set BF
 
 		}
 		if(cmd2Execute==0x15){
@@ -2227,7 +2470,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //			bf4me=0x15;	//set BF flag 4 me
 			cmd2Execute=0;
 //			while(BFEN==0){};
-			GPIOC->ODR |= 1 << 6;	//set BF
+//			GPIOC->ODR |= 1 << 6;	//set BF
 		}
 		if(cmd2Execute==0x16){
 			bf4me=0x16;	//set BF flag 4 me
@@ -2392,19 +2635,19 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 			}
 			cmd2Execute=0;
 //			while(BFEN==0){};
-			GPIOC->ODR |= 1 << 6;	//set BF
+//			GPIOC->ODR |= 1 << 6;	//set BF
 
 	}
 //=============================================================================================================
 	void squeak_generate(void){
 //			    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
 			    uint16_t k = 0;
-//			    while(k < nsamples) {
-//			        double t = ((double)k/2.0)/((double)nsamples);
-//			       signal[k] = 32767*sin(100.0 * TAU * t); // left
-//			       signal[k+1] = signal[k];
+			    while(k < nsamples) {
+			        double t = ((double)k/2.0)/((double)nsamples);
+			       signal[k] = 32767*sin(100.0 * TAU * t); // left
+			       signal[k+1] = signal[k];
 			        k += 2;
-//			    }
+			    }
 		}
 //=============================================================================================================
 	void squeak_single(uint16_t* signal){
@@ -2417,7 +2660,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		I2C_SOUND_ChangePage(0x01);
 		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-//		HAL_I2S_Transmit_DMA(&hi2s1, (const uint16_t*)signal, nsamples); //HAL_MAX_DELAY
+		HAL_I2S_Transmit_DMA(&hi2s1, (const uint16_t*)signal, nsamples); //HAL_MAX_DELAY
 		USART2->ICR|=USART_ICR_ORECF;
 		USART2->ICR|=USART_ICR_FECF;
 		USART2->ICR|=USART_ICR_NECF;
@@ -2436,11 +2679,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		I2C_SOUND_ChangePage(0x01);
 		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
 //		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
 //		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
 //		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
@@ -2477,7 +2720,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
 //		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
 //		HAL_Delay(500);
-		GPIOC->ODR |= 1 << 6;	//set BF
+//		GPIOC->ODR |= 1 << 6;	//set BF
 		cmd2Execute=0;
 	}
 //=============================================================================================================
@@ -2491,9 +2734,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 		I2C_SOUND_ChangePage(0x01);
 		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
-//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(500);
 	}
 //=============================================================================================================
@@ -2508,11 +2751,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1) {
 //		HAL_Delay(1000);
 		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
-//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(100);
-//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
 		HAL_Delay(500);
 //		GPIOC->ODR |= 1 << 6;	//set BF
 //		cmd2Execute=0;
