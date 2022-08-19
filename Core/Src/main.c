@@ -1885,7 +1885,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	uint8_t soundPlay(uint8_t soundNum) {
 		uint8_t memCMD = 0x13; //read command with 4-byte address
-		uint8_t soundInfo[9],addrINFO[4],addr[4],length[4], addr3, addr2, addr1, addr0;
+		uint8_t soundInfo[9],addrINFO[4],addr[4],length[4];
 		volatile uint32_t addrSound = 0;
 		uint32_t i;
 
@@ -1941,8 +1941,6 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			lenOfsound |= length[1];
 			lenOfsound <<= 8;
 			lenOfsound |= length[0];
-//			GPIOC->ODR |= 1 << 6;	//set BF
-//			GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
 		}
 
 			lenOfsound = 687124*2;
@@ -1977,11 +1975,6 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					addr[2] = (addrSound >> 16) & 0xFF;
 					addr[3] = (addrSound >> 24) & 0xFF;
 
-					addr3 = (addrSound >> 24) & 0xFF;
-					addr2 = (addrSound >> 16) & 0xFF;
-					addr1 = (addrSound >> 8) & 0xFF;
-					addr0 = addrSound & 0xFF;
-
 					GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
 					HAL_SPI_Transmit(&hspi2, (uint8_t*) & memCMD, 1, 50); //read command with 4-byte address
 					HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[3], 1, 50); //send address
@@ -2002,11 +1995,6 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					addr[1] = (addrSound >> 8) & 0xFF;
 					addr[2] = (addrSound >> 16) & 0xFF;
 					addr[3] = (addrSound >> 24) & 0xFF;
-
-					addr3 = (addrSound >> 24) & 0xFF;
-					addr2 = (addrSound >> 16) & 0xFF;
-					addr1 = (addrSound >> 8) & 0xFF;
-					addr0 = addrSound & 0xFF;
 
 					GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
 					HAL_SPI_Transmit(&hspi2, (uint8_t*) & memCMD, 1, 50); //read command with 4-byte address
