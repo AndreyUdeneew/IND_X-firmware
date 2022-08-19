@@ -1886,10 +1886,13 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	uint8_t soundPlay(uint8_t soundNum) {
 		uint8_t memCMD = 0x13; //read command with 4-byte address
 		uint8_t soundInfo[9],addrINFO[4],addr[4],length[4];
-		volatile uint32_t addrSound = 0;
-		uint32_t i;
+		volatile uint32_t addrSound = 9;
+		uint32_t i, address;
 
 		setVolume(0x10, 0x30, 0x00);
+
+		addrSound = 9;
+		address = startAddressForSoundInfo + (soundNum * 9);
 
 		curBuf = 0;
 		uint32_t lenOfsound = 0;
@@ -1924,15 +1927,15 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			addr[2] = soundInfo[2];
 			addr[3] = soundInfo[1];
 
-			addr[0] = 0;	//just 4 test
-			addr[1] = 0;	//just 4 test
-			addr[2] = 0;	//just 4 test
-			addr[3] = 0;	//just 4 test
+//			addr[0] = 9;	//just 4 test
+//			addr[1] = 0;	//just 4 test
+//			addr[2] = 0;	//just 4 test
+//			addr[3] = 0;	//just 4 test
 
-//			length[0] = soundInfo[8];	//Commented 4 test
-//			length[1] = soundInfo[7];	//Commented 4 test
-//			length[2] = soundInfo[6];	//Commented 4 test
-//			length[3] = soundInfo[5];	//Commented 4 test
+			length[0] = soundInfo[8];	//Commented 4 test
+			length[1] = soundInfo[7];	//Commented 4 test
+			length[2] = soundInfo[6];	//Commented 4 test
+			length[3] = soundInfo[5];	//Commented 4 test
 
 			lenOfsound |= length[3];
 			lenOfsound <<= 8;
@@ -1943,7 +1946,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			lenOfsound |= length[0];
 		}
 
-			lenOfsound = 687124*2;
+//			lenOfsound = 687124*2;
 			bufCount = lenOfsound / bufLen;
 
 			GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
