@@ -466,7 +466,7 @@ int main(void)
 //		GPIOC->ODR &= ~(1 << 6);	//reset BF
 	GPIOC->ODR &= ~(1 << 6);	//reset BF
 //	HAL_Delay(100);
-	for(uint8_t k = 0; k < 1; k += 1){
+	for(uint8_t k = 0; k < 16; k += 1){
 //	GPIOC->ODR |= 1 << 6;	//set BF
 //	GPIOC->ODR &= ~(1 << 6);	//reset BF
 //	uint8_t memCMD = 0x13;
@@ -483,7 +483,7 @@ int main(void)
 //				GPIOC->ODR &= ~(1 << 6);	//reset BF
 //	HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)&SOUND1, 7823);
 //	HAL_Delay(21000);
-	soundPlay(0);
+	soundPlay(k);
 //			GPIOC->ODR |= 1 << 6;	//set BF
 //			GPIOC->ODR &= ~(1 << 6);	//reset BF
 	HAL_Delay(1000);
@@ -1889,9 +1889,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		volatile uint32_t addrSound = 9;
 		uint32_t i, address;
 
-		setVolume(0x10, 0x30, 0x00);
+		setVolume(0x10, 0x30, 18);	// it was setVolume(0x10, 0x30, 0x00);
 
-		addrSound = 9;
 		address = startAddressForSoundInfo + (soundNum * 9);
 
 		curBuf = 0;
@@ -1957,6 +1956,17 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[0], 1, 50); //send address
 			HAL_SPI_Receive(&hspi2, (uint8_t*)  & soundBuf[0], bufLen, 5000);
 			GPIOB->ODR |= 1 << 9;	//set FLASH CS
+
+			address |= addr[3];
+			address <<= 8;
+			address |= addr[2];
+			address <<= 8;
+			address |= addr[1];
+			address <<= 8;
+			address |= addr[0];
+
+//			addrSound = 9;	// 4 test only!
+			addrSound = address;
 
 			HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], (bufLen >> 1));
 			half_of_buf = 1;
