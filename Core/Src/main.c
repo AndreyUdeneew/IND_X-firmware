@@ -126,8 +126,8 @@
 #define INT_1_SRC 0x30
 
 //#define X_increment 8
-//#define startAddressForSoundInfo 0x400000
-#define startAddressForSoundInfo 0				//4 test ONLY!!!!!!!!!!!!!!!!!!!!!!!
+#define startAddressForSoundInfo 0x400000
+//#define startAddressForSoundInfo 0				//4 test ONLY!!!!!!!!!!!!!!!!!!!!!!!
 
 #define USART_ISR_RXNE                      ((uint32_t)0x00000020U)
 #define USART_ISR_TXE                      ((uint32_t)0x00000080U)
@@ -1886,8 +1886,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	uint8_t soundPlay(uint8_t soundNum) {
 		uint8_t memCMD = 0x13; //read command with 4-byte address
 		uint8_t soundInfo[9],addrINFO[4],addr[4],length[4];
-		volatile uint32_t addrSound = 9;
-		uint32_t i, address;
+		volatile uint32_t addrSound, address;
+		uint32_t i;
 
 		setVolume(0x10, 0x30, 18);	// it was setVolume(0x10, 0x30, 0x00);
 
@@ -1896,7 +1896,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		curBuf = 0;
 		uint32_t lenOfsound = 0;
 		isSoundOver = 0;
-//		addrSound = 0;
+		addrSound = 0;
 
 		if(isSoundOver == 1)
 		{
@@ -1906,6 +1906,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		}
 
 		if (curBuf == 0){
+
+
 
 			addrINFO[0] = address & 0xFF;
 			addrINFO[1] = (address >> 8) & 0xFF;
@@ -1926,10 +1928,34 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			addr[2] = soundInfo[2];
 			addr[3] = soundInfo[1];
 
-//			addr[0] = 9;	//just 4 test
-//			addr[1] = 0;	//just 4 test
-//			addr[2] = 0;	//just 4 test
-//			addr[3] = 0;	//just 4 test
+			address = 0;
+//			address = 0x29f170;
+
+			address |= addr[3];
+			address <<= 8;
+			address |= addr[2];
+			address <<= 8;
+			address |= addr[1];
+			address <<= 8;
+			address |= addr[0];
+
+//			address = 0xe7a4;
+
+//						addr[0] = 0xb8;	//just 4 test
+//						addr[1] = 0xf8;	//just 4 test
+//						addr[2] = 0x14;	//just 4 test
+//						addr[3] = 0;	//just 4 test
+//
+//						address = 0x14f8b8;	//sound 1
+//						address = 0x90;	//sound 0
+
+//									address |= addr[3];
+//									address <<= 8;
+//									address |= addr[2];
+//									address <<= 8;
+//									address |= addr[1];
+//									address <<= 8;
+//									address |= addr[0];
 
 			length[0] = soundInfo[8];	//Commented 4 test
 			length[1] = soundInfo[7];	//Commented 4 test
@@ -1945,9 +1971,10 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			lenOfsound |= length[0];
 		}
 
-//			lenOfsound = 687124*2;
+//			lenOfsound = 0xe7a4;	//len1
+////			lenOfsound = 1374248;	//len0
 			bufCount = lenOfsound / bufLen;
-
+//////////////////////////////////////////////////////////////////////////////////////// IF before is correct, after is correct //////////
 			GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) & memCMD, 1, 50); //read command with 4-byte address
 			HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[3], 1, 50); //send address
@@ -1957,13 +1984,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			HAL_SPI_Receive(&hspi2, (uint8_t*)  & soundBuf[0], bufLen, 5000);
 			GPIOB->ODR |= 1 << 9;	//set FLASH CS
 
-			address |= addr[3];
-			address <<= 8;
-			address |= addr[2];
-			address <<= 8;
-			address |= addr[1];
-			address <<= 8;
-			address |= addr[0];
+
 
 //			addrSound = 9;	// 4 test only!
 			addrSound = address;
@@ -2020,6 +2041,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					half_of_buf = 1;
 				}
 			}
+			return;
 		}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	void sound_half_transfer_callback()
@@ -2034,6 +2056,10 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		{
 			HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], (bufLen >> 1));
 			half_of_buf = 0;
+		}
+		else
+		{
+			isSoundOver = 1;
 		}
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
