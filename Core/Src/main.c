@@ -455,11 +455,11 @@ int main(void)
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
 
-	for(uint8_t k = 0; k < 16; k++)
-	{
-		soundPlay(k);
-		HAL_Delay(1000);
-	}
+//	for(uint8_t k = 0; k < 16; k++)
+//	{
+//		soundPlay(k);
+//		HAL_Delay(1000);
+//	}
 //    GPIOB->PUPDR &= ~0x3F000;
 	GPIOC->ODR |= 1 << 6;
 	while (1) {
@@ -1307,7 +1307,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
 			GPIOA->ODR |= 1 << 7;	// set dc
 
-			for (i = 0; i < ((end_x_New - start_x_New + 1) * (end_y_New/2 - start_y_New /2 + 1));i++) {
+			for (i = 0; i < ((end_x_New - start_x_New + 1) * (end_y_New/2 - start_y_New /2 + 1)+1);i++) {
 //			for (i = 0; i < len;i++) {
 				while(!(USART3->ISR & USART_ISR_TXE)){};
 				USART3->TDR =MEM_Buffer[i];
