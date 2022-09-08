@@ -330,6 +330,7 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -462,6 +463,7 @@ int main(void)
 //	}
 //    GPIOB->PUPDR &= ~0x3F000;
 	GPIOC->ODR |= 1 << 6;
+//	weoShowFullScreen(4);
 	while (1) {
 //		weoShowSmallImage(0x02,0x70,0x00);
 //		LIS3DHreadData();
@@ -515,6 +517,7 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -533,6 +536,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -622,12 +626,14 @@ static void MX_I2C1_Init(void)
   {
     Error_Handler();
   }
+
   /** Configure Analogue filter
   */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
+
   /** Configure Digital filter
   */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
@@ -768,7 +774,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 300;
+  sConfigOC.Pulse = 200;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_ENABLE;
@@ -822,6 +828,16 @@ static void MX_USART2_UART_Init(void)
   LL_USART_InitTypeDef USART_InitStruct = {0};
 
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+
+
+
+
+
+
+
+
+
 
   /* Peripheral clock enable */
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
@@ -1252,6 +1268,12 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		USART_AS_SPI_sendCMD(0x00);
 		USART_AS_SPI_sendCMD(0xA8);  // Select Multiplex Ratio
 		USART_AS_SPI_sendCMD(0x7F); // Default => 0x3F (1/64 Duty)	0x1F(1/32 Duty)
+		USART_AS_SPI_sendCMD(0xB1);	//Set Phase Length
+		USART_AS_SPI_sendCMD(0xFF);	//
+		USART_AS_SPI_sendCMD(0xB6);	//Set Second precharge Period
+		USART_AS_SPI_sendCMD(0x0F);	// 0x00 - 0x0F availible
+//		USART_AS_SPI_sendCMD(0xFF);
+//		USART_AS_SPI_sendCMD(0xFF);
 		GPIOA->ODR |= 1 << 7;	//set dc
 		GPIOA->ODR |= 1 << 6;	//set cs
 		//=======================================================================================================
