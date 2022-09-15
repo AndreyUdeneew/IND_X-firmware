@@ -226,6 +226,7 @@ uint8_t soundBuf[4096];
 uint16_t bufLen = 4096;
 uint8_t half_of_buf = 0;
 uint32_t soundLen;
+
 volatile uint32_t addrSound = 0;
 uint8_t soundReady, isSoundOver;
 
@@ -303,7 +304,9 @@ void sound_half_transfer_callback();
 void sound_full_transfer_callback();
 void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s);
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s);
-void setVolume(uint8_t drvGain, uint8_t digGain, uint8_t spkAttn);
+void setVolume(uint8_t AMP, uint8_t DAC_Gain, uint8_t spkAttn);
+void speakerMute(void);
+void speakerPowerUp(void);
 
 /* USER CODE END PFP */
 
@@ -455,12 +458,12 @@ int main(void)
 //					decY=0x02;
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
-
-//	for(uint8_t k = 0; k < 16; k++)
-//	{
-//		soundPlay(k);
-//		HAL_Delay(1000);
-//	}
+	setVolume(16*4, 0, 0);	//  void setVolume(drvGain(48-129),digGain(16-112),spkAttn(0-116, 255));
+	for(uint8_t k = 0; k < 1; k++)
+	{
+		soundPlay(k);
+		HAL_Delay(1000);
+	}
 //    GPIOB->PUPDR &= ~0x3F000;
 	GPIOC->ODR |= 1 << 6;
 //	weoShowFullScreen(4);
@@ -1240,6 +1243,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		GPIOA->ODR &= ~(1 << 6);	//reset cs
 		GPIOA->ODR &= ~(1 << 7);	// reset dc
 		USART_AS_SPI_sendCMD(0xAF);
+
+//		USART_AS_SPI_sendCMD(0xB3);	//Clock & divider
+//		USART_AS_SPI_sendCMD(0xF1);	// default = 0x00 = 0b00000000
+//		USART_AS_SPI_sendCMD(0xB1);	//Set Phase Length
+//		USART_AS_SPI_sendCMD(0xFF);	// default = 0x74 = 0b01110100
+//		USART_AS_SPI_sendCMD(0xB6);	//Set Second precharge Period
+//		USART_AS_SPI_sendCMD(0x0F);	// 0x00 - 0x0F availible default = 0x04 = 0b0100
+//		USART_AS_SPI_sendCMD(0xBC);	//Set Vp
+//		USART_AS_SPI_sendCMD(0x08);	// 0x05 - default
+
 		USART_AS_SPI_sendCMD(0xB8);
 		USART_AS_SPI_sendCMD(0);
 		USART_AS_SPI_sendCMD(0);
@@ -1268,10 +1281,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		USART_AS_SPI_sendCMD(0x00);
 		USART_AS_SPI_sendCMD(0xA8);  // Select Multiplex Ratio
 		USART_AS_SPI_sendCMD(0x7F); // Default => 0x3F (1/64 Duty)	0x1F(1/32 Duty)
-		USART_AS_SPI_sendCMD(0xB1);	//Set Phase Length
-		USART_AS_SPI_sendCMD(0xFF);	//
-		USART_AS_SPI_sendCMD(0xB6);	//Set Second precharge Period
-		USART_AS_SPI_sendCMD(0x0F);	// 0x00 - 0x0F availible
+
+
 //		USART_AS_SPI_sendCMD(0xFF);
 //		USART_AS_SPI_sendCMD(0xFF);
 		GPIOA->ODR |= 1 << 7;	//set dc
@@ -1436,7 +1447,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 
 		cmd2Execute=0;
 		cmd[0]&=~0x100;
-		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x13)||(cmd[0] == 0x14)||(cmd[0] == 0x15)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
+		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x13)||(cmd[0] == 0x15)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
 		if (cmd[0] == 0x11) {
 //			GPIOC->ODR &= ~(1 << 6);
 			GPIOC->ODR &=~ GPIO_ODR_OD6;
@@ -1534,9 +1545,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x16) {
-					volume = cmd[3];
-					contrast = cmd[4];
-					cmd2Execute=0x16;
+//					volume = cmd[3];
+//					contrast = cmd[4];
+//					cmd2Execute=0x16;
 //					cmd[0]=0xFF;
 					bf4me=0x00; //reset BF flag for me
 				}
@@ -1852,8 +1863,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			uint8_t soundInfo[9],addrINFO[4],addr[4],length[4];
 			volatile uint32_t addrSound, address;
 			uint32_t i;
-
-			setVolume(0x10, 0x30, 10);	// it was setVolume(0x10, 0x30, 0x00);
+			GPIOC->ODR |= 1 << 6;	//set BF //just 4 test
+//			setVolume(0x10, 0x30, 10);	// it was setVolume(0x10, 0x30, 0x00);
 //			soundNum = 0;
 			address = 4194304 + (soundNum * 9);
 //			address = 0 + (soundNum * 9);
@@ -1865,7 +1876,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 
 			if(isSoundOver == 1)
 			{
-				GPIOC->ODR &= ~(1 << 6);	//reset BF
+				GPIOC->ODR |= 1 << 6;	//set BF
 				curBuf = 0;
 				return;
 			}
@@ -1954,6 +1965,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	//			addrSound = 9;	// 4 test only!
 				addrSound = address;
 
+				speakerPowerUp();
+
 				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], (bufLen >> 1));
 				half_of_buf = 1;
 	//==================================================1st time play buffer =========================================================
@@ -1987,7 +2000,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					if(half_of_buf == 0)
 					{
 	//					GPIOC->ODR |= 1 << 6;	//set BF
-						GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
+//						GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
 						addrSound = (addrSound + (bufLen >> 1));
 
 						addr[0] = addrSound & 0xFF;
@@ -2025,17 +2038,32 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			else
 			{
 				isSoundOver = 1;
+				speakerMute();
 			}
 		}
 		//=============================================================================================
-			void setVolume(uint8_t drvGain, uint8_t digGain, uint8_t spkAttn)
+			void setVolume(uint8_t AMP, uint8_t DAC_Gain, uint8_t spkAttn)
 			{
+				volume = 117 - (volume * 7);
 				I2C_SOUND_ChangePage(0x00);
-				WriteReg_I2C_SOUND(0x41, digGain);	//DAC digital gain 0dB (P0, R65, D7-D0=00000000) cnDacValueOn by SB
+				WriteReg_I2C_SOUND(0x41, DAC_Gain);	//DAC digital gain 0dB (P0, R65, D7-D0=00000000) cnDacValueOn by SB
 					I2C_SOUND_ChangePage(0x01);
 					WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-					WriteReg_I2C_SOUND(0x2E, spkAttn);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000)
-					WriteReg_I2C_SOUND(0x30, drvGain);	//SPK driver Gain=6.0dB (P1, R48, D6-D4=001)
+					WriteReg_I2C_SOUND(0x2E, spkAttn);	//SPK attn. Gain =0dB (P1, R46, 0d - 116 d, 255d)
+					WriteReg_I2C_SOUND(0x30, AMP);	//SPK driver Gain=6.0dB (P1, R48, 16d - 80d)
+//					WriteReg_I2C_SOUND(0x30, volume);	//SPK driver Gain=6.0dB (P1, R48, D6-D4=001
+			}
+			//=============================================================================================
+			void speakerMute(void)
+			{
+				I2C_SOUND_ChangePage(0x01);
+				WriteReg_I2C_SOUND(0x2D, 0);
+			}
+			//=============================================================================================
+			void speakerPowerUp(void)
+			{
+				I2C_SOUND_ChangePage(0x01);
+				WriteReg_I2C_SOUND(0x2D, 2);
 			}
 			//=============================================================================================
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2162,7 +2190,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		if(cmd2Execute==0x14){
 //			if(soundReady!=1){return;}
 			bf4me=0x14;	//set BF flag 4 me
-			soundPlay(soundNum);
+			soundPlay(numSound);
 			GPIOC->ODR |= 1 << 6;	//set BF
 
 		}
