@@ -458,12 +458,12 @@ int main(void)
 //					decY=0x02;
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
-	setVolume(16*4, 0, 0);	//  void setVolume(drvGain(48-129),digGain(16-112),spkAttn(0-116, 255));
-	for(uint8_t k = 0; k < 1; k++)
-	{
-		soundPlay(k);
-		HAL_Delay(1000);
-	}
+//	setVolume(16*4, 0, 0);	//  void setVolume(drvGain(48-129),digGain(16-112),spkAttn(0-116, 255));
+//	for(uint8_t k = 0; k < 1; k++)
+//	{
+//		soundPlay(k);
+//		HAL_Delay(1000);
+//	}
 //    GPIOB->PUPDR &= ~0x3F000;
 	GPIOC->ODR |= 1 << 6;
 //	weoShowFullScreen(4);
@@ -2042,14 +2042,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			}
 		}
 		//=============================================================================================
-			void setVolume(uint8_t AMP, uint8_t DAC_Gain, uint8_t spkAttn)
+			void setVolume(uint8_t AMP, uint8_t DAC_Gain, uint8_t volume)
 			{
-				volume = 117 - (volume * 7);
+				volume = 116 - (volume * 10);
+				AMP = 16*5;
+				DAC_Gain = 48;
 				I2C_SOUND_ChangePage(0x00);
 				WriteReg_I2C_SOUND(0x41, DAC_Gain);	//DAC digital gain 0dB (P0, R65, D7-D0=00000000) cnDacValueOn by SB
 					I2C_SOUND_ChangePage(0x01);
 					WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-					WriteReg_I2C_SOUND(0x2E, spkAttn);	//SPK attn. Gain =0dB (P1, R46, 0d - 116 d, 255d)
+					WriteReg_I2C_SOUND(0x2E, volume);	//SPK attn. Gain =0dB (P1, R46, 0d - 116 d, 255d)
 					WriteReg_I2C_SOUND(0x30, AMP);	//SPK driver Gain=6.0dB (P1, R48, 16d - 80d)
 //					WriteReg_I2C_SOUND(0x30, volume);	//SPK driver Gain=6.0dB (P1, R48, D6-D4=001
 			}
@@ -2198,13 +2200,12 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			bf4me=0x15;	//set BF flag 4 me
 			I2C_SOUND_ChangePage(0x01);
 //			WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-			if(volume==0x00){
+			if(volume==0x00)
+			{
 				I2C_SOUND_ChangePage(0x01);
 				WriteReg_I2C_SOUND(0x2E,0xFF);// mute
 			}
-			I2C_SOUND_ChangePage(0x01);
-			WriteReg_I2C_SOUND(0x2E, volume);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-
+			setVolume(16*4, 0, volume);
 			if(contrast==0x00){
 				weoClear();
 			}
