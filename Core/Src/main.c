@@ -1447,7 +1447,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 
 		cmd2Execute=0;
 		cmd[0]&=~0x100;
-		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x13)||(cmd[0] == 0x15)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
+		if ((cmd[0] == 0x11)||(cmd[0] == 0x12)||(cmd[0] == 0x13)||(cmd[0] == 0x14)||(cmd[0] == 0x15)) {GPIOC->ODR &= ~(1 << 6);}//reset BF
 		if (cmd[0] == 0x11) {
 //			GPIOC->ODR &= ~(1 << 6);
 			GPIOC->ODR &=~ GPIO_ODR_OD6;
@@ -2044,16 +2044,18 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		//=============================================================================================
 			void setVolume(uint8_t AMP, uint8_t DAC_Gain, uint8_t volume)
 			{
-				volume = 116 - (volume * 10);
+				uint8_t volumeResult = 0;
+				volumeResult = 116 - (volume * 10);
 				AMP = 16*5;
 				DAC_Gain = 48;
 				I2C_SOUND_ChangePage(0x00);
 				WriteReg_I2C_SOUND(0x41, DAC_Gain);	//DAC digital gain 0dB (P0, R65, D7-D0=00000000) cnDacValueOn by SB
 					I2C_SOUND_ChangePage(0x01);
 					WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-					WriteReg_I2C_SOUND(0x2E, volume);	//SPK attn. Gain =0dB (P1, R46, 0d - 116 d, 255d)
+					WriteReg_I2C_SOUND(0x2E, volumeResult);	//SPK attn. Gain =0dB (P1, R46, 0d - 116 d, 255d)
 					WriteReg_I2C_SOUND(0x30, AMP);	//SPK driver Gain=6.0dB (P1, R48, 16d - 80d)
 //					WriteReg_I2C_SOUND(0x30, volume);	//SPK driver Gain=6.0dB (P1, R48, D6-D4=001
+					HAL_Delay(3);
 			}
 			//=============================================================================================
 			void speakerMute(void)
@@ -2153,60 +2155,57 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		if (bf4me!=0x00){return;}	// protection against false BF resets
 		USART2->ICR|=USART_ICR_ORECF;
 
-		if(cmd2Execute==0x01){
+		if(cmd2Execute==0x01){}
+		if(cmd2Execute==0x02){}
+		if(cmd2Execute==0x03){}
+		if(cmd2Execute==0x04){}
+		if(cmd2Execute==0x10){}
 
-				}
-		if(cmd2Execute==0x02){
-
-				}
-		if(cmd2Execute==0x03){
-
-				}
-		if(cmd2Execute==0x04){
-
-				}
-		if(cmd2Execute==0x10){
-
-				}
-		if(cmd2Execute==0x11){
+		if(cmd2Execute==0x11)
+		{
 			GPIOC->ODR &=~ GPIO_ODR_OD6;
 			bf4me=0x11;	//set BF flag 4 me
 //			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 			weoShowFullScreen(picNum);
 //			weoShowFullScreenDMA(picNum);
 			USART2->ICR|=USART_ICR_ORECF;
-				}
-		if(cmd2Execute==0x12){
+		}
+
+		if(cmd2Execute==0x12)
+		{
 			bf4me=0x12;	//set BF flag 4 me
 //			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 //			weoShowSmallImageDMA(picNum,imX,imY);
 			weoShowSmallImage(picNum,imX,imY);
-				}
-		if(cmd2Execute==0x13){
+		}
+
+		if(cmd2Execute==0x13)
+		{
 			bf4me=0x13;	//set BF flag 4 me
 //			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 
 //			printASCIIarray_old(imX,imY, strLen,dataASCII);
 			printASCIIarray(imX,imY,strLen,fontInfo,dataASCII);
-				}
-		if(cmd2Execute==0x14){
+		}
+
+		if(cmd2Execute==0x14)
+		{
 //			if(soundReady!=1){return;}
 			bf4me=0x14;	//set BF flag 4 me
 			soundPlay(numSound);
 			GPIOC->ODR |= 1 << 6;	//set BF
-
 		}
-		if(cmd2Execute==0x15){
+
+		if(cmd2Execute==0x15)
+		{
 			bf4me=0x15;	//set BF flag 4 me
-			I2C_SOUND_ChangePage(0x01);
-//			WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
 			if(volume==0x00)
 			{
-				I2C_SOUND_ChangePage(0x01);
-				WriteReg_I2C_SOUND(0x2E,0xFF);// mute
+				speakerMute();
 			}
-			setVolume(16*4, 0, volume);
-			if(contrast==0x00){
+			setVolume(0, 0, volume);
+			if(contrast==0x00)
+			{
 				weoClear();
 			}
 			else{
@@ -2217,14 +2216,13 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 				GPIOA->ODR |= 1 << 7;	//set dc
 				GPIOA->ODR |= 1 << 6;	//set cs
 			}
-//			bf4me=0x15;	//set BF flag 4 me
-			cmd2Execute=0;
-//			while(BFEN==0){};
 			GPIOC->ODR |= 1 << 6;	//set BF
 		}
-		if(cmd2Execute==0x16){
+
+		if(cmd2Execute==0x16)
+		{
 			bf4me=0x16;	//set BF flag 4 me
-				}
+		}
 		if(cmd2Execute==0x00){
 
 				}
