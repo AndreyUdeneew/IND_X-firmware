@@ -151,13 +151,10 @@ I2S_HandleTypeDef hi2s1;
 DMA_HandleTypeDef hdma_spi1_tx;
 
 SPI_HandleTypeDef hspi2;
-DMA_HandleTypeDef hdma_spi2_rx;
-DMA_HandleTypeDef hdma_spi2_tx;
 
 TIM_HandleTypeDef htim1;
 
 USART_HandleTypeDef husart3;
-DMA_HandleTypeDef hdma_usart3_tx;
 
 /* USER CODE BEGIN PV */
 uint8_t isReceiverDisabled;
@@ -515,7 +512,6 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Configure the main internal regulator output voltage
   */
@@ -549,18 +545,6 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the peripherals clocks
-  */
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_I2C1
-                              |RCC_PERIPHCLK_I2S1|RCC_PERIPHCLK_TIM1;
-  PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
-  PeriphClkInit.I2s1ClockSelection = RCC_I2S1CLKSOURCE_SYSCLK;
-  PeriphClkInit.Tim1ClockSelection = RCC_TIM1CLKSOURCE_PCLK1;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
@@ -831,16 +815,16 @@ static void MX_USART2_UART_Init(void)
   LL_USART_InitTypeDef USART_InitStruct = {0};
 
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
-
-
-
-
-
-
-
-
-
+  /** Initializes the peripherals clocks
+  */
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2;
+  PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
   /* Peripheral clock enable */
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
@@ -852,17 +836,17 @@ static void MX_USART2_UART_Init(void)
   */
   GPIO_InitStruct.Pin = LL_GPIO_PIN_2;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   GPIO_InitStruct.Pin = LL_GPIO_PIN_3;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -955,12 +939,6 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-  /* DMA1_Channel2_3_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
-  /* DMA1_Ch4_7_DMAMUX1_OVR_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Ch4_7_DMAMUX1_OVR_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Ch4_7_DMAMUX1_OVR_IRQn);
 
 }
 
@@ -979,13 +957,13 @@ static void MX_GPIO_Init(void)
   LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
 
   /**/
-  LL_GPIO_SetOutputPin(MEM_HOLD_GPIO_Port, MEM_HOLD_Pin);
+  LL_GPIO_SetOutputPin(MEM_CS_GPIO_Port, MEM_CS_Pin);
 
   /**/
   LL_GPIO_SetOutputPin(MEM_WP_GPIO_Port, MEM_WP_Pin);
 
   /**/
-  LL_GPIO_SetOutputPin(MEM_CS_GPIO_Port, MEM_CS_Pin);
+  LL_GPIO_SetOutputPin(MEM_HOLD_GPIO_Port, MEM_HOLD_Pin);
 
   /**/
   LL_GPIO_SetOutputPin(DISP_CS_GPIO_Port, DISP_CS_Pin);
@@ -1003,28 +981,28 @@ static void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(TEST_2_GPIO_Port, TEST_2_Pin);
 
   /**/
-  GPIO_InitStruct.Pin = MEM_HOLD_Pin;
+  GPIO_InitStruct.Pin = MEM_CS_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(MEM_HOLD_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  LL_GPIO_Init(MEM_CS_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = MEM_WP_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   LL_GPIO_Init(MEM_WP_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = MEM_CS_Pin;
+  GPIO_InitStruct.Pin = MEM_HOLD_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(MEM_CS_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  LL_GPIO_Init(MEM_HOLD_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = KEY_3_Pin;
@@ -1065,7 +1043,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   LL_GPIO_Init(BF_GPIO_Port, &GPIO_InitStruct);
 
   /**/
@@ -1084,6 +1062,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(TEST_2_GPIO_Port, &GPIO_InitStruct);
 
+  /**/
+
+  //GPIO config after CUBE_MX
+  /**/
   	  GPIO_InitStruct.Pin = KEY_4_Pin;
   	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
@@ -1093,24 +1075,13 @@ static void MX_GPIO_Init(void)
   	    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   	    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
-
-  /**/
+  	  /**/
   LL_SYSCFG_EnableFastModePlus(LL_SYSCFG_I2C_FASTMODEPLUS_PB9);
 
 }
 
 /* USER CODE BEGIN 4 */
-//GPIO config after CUBE_MX
-///**/
-//	  GPIO_InitStruct.Pin = KEY_4_Pin;
-//	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-//	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-//	  LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
-//	  /**/
-//	    GPIO_InitStruct.Pin = KEY_5_Pin;
-//	    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-//	    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-//	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
+
 void  USART2_RX_Callback(void)
 {
   dt1 = LL_USART_ReceiveData9(USART2);// LL implementaion of 1 byte receive
@@ -2632,5 +2603,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
