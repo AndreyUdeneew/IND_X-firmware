@@ -151,10 +151,13 @@ I2S_HandleTypeDef hi2s1;
 DMA_HandleTypeDef hdma_spi1_tx;
 
 SPI_HandleTypeDef hspi2;
+DMA_HandleTypeDef hdma_spi2_rx;
+DMA_HandleTypeDef hdma_spi2_tx;
 
 TIM_HandleTypeDef htim1;
 
 USART_HandleTypeDef husart3;
+DMA_HandleTypeDef hdma_usart3_tx;
 
 /* USER CODE BEGIN PV */
 uint8_t isReceiverDisabled;
@@ -179,7 +182,6 @@ uint32_t MEM_ID = 0;
 uint16_t PAGE_SIZE = 4096;
 extern uint32_t addr;
 extern uint32_t DATA_COUNT = 0x2000;
-extern uint8_t MEM_Buffer[8192];
 extern uint8_t imInfo[6];
 extern uint8_t keyboard, cmdLen;
 extern uint8_t currentVolume = 0x09;
@@ -196,7 +198,7 @@ extern uint16_t currentPic;
 uint32_t tmp;
 uint32_t startAddressForImageInfo=0x00000000;
 uint8_t uartFlag=0;
-uint8_t cmd2Execute,strLen;
+uint8_t cmd2Execute,strLen, cmdCur;
 uint8_t my_test1[], Image[], coala[],h1[],ASCIIcode[],h2[],image_data_Font_0x30[],image_data_Font_0x31[],
 image_data_Font_0x32[],image_data_Font_0x33[],image_data_Font_0x34[],image_data_Font_0x35[],image_data_Font_0x36[],
 image_data_Font_0x37[],image_data_Font_0x38[],image_data_Font_0x39[];
@@ -206,7 +208,7 @@ uint8_t dimmer=0;
 uint8_t inputCS=0;
 uint8_t dma_spi_fl=0;
 uint16_t dma_spi_cnt=1;
-uint16_t len;
+uint16_t imLen;
 uint8_t MEM_Buffer[8192];
 uint32_t address;
 uint32_t curAddr;
@@ -227,7 +229,7 @@ uint32_t soundLen;
 volatile uint32_t addrSound = 0;
 uint8_t soundReady, isSoundOver;
 
- uint16_t signal[2048];
+// uint16_t signal[2048];
 // uint16_t nsamples=2048;
  uint8_t soundReady=1;
 	uint8_t bufAccel[] = { 0x33, 0x0F };
@@ -279,10 +281,10 @@ uint16_t Scount(void);
 uint8_t cmdExecute(uint8_t cmd2Execute);
 uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t fontInfo,uint8_t dataASCII[]);
 uint32_t MEM_GetID(void);
-void squeak_single(uint16_t* signal);
-void squeak_long(uint16_t* signal);
-void squeak_double(uint16_t* signal);
-void squeak_triple(uint16_t* signal);
+//void squeak_single(uint16_t* signal);
+//void squeak_long(uint16_t* signal);
+//void squeak_double(uint16_t* signal);
+//void squeak_triple(uint16_t* signal);
 void squeak_generate(void);
 void MEM_Write(uint32_t addr);
 void LIS3DHsetup(void);
@@ -939,6 +941,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+  /* DMA1_Ch4_7_DMAMUX1_OVR_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Ch4_7_DMAMUX1_OVR_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Ch4_7_DMAMUX1_OVR_IRQn);
 
 }
 
@@ -1061,26 +1069,33 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(TEST_2_GPIO_Port, &GPIO_InitStruct);
-
   /**/
-
-  //GPIO config after CUBE_MX
+    GPIO_InitStruct.Pin = KEY_4_Pin;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
+    /**/
+      GPIO_InitStruct.Pin = KEY_5_Pin;
+      GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+      GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+      LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
   /**/
-  	  GPIO_InitStruct.Pin = KEY_4_Pin;
-  	  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-  	  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  	  LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
-  	  /**/
-  	    GPIO_InitStruct.Pin = KEY_5_Pin;
-  	    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-  	    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  	    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
-  	  /**/
   LL_SYSCFG_EnableFastModePlus(LL_SYSCFG_I2C_FASTMODEPLUS_PB9);
 
 }
 
 /* USER CODE BEGIN 4 */
+/**/
+//  GPIO_InitStruct.Pin = KEY_4_Pin;
+//  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+//  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+//  LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
+//  /**/
+//    GPIO_InitStruct.Pin = KEY_5_Pin;
+//    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+//    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+//    LL_GPIO_Init(KEY_5_GPIO_Port, &GPIO_InitStruct);
+    /**/
 
 void  USART2_RX_Callback(void)
 {
@@ -1108,14 +1123,23 @@ void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi2)
 //  			if(imY % 2 !=0){
 //  				decY=0x02;
 //  			}
-//  	if(cmd2Execute==0x11){
+  	if(cmdCur == 0x11)
+  	{
   	GPIOA->ODR &= ~(1 << 6);	//reset cs of DISPLAY
   		GPIOA->ODR |= 1 << 7;	//set   dc of DISPLAY
-  		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,len);
-//  	}
-//  	if(cmd2Execute==0x14){
+  		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,imLen);
+  	}
+  	if(cmdCur == 0x12)
+  	{
+  	GPIOA->ODR &= ~(1 << 6);	//reset cs of DISPLAY
+  		GPIOA->ODR |= 1 << 7;	//set   dc of DISPLAY
+  		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,imLen);
+  	}
+  	if(cmdCur == 0x14)
+  	{
+
 //  	  		HAL_I2S_Transmit_DMA(&hi2s1, MEM_Buffer,len*2);
-//  	  	}
+	}
 
 }
 //==========================================================
@@ -1123,6 +1147,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi2)
 {
 //	if(cmd2Execute==0x11){
 		GPIOB->ODR |= 1 << 9; // set cs
+
 //	}
 //	if(cmd2Execute==0x14){
 //return;
@@ -1131,11 +1156,14 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi2)
 //==============================================================
 void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart3)
 {
-	GPIOA->ODR &= ~(1 << 7);	//reset dc
-	GPIOA->ODR |= 1 << 6;	//set cs
-	cmd2Execute=0;
+	while(!(USART3->ISR & USART_ISR_TXE)){};
+	GPIOA->ODR &= ~(1 << 7);	// reset dc
+	GPIOA->ODR |= 1 << 6;	//set Display CS
+
 //	while(BFEN==0){};
+	cmd2Execute=0;
 	GPIOC->ODR |= 1 << 6;	//set BF
+
 }
 //==============================================================
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi1)
@@ -1176,7 +1204,6 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			 }
 			 if(!(inputCS==0x00)&&(ind==cmd[1]+2)){
 //			 	LL_USART_TransmitData9(USART2,(uint16_t*)cmd[2]);
-//				 firstByteReceived=0;
 				 firstByteReceived=0;
 				 				 for (i=0;i<cmd[1]+2;i++){
 				 					 cmd[i]=0;
@@ -1299,13 +1326,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
 					USART_AS_SPI_sendCMD(SET_DISPLAY_ROW_ADD);
-					USART_AS_SPI_sendCMD(start_x_New/1);
-					USART_AS_SPI_sendCMD(end_x_New/1);
+					USART_AS_SPI_sendCMD(start_x_New);
+					USART_AS_SPI_sendCMD(end_x_New);
 					USART_AS_SPI_sendCMD(SET_DISPLAY_COL_ADD);
 					USART_AS_SPI_sendCMD(start_y_New/2);
 					USART_AS_SPI_sendCMD(end_y_New/2);
-//					USART_AS_SPI_sendCMD(0x81);	//Contrast Level
-//					USART_AS_SPI_sendCMD(contrast);
 			GPIOA->ODR |= 1 << 7;	//set dc
 			GPIOA->ODR |= 1 << 6;	//set cs
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
@@ -1318,11 +1343,6 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			}
 			while(!(USART3->ISR & USART_ISR_TXE)){};
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
-//			USART_AS_SPI_sendCMD(0xBB);	// command for NOP
-//			USART_AS_SPI_sendCMD(0x81);	//Contrast Level
-//			USART_AS_SPI_sendCMD(0xFF);
-//			HAL_Delay(1);
-//			GPIOA->ODR &= ~(1 << 7);	//reset dc
 			GPIOA->ODR |= 1 << 6;	//set cs
 		}
 //========================================================================================================================
@@ -1342,8 +1362,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			GPIOA->ODR &= ~(1 << 6);	//reset cs
 			GPIOA->ODR &= ~(1 << 7);	// reset dc
 					USART_AS_SPI_sendCMD(SET_DISPLAY_ROW_ADD);
-					USART_AS_SPI_sendCMD(start_x_New/1);
-					USART_AS_SPI_sendCMD(end_x_New/1);
+					USART_AS_SPI_sendCMD(start_x_New);
+					USART_AS_SPI_sendCMD(end_x_New);
 					USART_AS_SPI_sendCMD(SET_DISPLAY_COL_ADD);
 					USART_AS_SPI_sendCMD(start_y_New/2);
 					USART_AS_SPI_sendCMD(end_y_New/2);
@@ -1503,6 +1523,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x14) {			//издать звук
+					isSoundOver = 1;
 					numSound = cmd[2];
 					cmd2Execute=0x14;
 //					cmd[0]=0xFF;
@@ -1665,7 +1686,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 //==================================================================================================================================
 	uint8_t weoShowFullScreen(uint8_t picNum) {
 		uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
-		uint8_t MEM_Buffer[8192], firstImAddrArray[4],addrArray[4];
+		uint8_t firstImAddrArray[4],addrArray[4];
+//		uint8_t MEM_Buffer[8192];
 		uint16_t i, len;
 		uint32_t addrInfo,addr,firstImAddr;
 		memCMD = 0x13; //read command with 4-byte address
@@ -1696,15 +1718,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	uint8_t weoShowFullScreenDMA(uint8_t picNum) {
 		uint8_t memCMD, imByte;
 //		uint8_t MEM_Buffer[8192];
-		uint8_t DUMMY_Buffer[8192], firstImAddrArray[4],addrArray[4];
+//		uint8_t DUMMY_Buffer[8192], firstImAddrArray[4];
+		uint8_t addrArray[4];
 		uint16_t i;
 		uint32_t addrInfo,addr;
 		GPIOC->ODR &= ~(1 << 6);
 
 		weoDrawRectangleInit(0x00, 0x00, 0x7F, 0x7F); // Здесь ещё работает
 
-		len=8192;
-		dma_spi_cnt=len;
+		imLen=8192;
+		dma_spi_cnt=imLen;
 		memCMD = 0x13; //read command with 4-byte address
 
 		addr=((picNum)*0x2000);
@@ -1721,7 +1744,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1], 1, 50); //send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0], 1, 50); //send address
-		HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) &MEM_Buffer ,len);
+		HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) &MEM_Buffer ,imLen);
 	}
 //==========================================================================================================================
 	uint8_t weoShowSmallImage(uint8_t picNum, uint8_t imX, uint8_t imY) {
@@ -1754,7 +1777,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		width=imInfo[0];
 		height=imInfo[1];
 
-		len=width*height/2+2;
+		imLen=width*height/2+2;
 
 		addrData=addr+0x02;
 		addrArray[0]=addrData & 0xFF;
@@ -1771,7 +1794,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0],1, 50);	//send address
-		HAL_SPI_Receive(&hspi2, (uint8_t*) &MEM_Buffer,len, 5000);// 7 information bits about the image
+		HAL_SPI_Receive(&hspi2, (uint8_t*) &MEM_Buffer,imLen, 5000);// 7 information bits about the image
 		GPIOB->ODR |= 1 << 9;	// set cs
 
 		decY=0x01;
@@ -1784,9 +1807,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		GPIOC->ODR |= 1 << 6;	//set BF
 	}
 	uint8_t weoShowSmallImageDMA(uint8_t picNum, uint8_t imX, uint8_t imY) {
-
-		uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H;
-		uint8_t MEM_Buffer[8192], imInfo[2],addrArray[4];
+//		uint8_t MEM_Buffer[8192];
+		uint8_t memCMD,width,height,addr_l,addr_L,addr_h,addr_H, decY;
+		uint8_t imInfo[2],addrArray[4];
 		uint16_t i;
 		uint32_t addr,addrData;
 		addr=0x00000000;
@@ -1810,8 +1833,22 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 
 		width=imInfo[0];
 		height=imInfo[1];
+
+		decY=0x01;
+		if(imY % 2 !=0){
+			decY=0x02;
+		}
+		decY=0x01;
+
+		weoDrawRectangleInit(imX, imY, imX + width - 1, imY + height - decY);
+
+//		weoDrawRectangleInit(0, 0, 0x7F, 0x7F);
+
 		addrData=addr+0x02;
-		len=((width/2)*(height+1));
+		imLen=width*height/2 + 0;
+
+//		imLen = 8192;
+
 		addrArray[0]=addrData & 0xFF;
 		addrArray[1]=(addrData >> 8) & 0xFF;
 		addrArray[2]=(addrData >> 16) & 0xFF;
@@ -1820,13 +1857,21 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		USART2->ICR|=USART_ICR_ORECF;
 		memCMD = 0x13; //read command with 4-byte address
 
-		GPIOB->ODR &= ~(1 <<9);	//reset cs
+		GPIOB->ODR &= ~(1 <<9);	//reset MEM_CS
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &memCMD, 1, 50);//read command with 4-byte address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[3],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[2],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[1],1, 50);	//send address
 		HAL_SPI_Transmit(&hspi2, (uint8_t*) &addrArray[0],1, 50);	//send address
-		HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) &MEM_Buffer ,len);
+		HAL_SPI_Receive_DMA(&hspi2, (uint8_t*) MEM_Buffer ,imLen);
+//		HAL_SPI_Receive(&hspi2, (uint8_t*) &MEM_Buffer ,imLen, 5000);
+//		GPIOB->ODR |= 1 << 9; // set MEM_CS
+//		GPIOA->ODR &= ~(1 << 6);	//reset Display cs
+//		GPIOA->ODR |= 1 << 7;	// set dc
+//		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,imLen);
+//		HAL_USART_Transmit(&husart3, MEM_Buffer,imLen, 5000);
+//		GPIOA->ODR |= 1 << 6;	//set cs
+//		GPIOC->ODR |= 1 << 6;	//set BF
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		uint8_t soundPlay(uint8_t soundNum) {
@@ -1834,7 +1879,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			uint8_t soundInfo[9],addrINFO[4],addr[4],length[4];
 			volatile uint32_t addrSound, address;
 			uint32_t i;
-			GPIOC->ODR |= 1 << 6;	//set BF //just 4 test
+//			GPIOC->ODR |= 1 << 6;	//set BF //just 4 test
 //			setVolume(0x10, 0x30, 10);	// it was setVolume(0x10, 0x30, 0x00);
 //			soundNum = 0;
 			address = 4194304 + (soundNum * 9);
@@ -1849,13 +1894,20 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			{
 				GPIOC->ODR |= 1 << 6;	//set BF
 				curBuf = 0;
-				return;
+				GPIOC->ODR |= 1 << 6;	//set BF
+				__disable_irq();
+				/* might not be necessary */
+
+				 hi2s1.hdmarx->XferCpltCallback = NULL;
+				 HAL_I2S_DMAStop(&hi2s1);
+				 __enable_irq();
+				/* might not be necessary */
+
+				 return;
 			}
 
-			if (curBuf == 0){
-
-
-
+			if (curBuf == 0)
+			{
 				addrINFO[0] = address & 0xFF;
 				addrINFO[1] = (address >> 8) & 0xFF;
 				addrINFO[2] = (address >> 16) & 0xFF;
@@ -1916,6 +1968,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 				lenOfsound |= length[1];
 				lenOfsound <<= 8;
 				lenOfsound |= length[0];
+				speakerPowerUp();
 			}
 
 	//			lenOfsound = 0xe7a4;	//len1
@@ -1929,6 +1982,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 				HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[1], 1, 50); //send address
 				HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[0], 1, 50); //send address
 				HAL_SPI_Receive(&hspi2, (uint8_t*)  & soundBuf[0], bufLen, 5000);
+//				HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)  & soundBuf[0], bufLen);
+
 				GPIOB->ODR |= 1 << 9;	//set FLASH CS
 
 
@@ -1936,7 +1991,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	//			addrSound = 9;	// 4 test only!
 				addrSound = address;
 
-				speakerPowerUp();
+
 
 				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], (bufLen >> 1));
 				half_of_buf = 1;
@@ -1945,8 +2000,28 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	//			GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
 				while(curBuf <= bufCount)
 				{
+//					if (curBuf == 10)
+//					{
+//						isSoundOver = 1;		//just 4 test
+//					}
 	//							GPIOC->ODR |= 1 << 6;	//set BF
 	//							GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
+					if(isSoundOver == 1)
+								{
+									GPIOC->ODR |= 1 << 6;	//set BF
+									curBuf = 0;
+									GPIOC->ODR |= 1 << 6;	//set BF
+									__disable_irq();
+									/* might not be necessary */
+
+									 hi2s1.hdmarx->XferCpltCallback = NULL;
+									 HAL_I2S_DMAStop(&hi2s1);
+									 __enable_irq();
+									/* might not be necessary */
+
+									 return;
+								}
+
 					if(half_of_buf == 2)
 					{
 						GPIOC->ODR |= 1 << 6;	//set BF
@@ -1965,6 +2040,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 						HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[1], 1, 50); //send address
 						HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[0], 1, 50); //send address
 						HAL_SPI_Receive(&hspi2, (uint8_t*)&soundBuf[0], (bufLen >> 1), 5000);
+//						HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)  & soundBuf[0], (bufLen >> 1));
 						GPIOB->ODR |= 1 << 9;	//set FLASH CS
 						half_of_buf = 1;
 					}
@@ -1986,6 +2062,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 						HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[1], 1, 50); //send address
 						HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[0], 1, 50); //send address
 						HAL_SPI_Receive(&hspi2, (uint8_t*)&soundBuf[2048], (bufLen >> 1), 5000);
+//						HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)  & soundBuf[0], (bufLen >> 1));
 						GPIOB->ODR |= 1 << 9;	//set FLASH CS
 						half_of_buf = 1;
 					}
@@ -2009,6 +2086,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			else
 			{
 				isSoundOver = 1;
+				GPIOC->ODR |= 1 << 6;	//set BF
 				speakerMute();
 			}
 		}
@@ -2136,23 +2214,27 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		{
 			GPIOC->ODR &=~ GPIO_ODR_OD6;
 			bf4me=0x11;	//set BF flag 4 me
+			cmdCur = 0x11;
 //			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
-			weoShowFullScreen(picNum);
-//			weoShowFullScreenDMA(picNum);
+//			weoShowFullScreen(picNum);
+			weoShowFullScreenDMA(picNum);
 			USART2->ICR|=USART_ICR_ORECF;
 		}
 
 		if(cmd2Execute==0x12)
 		{
 			bf4me=0x12;	//set BF flag 4 me
+			cmdCur = 0x12;
 //			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
-//			weoShowSmallImageDMA(picNum,imX,imY);
-			weoShowSmallImage(picNum,imX,imY);
+			weoShowSmallImageDMA(picNum,imX,imY);
+//			weoShowSmallImage(picNum,imX,imY);
+			USART2->ICR|=USART_ICR_ORECF;
 		}
 
 		if(cmd2Execute==0x13)
 		{
 			bf4me=0x13;	//set BF flag 4 me
+			cmdCur = 0x13;
 //			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 
 //			printASCIIarray_old(imX,imY, strLen,dataASCII);
@@ -2163,6 +2245,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		{
 //			if(soundReady!=1){return;}
 			bf4me=0x14;	//set BF flag 4 me
+			cmdCur = 0x14;
 			soundPlay(numSound);
 			GPIOC->ODR |= 1 << 6;	//set BF
 		}
@@ -2237,8 +2320,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			if(fontCur==0){
 				symLen=49;
 				uint8_t weoBuffer[symLen];
-				uint8_t weoBuffer1[symLen];
-				uint8_t weoBuffer2[symLen];
+//				uint8_t weoBuffer1[symLen];
+//				uint8_t weoBuffer2[symLen];
 				X_increment=0x07;
 				ASCII_height=0x0E;
 				for(i=0;i<strLen;i++){
@@ -2265,8 +2348,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			if(fontCur==1){
 				symLen=99;
 				uint8_t weoBuffer[symLen];
-				uint8_t weoBuffer1[symLen];
-				uint8_t weoBuffer2[symLen];
+//				uint8_t weoBuffer1[symLen];
+//				uint8_t weoBuffer2[symLen];
 				X_increment=0x07;
 				ASCII_height=0x12;
 				for(i=0;i<strLen;i++){
@@ -2293,8 +2376,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			if(fontCur==2){
 				symLen=304;
 				uint8_t weoBuffer[symLen];
-				uint8_t weoBuffer1[symLen];
-				uint8_t weoBuffer2[symLen];
+//				uint8_t weoBuffer1[symLen];
+//				uint8_t weoBuffer2[symLen];
 				X_increment=0x10;
 				ASCII_height=0x26;
 				for(i=0;i<strLen;i++){
@@ -2359,95 +2442,95 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	}
 //=============================================================================================================
 	void squeak_generate(void){
-			    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
+//			    uint16_t nsamples = sizeof(signal) / sizeof(signal[0]);
 			    uint16_t k = 0;
 			    while(k < nsamples) {
 			        double t = ((double)k/2.0)/((double)nsamples);
-			       signal[k] = 32767*sin(100.0 * TAU * t); // left
+//			       signal[k] = 32767*sin(100.0 * TAU * t); // left
 			        k += 1;
 			    }
 		}
 //=============================================================================================================
-	void squeak_single(uint16_t* signal){
+//	void squeak_single(uint16_t* signal){
 
-		I2C_SOUND_ChangePage(0x01);
-		WriteReg_I2C_SOUND(0x01, 0x00);
-		I2C_SOUND_ChangePage(0x00);
-		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
-	//	I2C_SOUND_ChangePage(0x00);
-		I2C_SOUND_ChangePage(0x01);
-		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-		HAL_I2S_Transmit_DMA(&hi2s1, (const uint16_t*)signal, nsamples); //HAL_MAX_DELAY
-		USART2->ICR|=USART_ICR_ORECF;
-		USART2->ICR|=USART_ICR_FECF;
-		USART2->ICR|=USART_ICR_NECF;
-//		HAL_Delay(100);
-//		GPIOC->ODR |= 1 << 6;	//set BF
-//		cmd2Execute=0;
-	}
+//		I2C_SOUND_ChangePage(0x01);
+//		WriteReg_I2C_SOUND(0x01, 0x00);
+//		I2C_SOUND_ChangePage(0x00);
+//		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+//	//	I2C_SOUND_ChangePage(0x00);
+//		I2C_SOUND_ChangePage(0x01);
+//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//		HAL_I2S_Transmit_DMA(&hi2s1, (const uint16_t*)signal, nsamples); //HAL_MAX_DELAY
+//		USART2->ICR|=USART_ICR_ORECF;
+//		USART2->ICR|=USART_ICR_FECF;
+//		USART2->ICR|=USART_ICR_NECF;
+////		HAL_Delay(100);
+////		GPIOC->ODR |= 1 << 6;	//set BF
+////		cmd2Execute=0;
+//	}
 //==========================================================================================================================
-	void squeak_long(uint16_t* signal){
+//	void squeak_long(uint16_t* signal){
 
-		I2C_SOUND_ChangePage(0x01);
-		WriteReg_I2C_SOUND(0x01, 0x00);
-		I2C_SOUND_ChangePage(0x00);
-		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
-	//	I2C_SOUND_ChangePage(0x00);
-		I2C_SOUND_ChangePage(0x01);
-		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
-//		HAL_Delay(500);
-		GPIOC->ODR |= 1 << 6;	//set BF
-		cmd2Execute=0;
-	}
-//=============================================================================================================
-	void squeak_double(uint16_t* signal){
-
-		I2C_SOUND_ChangePage(0x01);
-		WriteReg_I2C_SOUND(0x01, 0x00);
-		I2C_SOUND_ChangePage(0x00);
-		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
-	//	I2C_SOUND_ChangePage(0x00);
-		I2C_SOUND_ChangePage(0x01);
-		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_Delay(100);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-//		HAL_Delay(500);
-	}
-//=============================================================================================================
-	void squeak_triple(uint16_t* signal){
-
-		I2C_SOUND_ChangePage(0x01);
-		WriteReg_I2C_SOUND(0x01, 0x00);
-		I2C_SOUND_ChangePage(0x00);
-		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
-	//	I2C_SOUND_ChangePage(0x00);
-		I2C_SOUND_ChangePage(0x01);
-//		HAL_Delay(1000);
-		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
-		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_Delay(100);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-		HAL_Delay(100);
-		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
-//		HAL_Delay(500);
+//		I2C_SOUND_ChangePage(0x01);
+//		WriteReg_I2C_SOUND(0x01, 0x00);
+//		I2C_SOUND_ChangePage(0x00);
+//		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+//	//	I2C_SOUND_ChangePage(0x00);
+//		I2C_SOUND_ChangePage(0x01);
+//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+//		HAL_I2S_Transmit(&hi2s1, (uint16_t*)signal, nsamples,5000);
+////		HAL_Delay(500);
 //		GPIOC->ODR |= 1 << 6;	//set BF
 //		cmd2Execute=0;
-	}
+//	}
+//=============================================================================================================
+//	void squeak_double(uint16_t* signal){
+
+//		I2C_SOUND_ChangePage(0x01);
+//		WriteReg_I2C_SOUND(0x01, 0x00);
+//		I2C_SOUND_ChangePage(0x00);
+//		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+//	//	I2C_SOUND_ChangePage(0x00);
+//		I2C_SOUND_ChangePage(0x01);
+//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+//		HAL_Delay(100);
+//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+////		HAL_Delay(500);
+//	}
+//=============================================================================================================
+//	void squeak_triple(uint16_t* signal){
+
+//		I2C_SOUND_ChangePage(0x01);
+//		WriteReg_I2C_SOUND(0x01, 0x00);
+//		I2C_SOUND_ChangePage(0x00);
+//		WriteReg_I2C_SOUND(0x41, 0x30);// 0x81 - 0x30 available
+//	//	I2C_SOUND_ChangePage(0x00);
+//		I2C_SOUND_ChangePage(0x01);
+////		HAL_Delay(1000);
+//		WriteReg_I2C_SOUND(0x10, 0x00);	//Headphone is muted// 1<<6 by SB
+//		WriteReg_I2C_SOUND(0x2E, 0x24);	//SPK attn. Gain =0dB (P1, R46, D6-D0=000000) FF- speaker muted, 0x00 - 0x74 - available
+//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+//		HAL_Delay(100);
+//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+//		HAL_Delay(100);
+//		HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*)signal, nsamples);
+////		HAL_Delay(500);
+////		GPIOC->ODR |= 1 << 6;	//set BF
+////		cmd2Execute=0;
+//	}
 //=============================================================================================================
 	void LIS3DHsendCMD(uint8_t reg, uint8_t data) {
 		uint8_t buf[] = { reg, data };
