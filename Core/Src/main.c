@@ -217,12 +217,13 @@ uint8_t fontInfo;
 uint8_t color;
 uint8_t soundNum;
 
-uint16_t nsamples = 4096;
+uint16_t nsamples = 1024;
 uint32_t curBuf;
 uint32_t bufCount;
-uint8_t soundBuf[4096];
+uint8_t soundBuf[2048];
 //uint32_t lenOfsound;
-uint16_t bufLen = 4096;
+uint16_t bufLen = 1024;
+uint16_t lenOfData;
 uint8_t half_of_buf = 0;
 uint32_t soundLen;
 
@@ -278,7 +279,7 @@ uint8_t* weoShowFullScreenSoundnfo(uint32_t addr);
 uint8_t answer2CPU(uint8_t cmd[]);
 uint16_t Scount(void);
 //uint8_t cmd2Execute;
-uint8_t cmdExecute(uint8_t cmd2Execute);
+void cmdExecute(uint8_t cmd2Execute);
 uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t fontInfo,uint8_t dataASCII[]);
 uint32_t MEM_GetID(void);
 //void squeak_single(uint16_t* signal);
@@ -1135,11 +1136,11 @@ void HAL_SPI_RxHalfCpltCallback(SPI_HandleTypeDef *hspi2)
   		GPIOA->ODR |= 1 << 7;	//set   dc of DISPLAY
   		HAL_USART_Transmit_DMA(&husart3, MEM_Buffer,imLen);
   	}
-  	if(cmdCur == 0x14)
-  	{
-
-//  	  		HAL_I2S_Transmit_DMA(&hi2s1, MEM_Buffer,len*2);
-	}
+//  	if(cmdCur == 0x14)
+//  	{
+//
+////  	  		HAL_I2S_Transmit_DMA(&hi2s1, MEM_Buffer,len*2);
+//	}
 
 }
 //==========================================================
@@ -1490,6 +1491,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 				isReceiverDisabled=0;
 //				BFEN=1;
 //=======================================================================================================================================
+				if (cmd[0] == 0x10)
+				{
+					cmd2Execute=0x10;
+				}
+//=======================================================================================================================================
 				if (cmd[0] == 0x11) {//Show full screen background;
 //					GPIOC->ODR &= ~(1 << 6);//reset BF
 					picNum = cmd[2];
@@ -1523,7 +1529,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					bf4me=0x00; //reset BF flag for me
 				}
 				if (cmd[0] == 0x14) {			//издать звук
-					isSoundOver = 1;
+//					isSoundOver = 1;
 					numSound = cmd[2];
 					cmd2Execute=0x14;
 //					cmd[0]=0xFF;
@@ -1892,9 +1898,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 
 			if(isSoundOver == 1)
 			{
-				GPIOC->ODR |= 1 << 6;	//set BF
-				curBuf = 0;
-				GPIOC->ODR |= 1 << 6;	//set BF
+//				GPIOC->ODR |= 1 << 6;	//set BF
+//				curBuf = 0;
+
 				__disable_irq();
 				/* might not be necessary */
 
@@ -1902,7 +1908,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 				 HAL_I2S_DMAStop(&hi2s1);
 				 __enable_irq();
 				/* might not be necessary */
-
+				 cmd2Execute=0;
+				 GPIOC->ODR |= 1 << 6;	//set BF
 				 return;
 			}
 
@@ -1974,6 +1981,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	//			lenOfsound = 0xe7a4;	//len1
 	////			lenOfsound = 1374248;	//len0
 				bufCount = lenOfsound / bufLen;
+				lenOfData = bufLen >> 1;
 	//////////////////////////////////////////////////////////////////////////////////////// IF before is correct, after is correct //////////
 				GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
 				HAL_SPI_Transmit(&hspi2, (uint8_t*) & memCMD, 1, 50); //read command with 4-byte address
@@ -2000,6 +2008,10 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	//			GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
 				while(curBuf <= bufCount)
 				{
+					if(curBuf == bufCount)
+					{
+						lenOfData = lenOfsound % (bufLen >> 1);
+					}
 //					if (curBuf == 10)
 //					{
 //						isSoundOver = 1;		//just 4 test
@@ -2008,23 +2020,24 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	//							GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
 					if(isSoundOver == 1)
 								{
-									GPIOC->ODR |= 1 << 6;	//set BF
-									curBuf = 0;
-									GPIOC->ODR |= 1 << 6;	//set BF
-									__disable_irq();
+//									GPIOC->ODR |= 1 << 6;	//set BF
+//									curBuf = 0;
+//
+//									__disable_irq();
+//									/* might not be necessary */
+//
+//									 hi2s1.hdmarx->XferCpltCallback = NULL;
+//									 HAL_I2S_DMAStop(&hi2s1);
+//									 __enable_irq();
 									/* might not be necessary */
-
-									 hi2s1.hdmarx->XferCpltCallback = NULL;
-									 HAL_I2S_DMAStop(&hi2s1);
-									 __enable_irq();
-									/* might not be necessary */
-
+									 cmd2Execute=0;
+									 GPIOC->ODR |= 1 << 6;	//set BF
 									 return;
 								}
 
 					if(half_of_buf == 2)
 					{
-						GPIOC->ODR |= 1 << 6;	//set BF
+//						GPIOC->ODR |= 1 << 6;	//set BF
 	//					GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
 						addrSound = (addrSound + (bufLen >> 1));
 
@@ -2039,7 +2052,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 						HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[2], 1, 50); //send address
 						HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[1], 1, 50); //send address
 						HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[0], 1, 50); //send address
-						HAL_SPI_Receive(&hspi2, (uint8_t*)&soundBuf[0], (bufLen >> 1), 5000);
+//						HAL_SPI_Receive(&hspi2, (uint8_t*)&soundBuf[0], (bufLen >> 1), 5000);
+						HAL_SPI_Receive(&hspi2, (uint8_t*)&soundBuf[0], lenOfData, 5000);
 //						HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)  & soundBuf[0], (bufLen >> 1));
 						GPIOB->ODR |= 1 << 9;	//set FLASH CS
 						half_of_buf = 1;
@@ -2061,12 +2075,15 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 						HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[2], 1, 50); //send address
 						HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[1], 1, 50); //send address
 						HAL_SPI_Transmit(&hspi2, (uint8_t*) & addr[0], 1, 50); //send address
-						HAL_SPI_Receive(&hspi2, (uint8_t*)&soundBuf[2048], (bufLen >> 1), 5000);
+//						HAL_SPI_Receive(&hspi2, (uint8_t*)&soundBuf[bufLen >> 1], (bufLen >> 1), 5000);
+						HAL_SPI_Receive(&hspi2, (uint8_t*)&soundBuf[lenOfData], lenOfData, 5000);
 //						HAL_SPI_Receive_DMA(&hspi2, (uint8_t*)  & soundBuf[0], (bufLen >> 1));
 						GPIOB->ODR |= 1 << 9;	//set FLASH CS
 						half_of_buf = 1;
 					}
 				}
+				cmd2Execute=0;
+				GPIOC->ODR |= 1 << 6;	//set BF
 				return;
 			}
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2077,18 +2094,23 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		void sound_full_transfer_callback()
 		{
-			curBuf += 1;
+
 			if(curBuf <= bufCount)
 			{
-				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], (bufLen >> 1));
+//				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], (bufLen >> 1));
+				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], lenOfData);
 				half_of_buf = 0;
 			}
 			else
 			{
 				isSoundOver = 1;
+				cmd2Execute=0;
+//				speakerMute();
+//				HAL_Delay(10);
 				GPIOC->ODR |= 1 << 6;	//set BF
-				speakerMute();
+				return;
 			}
+			curBuf += 1;
 		}
 		//=============================================================================================
 			void setVolume(uint8_t AMP, uint8_t DAC_Gain, uint8_t volume)
@@ -2197,11 +2219,12 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 
 	}
 //====================================================================================================================
-	uint8_t cmdExecute(uint8_t cmd2Execute){
-		if(cmd[0]==0x10){return;}	// protection against short peaks while cmd 10h
-		if(soundReady==0){return;}
+	void cmdExecute(uint8_t cmd2Execute){
+		if(cmd2Execute==0x10){return;}	// protection against short peaks while cmd 10h
+//		if(soundReady==0){return;}
 //		if(cmd[0]==00){return;}
 		if (bf4me!=0x00){return;}	// protection against false BF resets
+		if (cmd2Execute == 0x00){return;}	// protection against false BF resets
 		USART2->ICR|=USART_ICR_ORECF;
 
 		if(cmd2Execute==0x01){}
@@ -2219,6 +2242,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 //			weoShowFullScreen(picNum);
 			weoShowFullScreenDMA(picNum);
 			USART2->ICR|=USART_ICR_ORECF;
+			return;
 		}
 
 		if(cmd2Execute==0x12)
@@ -2229,6 +2253,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			weoShowSmallImageDMA(picNum,imX,imY);
 //			weoShowSmallImage(picNum,imX,imY);
 			USART2->ICR|=USART_ICR_ORECF;
+			return;
 		}
 
 		if(cmd2Execute==0x13)
@@ -2239,6 +2264,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 
 //			printASCIIarray_old(imX,imY, strLen,dataASCII);
 			printASCIIarray(imX,imY,strLen,fontInfo,dataASCII);
+			return;
 		}
 
 		if(cmd2Execute==0x14)
@@ -2247,7 +2273,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			bf4me=0x14;	//set BF flag 4 me
 			cmdCur = 0x14;
 			soundPlay(numSound);
-			GPIOC->ODR |= 1 << 6;	//set BF
+//			GPIOC->ODR |= 1 << 6;	//set BF
+			USART2->ICR|=USART_ICR_ORECF;
+			return;
 		}
 
 		if(cmd2Execute==0x15)
@@ -2271,21 +2299,22 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 				GPIOA->ODR |= 1 << 6;	//set cs
 			}
 			GPIOC->ODR |= 1 << 6;	//set BF
+			return;
 		}
 
 		if(cmd2Execute==0x16)
 		{
 			bf4me=0x16;	//set BF flag 4 me
 		}
-		if(cmd2Execute==0x00){
-
-				}
-		if(cmd2Execute==0x00){
-
-				}
-		if(cmd2Execute=0x00){
-
-				}
+//		if(cmd2Execute==0x00){
+//
+//				}
+//		if(cmd2Execute==0x00){
+//
+//				}
+//		if(cmd2Execute=0x00){
+//
+//				}
 //			}
 //		}
 		USART2->ICR|=USART_ICR_ORECF;
