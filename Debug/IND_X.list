@@ -21,9 +21,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, DATA
   8 .data         00000040  20000000  08018468  00030000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          00002bd8  20000040  080184a8  00030040  2**2
+  9 .bss          000027d8  20000040  080184a8  00030040  2**2
                   ALLOC
- 10 ._user_heap_stack 00000600  20002c18  080184a8  00032c18  2**0
+ 10 ._user_heap_stack 00000600  20002818  080184a8  00032818  2**0
                   ALLOC
  11 .ARM.attributes 00000028  00000000  00000000  00030040  2**0
                   CONTENTS, READONLY
@@ -6589,7 +6589,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
  80028fc:	e0e3      	b.n	8002ac6 <soundPlay+0x496>
  80028fe:	46c0      	nop			; (mov r8, r8)
  8002900:	20002408 	.word	0x20002408
- 8002904:	20002c13 	.word	0x20002c13
+ 8002904:	20002813 	.word	0x20002813
  8002908:	200000e0 	.word	0x200000e0
  800290c:	200003fe 	.word	0x200003fe
  8002910:	50000800 	.word	0x50000800
@@ -6599,9 +6599,9 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
  8002920:	00001388 	.word	0x00001388
  8002924:	20000032 	.word	0x20000032
  8002928:	2000240c 	.word	0x2000240c
- 800292c:	20002c10 	.word	0x20002c10
+ 800292c:	20002810 	.word	0x20002810
  8002930:	20002410 	.word	0x20002410
- 8002934:	20002c12 	.word	0x20002c12
+ 8002934:	20002812 	.word	0x20002812
 								}
 
 					if(half_of_buf == 2)
@@ -6848,12 +6848,12 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
  8002aca:	b00d      	add	sp, #52	; 0x34
  8002acc:	bd90      	pop	{r4, r7, pc}
  8002ace:	46c0      	nop			; (mov r8, r8)
- 8002ad0:	20002c12 	.word	0x20002c12
+ 8002ad0:	20002812 	.word	0x20002812
  8002ad4:	20000032 	.word	0x20000032
  8002ad8:	50000400 	.word	0x50000400
  8002adc:	fffffdff 	.word	0xfffffdff
  8002ae0:	20000178 	.word	0x20000178
- 8002ae4:	20002c10 	.word	0x20002c10
+ 8002ae4:	20002810 	.word	0x20002810
  8002ae8:	00001388 	.word	0x00001388
  8002aec:	20002410 	.word	0x20002410
  8002af0:	20002408 	.word	0x20002408
@@ -6875,7 +6875,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
  8002b0a:	46c0      	nop			; (mov r8, r8)
  8002b0c:	46bd      	mov	sp, r7
  8002b0e:	bd80      	pop	{r7, pc}
- 8002b10:	20002c12 	.word	0x20002c12
+ 8002b10:	20002812 	.word	0x20002812
 
 08002b14 <sound_full_transfer_callback>:
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -6939,11 +6939,11 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
  8002b62:	46c0      	nop			; (mov r8, r8)
  8002b64:	20002408 	.word	0x20002408
  8002b68:	2000240c 	.word	0x2000240c
- 8002b6c:	20002c10 	.word	0x20002c10
+ 8002b6c:	20002810 	.word	0x20002810
  8002b70:	20002410 	.word	0x20002410
  8002b74:	200000e0 	.word	0x200000e0
- 8002b78:	20002c12 	.word	0x20002c12
- 8002b7c:	20002c13 	.word	0x20002c13
+ 8002b78:	20002812 	.word	0x20002812
+ 8002b7c:	20002813 	.word	0x20002813
  8002b80:	200003fe 	.word	0x200003fe
  8002b84:	50000800 	.word	0x50000800
 
@@ -7791,7 +7791,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
  80030ea:	429a      	cmp	r2, r3
  80030ec:	d3ce      	bcc.n	800308c <printASCIIarray+0x17c>
 							}
-					if(dataASCII[i] != 0)
+					if(dataASCII[i] != 1)
  80030ee:	2336      	movs	r3, #54	; 0x36
  80030f0:	185b      	adds	r3, r3, r1
  80030f2:	19db      	adds	r3, r3, r7
@@ -7801,7 +7801,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
  80030fa:	681b      	ldr	r3, [r3, #0]
  80030fc:	189b      	adds	r3, r3, r2
  80030fe:	781b      	ldrb	r3, [r3, #0]
- 8003100:	2b00      	cmp	r3, #0
+ 8003100:	2b01      	cmp	r3, #1
  8003102:	d062      	beq.n	80031ca <printASCIIarray+0x2ba>
 					{
 						for (k=0;k<symLen;k++){
@@ -8133,7 +8133,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
  8003358:	429a      	cmp	r2, r3
  800335a:	d3d0      	bcc.n	80032fe <printASCIIarray+0x3ee>
 							}
-					if(dataASCII[i] != 0)
+					if(dataASCII[i] != 1)
  800335c:	2336      	movs	r3, #54	; 0x36
  800335e:	185b      	adds	r3, r3, r1
  8003360:	19db      	adds	r3, r3, r7
@@ -8143,7 +8143,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
  8003368:	6812      	ldr	r2, [r2, #0]
  800336a:	18d3      	adds	r3, r2, r3
  800336c:	781b      	ldrb	r3, [r3, #0]
- 800336e:	2b00      	cmp	r3, #0
+ 800336e:	2b01      	cmp	r3, #1
  8003370:	d068      	beq.n	8003444 <printASCIIarray+0x534>
 					{
 						for (k=0;k<symLen;k++){
@@ -11313,7 +11313,7 @@ LoopForever:
   ldr r2, =_sbss
  8004684:	20000040 	.word	0x20000040
   ldr r4, =_ebss
- 8004688:	20002c18 	.word	0x20002c18
+ 8004688:	20002818 	.word	0x20002818
 
 0800468c <ADC1_COMP_IRQHandler>:
  * @retval None
@@ -11516,7 +11516,7 @@ __weak void HAL_IncTick(void)
  800477c:	bd80      	pop	{r7, pc}
  800477e:	46c0      	nop			; (mov r8, r8)
  8004780:	2000003c 	.word	0x2000003c
- 8004784:	20002c14 	.word	0x20002c14
+ 8004784:	20002814 	.word	0x20002814
 
 08004788 <HAL_GetTick>:
   * @note This function is declared as __weak to be overwritten in case of other
@@ -11535,7 +11535,7 @@ __weak uint32_t HAL_GetTick(void)
  8004792:	46bd      	mov	sp, r7
  8004794:	bd80      	pop	{r7, pc}
  8004796:	46c0      	nop			; (mov r8, r8)
- 8004798:	20002c14 	.word	0x20002c14
+ 8004798:	20002814 	.word	0x20002814
 
 0800479c <HAL_Delay>:
   *       implementations in user file.

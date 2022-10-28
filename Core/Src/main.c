@@ -220,9 +220,9 @@ uint8_t soundNum;
 uint16_t nsamples = 1024;
 uint32_t curBuf;
 uint32_t bufCount;
-uint8_t soundBuf[2048];
+uint8_t soundBuf[1024];
 //uint32_t lenOfsound;
-uint16_t bufLen = 2048;
+uint16_t bufLen = 1024;
 uint16_t lenOfData;
 uint8_t half_of_buf = 0;
 uint32_t soundLen;
@@ -2353,7 +2353,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					for(j=0;j<symLen;j++){
 						weoBuffer[j]=F1[dataASCII[i]][j];
 							}
-					if(dataASCII[i] != 0)
+					if(dataASCII[i] != 1)
 					{
 						for (k=0;k<symLen;k++){
 							weoBuffer[k]=weoBuffer[k] & contrast;
@@ -2381,7 +2381,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					for(j=0;j<symLen;j++){
 						weoBuffer[j]=F2[dataASCII[i]][j];
 							}
-					if(dataASCII[i] != 0)
+					if(dataASCII[i] != 1)
 					{
 						for (k=0;k<symLen;k++){
 							weoBuffer[k]=weoBuffer[k] & contrast;
