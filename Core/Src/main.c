@@ -222,7 +222,7 @@ uint32_t curBuf;
 uint32_t bufCount;
 uint8_t soundBuf[2048];
 //uint32_t lenOfsound;
-uint16_t bufLen = 1024;
+uint16_t bufLen = 2048;
 uint16_t lenOfData;
 uint8_t half_of_buf = 0;
 uint32_t soundLen;
@@ -2322,15 +2322,13 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 //========================================================================================================================
 	uint8_t printASCIIarray(uint8_t imX,uint8_t imY,uint8_t strLen,uint8_t fontInfo,uint8_t dataASCII[]){
 			uint8_t X_increment,ASCII_height,X_width,ASCII_X,decY,fontCur,contrast,contrastH,contrastL;
-//			uint8_t weoBuffer1[49],weoBuffer2[49],weoBuffer[49];
 			uint16_t i,j,k, symLen;
 			ASCII_X=imX;
 
 			contrastL = (fontInfo & 0xF0)>>4;
 			contrastH = (contrastL)<<4;
 			contrast = contrastH|contrastL;
-//			contrast = (fontInfo & 0xF0)>>4;
-//			contrast=0x33;
+
 
 			decY=0x01;
 			if(imY % 2 !=0){
@@ -2345,68 +2343,65 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			if((fontInfo & 0x02)==2){
 				fontCur=2;
 			}
-//			fontCur=2;
+
 			if(fontCur==0){
 				symLen=49;
 				uint8_t weoBuffer[symLen];
-//				uint8_t weoBuffer1[symLen];
-//				uint8_t weoBuffer2[symLen];
 				X_increment=0x07;
 				ASCII_height=0x0E;
 				for(i=0;i<strLen;i++){
 					for(j=0;j<symLen;j++){
 						weoBuffer[j]=F1[dataASCII[i]][j];
 							}
-//					for (k=0;k<symLen;k++){
-//							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
-//							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
-//						}
-//					for (k=0;k<symLen;k++){
-//							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
-//						}
-					for (k=0;k<symLen;k++){
-						weoBuffer[k]=weoBuffer[k] & contrast;
+					if(dataASCII[i] != 0)
+					{
+						for (k=0;k<symLen;k++){
+							weoBuffer[k]=weoBuffer[k] & contrast;
+						}
+							weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+							ASCII_X += X_increment;
 					}
-				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
-				ASCII_X += X_increment;
+					else
+					{
+						ASCII_X += X_increment;
+					}
 				}
-				for(i=0;i<symLen;i++){
-									weoBuffer[j]=0x00;
-							}
+				for(i=0;i<symLen;i++)
+					{
+						weoBuffer[j]=0x00;
+					}
+
 			}
 			if(fontCur==1){
 				symLen=99;
 				uint8_t weoBuffer[symLen];
-//				uint8_t weoBuffer1[symLen];
-//				uint8_t weoBuffer2[symLen];
 				X_increment=0x07;
 				ASCII_height=0x12;
 				for(i=0;i<strLen;i++){
 					for(j=0;j<symLen;j++){
 						weoBuffer[j]=F2[dataASCII[i]][j];
 							}
-//					for (k=0;k<symLen;k++){
-//							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
-//							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
-//						}
-//					for (k=0;k<symLen;k++){
-//							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
-//						}
-					for (k=0;k<symLen;k++){
-						weoBuffer[k]=weoBuffer[k] & contrast;
+					if(dataASCII[i] != 0)
+					{
+						for (k=0;k<symLen;k++){
+							weoBuffer[k]=weoBuffer[k] & contrast;
+						}
+							weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
+							ASCII_X += X_increment;
 					}
-				weoDrawRectangleFilled(ASCII_X, imY, ASCII_X+X_increment-1, imY + ASCII_height - decY, 0xFF, weoBuffer);
-				ASCII_X += X_increment;
+					else
+					{
+						ASCII_X += X_increment;
+					}
 				}
-				for(i=0;i<symLen;i++){
-									weoBuffer[j]=0x00;
-							}
+				for(i=0;i<symLen;i++)
+					{
+						weoBuffer[j]=0x00;
+					}
 			}
 			if(fontCur==2){
 				symLen=304;
 				uint8_t weoBuffer[symLen];
-//				uint8_t weoBuffer1[symLen];
-//				uint8_t weoBuffer2[symLen];
 				X_increment=0x10;
 				ASCII_height=0x26;
 				for(i=0;i<strLen;i++){
@@ -2447,13 +2442,6 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					for(j=0;j<symLen;j++){
 						weoBuffer[j]=F3[dataASCII[i]][j];
 							}
-//					for (k=0;k<symLen;k++){
-//							weoBuffer1[k]=(weoBuffer[k]&0x0F)&contrast;
-//							weoBuffer2[k]=((weoBuffer[k]&0xF0)>>4)&contrast;
-//						}
-//					for (k=0;k<symLen;k++){
-//							weoBuffer[k]=(weoBuffer2[k]<<4)|weoBuffer1[k];
-//						}
 					for (k=0;k<symLen;k++){
 						weoBuffer[k]=weoBuffer[k] & contrast;
 					}
@@ -2465,7 +2453,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 							}
 			}
 			cmd2Execute=0;
-//			while(BFEN==0){};
+
 			GPIOC->ODR |= 1 << 6;	//set BF
 
 	}

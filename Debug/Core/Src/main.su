@@ -62,9 +62,9 @@
 ../Core/Src/main.c:2217:11:Scount	8	static
 ../Core/Src/main.c:2222:7:cmdExecute	32	static
 ../Core/Src/main.c:2323:10:printASCIIarray	176	dynamic
-../Core/Src/main.c:2473:7:squeak_generate	40	static
-../Core/Src/main.c:2564:7:LIS3DHsendCMD	32	static
-../Core/Src/main.c:2569:10:LIS3DHreadReg	48	static
-../Core/Src/main.c:2605:7:LIS3DHsetup	16	static
-../Core/Src/main.c:2626:7:GPIO_2_3state	8	static
-../Core/Src/main.c:2694:6:Error_Handler	8	static
+../Core/Src/main.c:2461:7:squeak_generate	40	static
+../Core/Src/main.c:2552:7:LIS3DHsendCMD	32	static
+../Core/Src/main.c:2557:10:LIS3DHreadReg	48	static
+../Core/Src/main.c:2593:7:LIS3DHsetup	16	static
+../Core/Src/main.c:2614:7:GPIO_2_3state	8	static
+../Core/Src/main.c:2682:6:Error_Handler	8	static
