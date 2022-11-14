@@ -205,6 +205,7 @@ image_data_Font_0x37[],image_data_Font_0x38[],image_data_Font_0x39[];
 uint8_t aim[],frame[],test[];
 uint8_t bf4me;
 uint8_t dimmer=0;
+uint16_t nsamples = 2048;
 uint8_t inputCS=0;
 uint8_t dma_spi_fl=0;
 uint16_t dma_spi_cnt=1;
@@ -217,11 +218,10 @@ uint8_t fontInfo;
 uint8_t color;
 uint8_t soundNum;
 
-uint16_t nsamples = 1024;
+
 uint32_t curBuf;
 uint32_t bufCount;
 uint8_t soundBuf[1024];
-//uint32_t lenOfsound;
 uint16_t bufLen = 1024;
 uint16_t lenOfData;
 uint8_t half_of_buf = 0;
@@ -462,6 +462,7 @@ int main(void)
 //	for(uint8_t k = 0; k < 1; k++)
 //	{
 //		soundPlay(k);
+//		HAL_I2S_DMAStop(&hi2s1);
 //		HAL_Delay(1000);
 //	}
 //    GPIOB->PUPDR &= ~0x3F000;
@@ -1887,7 +1888,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			uint32_t i;
 //			GPIOC->ODR |= 1 << 6;	//set BF //just 4 test
 //			setVolume(0x10, 0x30, 10);	// it was setVolume(0x10, 0x30, 0x00);
-//			soundNum = 0;
+//			soundNum = 13;
 			address = 4194304 + (soundNum * 9);
 //			address = 0 + (soundNum * 9);
 
@@ -1901,12 +1902,12 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 //				GPIOC->ODR |= 1 << 6;	//set BF
 //				curBuf = 0;
 
-				__disable_irq();
+//				__disable_irq();
 				/* might not be necessary */
 
-				 hi2s1.hdmarx->XferCpltCallback = NULL;
-				 HAL_I2S_DMAStop(&hi2s1);
-				 __enable_irq();
+//				 hi2s1.hdmarx->XferCpltCallback = NULL;
+//				 HAL_I2S_DMAStop(&hi2s1);
+//				 __enable_irq();
 				/* might not be necessary */
 				 cmd2Execute=0;
 				 GPIOC->ODR |= 1 << 6;	//set BF
@@ -2001,20 +2002,21 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 
 
 
-				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], (bufLen >> 1));
+				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], (lenOfData));
 				half_of_buf = 1;
 	//==================================================1st time play buffer =========================================================
 	//			GPIOC->ODR |= 1 << 6;	//set BF
 	//			GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
 				while(curBuf <= bufCount)
 				{
-					if(curBuf == bufCount)
+					if(curBuf == (bufCount - 1))
 					{
-						lenOfData = lenOfsound % (bufLen >> 1);
+						lenOfData = lenOfsound % (bufLen);
 					}
-//					if (curBuf == 10)
+//					if (curBuf == 200)
 //					{
 //						isSoundOver = 1;		//just 4 test
+//						HAL_I2S_DMAStop(&hi2s1);
 //					}
 	//							GPIOC->ODR |= 1 << 6;	//set BF
 	//							GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
@@ -2027,7 +2029,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 //									/* might not be necessary */
 //
 //									 hi2s1.hdmarx->XferCpltCallback = NULL;
-//									 HAL_I2S_DMAStop(&hi2s1);
+									 HAL_I2S_DMAStop(&hi2s1);
 //									 __enable_irq();
 									/* might not be necessary */
 									 cmd2Execute=0;
@@ -2039,7 +2041,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					{
 //						GPIOC->ODR |= 1 << 6;	//set BF
 	//					GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
-						addrSound = (addrSound + (bufLen >> 1));
+						addrSound = (addrSound + (lenOfData));
 
 						addr[0] = addrSound & 0xFF;
 						addr[1] = (addrSound >> 8) & 0xFF;
@@ -2062,7 +2064,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					{
 	//					GPIOC->ODR |= 1 << 6;	//set BF
 //						GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
-						addrSound = (addrSound + (bufLen >> 1));
+						addrSound = (addrSound + (lenOfData));
 
 						addr[0] = addrSound & 0xFF;
 						addr[1] = (addrSound >> 8) & 0xFF;
@@ -2095,22 +2097,25 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		void sound_full_transfer_callback()
 		{
 
-			if(curBuf <= bufCount)
+			if(curBuf < bufCount)
 			{
 //				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], (bufLen >> 1));
 				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], lenOfData);
 				half_of_buf = 0;
+				curBuf += 1;
 			}
 			else
 			{
+				HAL_I2S_DMAStop(&hi2s1);
 				isSoundOver = 1;
 				cmd2Execute=0;
+				half_of_buf = 3;
 //				speakerMute();
-//				HAL_Delay(10);
+//				HAL_Delay(1);
 				GPIOC->ODR |= 1 << 6;	//set BF
 				return;
 			}
-			curBuf += 1;
+
 		}
 		//=============================================================================================
 			void setVolume(uint8_t AMP, uint8_t DAC_Gain, uint8_t volume)
