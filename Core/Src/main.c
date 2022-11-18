@@ -2011,7 +2011,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 				{
 					if(curBuf == (bufCount - 1))
 					{
-						lenOfData = lenOfsound % (bufLen);
+						lenOfData = lenOfsound / (bufLen);
 					}
 //					if (curBuf == 200)
 //					{
