@@ -223,9 +223,10 @@ uint32_t curBuf;
 uint32_t bufCount;
 uint8_t soundBuf[1024];
 uint16_t bufLen = 1024;
-uint16_t lenOfData;
+uint32_t lenOfData;
+uint32_t lastSoundBufferSize;
 uint8_t half_of_buf = 0;
-uint32_t soundLen;
+uint32_t soundLen, bufLast;
 
 volatile uint32_t addrSound = 0;
 uint8_t soundReady, isSoundOver;
@@ -458,12 +459,12 @@ int main(void)
 //					decY=0x02;
 //				}
 //	weoDrawRectangleFilled(x,y,(x+localWidth-1),(y+localHeight-decY),0xFF,aim);
-//	setVolume(16*4, 0, 0);	//  void setVolume(drvGain(48-129),digGain(16-112),spkAttn(0-116, 255));
-//	for(uint8_t k = 0; k < 1; k++)
+//	setVolume(0x10, 0, 116);	//  void setVolume(drvGain(48-129),digGain(16-112),spkAttn(0-116, 255));
+//	for(uint8_t k = 0; k < 16; k++)
 //	{
 //		soundPlay(k);
 //		HAL_I2S_DMAStop(&hi2s1);
-//		HAL_Delay(1000);
+//		HAL_Delay(200);
 //	}
 //    GPIOB->PUPDR &= ~0x3F000;
 	GPIOC->ODR |= 1 << 6;
@@ -1889,6 +1890,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 //			GPIOC->ODR |= 1 << 6;	//set BF //just 4 test
 //			setVolume(0x10, 0x30, 10);	// it was setVolume(0x10, 0x30, 0x00);
 //			soundNum = 13;
+//			soundNum = 4;
 			address = 4194304 + (soundNum * 9);
 //			address = 0 + (soundNum * 9);
 
@@ -1909,8 +1911,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 //				 HAL_I2S_DMAStop(&hi2s1);
 //				 __enable_irq();
 				/* might not be necessary */
-				 cmd2Execute=0;
-				 GPIOC->ODR |= 1 << 6;	//set BF
+//				 cmd2Execute=0;
+//				 GPIOC->ODR |= 1 << 6;	//set BF
 				 return;
 			}
 
@@ -1937,6 +1939,8 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 
 //				address = 0;
 	//			address = 0x29f170;
+
+				address *= 4;		// just 4 test    !!!! IT'S TEMPORARY!!!!!! FIND THE REASON!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 				address |= addr[3];
 				address <<= 8;
@@ -1979,9 +1983,18 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 				speakerPowerUp();
 			}
 
-	//			lenOfsound = 0xe7a4;	//len1
-	////			lenOfsound = 1374248;	//len0
-				bufCount = lenOfsound / bufLen;
+			if(lenOfsound % bufLen == 0)
+			{
+				bufCount = lenOfsound / bufLen;			//	 N of buffers is determined
+				bufLast = bufCount - 1;						//	number of last buffer is determined
+				lastSoundBufferSize = (bufLen >> 1);
+			}
+			else
+			{
+				bufCount = (lenOfsound / bufLen) + 1;	//	 N of buffers is determined
+				bufLast = bufCount - 1;					//	number of last buffer is determined
+				lastSoundBufferSize = (lenOfsound - ((bufCount - 1) *  bufLen)) >> 1;
+			}
 				lenOfData = bufLen >> 1;
 	//////////////////////////////////////////////////////////////////////////////////////// IF before is correct, after is correct //////////
 				GPIOB->ODR &= ~(1 << 9); //reset FLASH CS
@@ -2007,11 +2020,13 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 	//==================================================1st time play buffer =========================================================
 	//			GPIOC->ODR |= 1 << 6;	//set BF
 	//			GPIOC->ODR &= ~(1 << 6);	//set BF сюда приходит
-				while(curBuf <= bufCount)
+//				while(curBuf < bufCount)
+				while(curBuf <= bufLast)
 				{
-					if(curBuf == (bufCount - 1))
+//					if(curBuf == (bufCount - 2))
+					if(curBuf == bufLast)
 					{
-						lenOfData = lenOfsound / (bufLen);
+						lenOfData = lastSoundBufferSize;
 					}
 //					if (curBuf == 200)
 //					{
@@ -2033,7 +2048,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 //									 __enable_irq();
 									/* might not be necessary */
 									 cmd2Execute=0;
-									 GPIOC->ODR |= 1 << 6;	//set BF
+//									 GPIOC->ODR |= 1 << 6;	//set BF
 									 return;
 								}
 
@@ -2085,7 +2100,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 					}
 				}
 				cmd2Execute=0;
-				GPIOC->ODR |= 1 << 6;	//set BF
+//				GPIOC->ODR |= 1 << 6;	//set BF
 				return;
 			}
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2097,7 +2112,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		void sound_full_transfer_callback()
 		{
 
-			if(curBuf < bufCount)
+			if(curBuf < (bufLast - 1))
 			{
 //				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], (bufLen >> 1));
 				HAL_I2S_Transmit_DMA(&hi2s1, (uint16_t*) & soundBuf[0], lenOfData);
@@ -2278,6 +2293,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 			bf4me=0x14;	//set BF flag 4 me
 			cmdCur = 0x14;
 			soundPlay(numSound);
+			speakerMute();
 //			GPIOC->ODR |= 1 << 6;	//set BF
 			USART2->ICR|=USART_ICR_ORECF;
 			return;
