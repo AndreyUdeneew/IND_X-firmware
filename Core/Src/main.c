@@ -2292,6 +2292,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 //			if(soundReady!=1){return;}
 			bf4me=0x14;	//set BF flag 4 me
 			cmdCur = 0x14;
+			isSoundOver = 1;
 			soundPlay(numSound);
 			speakerMute();
 //			GPIOC->ODR |= 1 << 6;	//set BF
