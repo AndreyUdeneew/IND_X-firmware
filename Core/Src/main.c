@@ -183,9 +183,10 @@ uint16_t PAGE_SIZE = 4096;
 extern uint32_t addr;
 extern uint32_t DATA_COUNT = 0x2000;
 extern uint8_t imInfo[6];
-extern uint8_t keyboard, cmdLen;
+uint8_t keyboard, cmdLen;
 extern uint8_t currentVolume = 0x09;
 uint8_t cmd[25];
+uint8_t picWithSound;
 uint8_t accelBuff[6];
 uint16_t ans[10];
 uint8_t bf=0x7F;
@@ -1189,39 +1190,45 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 //=======================================================================================================================
 	void cmdReceive (uint16_t dt1)
 	{
-//	  uint8_t inputCS=0;
-	  uint8_t i=0;
-	  while (!ByteReceived) {}
-	  ByteReceived=0;
-	  cmd[ind] = dt1;
-//	  if(dt1==0x110){
-//		  BFEN=0;
-//	  }
-	  ind++;
-	  if(ind>=1){
-//		  LL_USART_TransmitData9(USART2,(uint16_t*)dt1);
-		  if(ind>cmd[1]+1){
-//			  LL_USART_TransmitData9(USART2,(uint16_t*)cmd[2]);
-			 for(i=0;i<(cmd[1]+2);i++){
-				 inputCS+=cmd[i];
-			 }
-			 if(!(inputCS==0x00)&&(ind==cmd[1]+2)){
-//			 	LL_USART_TransmitData9(USART2,(uint16_t*)cmd[2]);
-				 firstByteReceived=0;
-				 				 for (i=0;i<cmd[1]+2;i++){
-				 					 cmd[i]=0;
-				 				 }
-			 }
-			 else{
-				 answer2CPU(cmd);
-			 }
-//			 if(inputCS!=0){
-//				 GPIOC->ODR |= 1 << 6;	//set BF
-//			 }
-		  }
-	  }
-//	  ind = 0;
-	  USART2->ICR|=USART_ICR_ORECF;
+		//	  uint8_t inputCS=0;
+			  uint8_t i=0;
+			  while (!ByteReceived) {}
+			  ByteReceived=0;
+			  cmd[ind] = dt1;
+		//	  if(dt1==0x110){
+		//		  BFEN=0;
+		//	  }
+			  cmdLen = cmd[1];
+			  if((cmdLen & 0x80) == 0x80)
+			  		  {
+			  			  picWithSound = 1;
+			  			  cmdLen &= 0x7F;
+			  		  }
+			  ind++;
+			  if(ind>=1){
+		//		  LL_USART_TransmitData9(USART2,(uint16_t*)dt1);
+				  if(ind>(cmdLen+1)){
+		//			  LL_USART_TransmitData9(USART2,(uint16_t*)cmd[2]);
+					 for(i=0;i<(cmdLen+2);i++){
+						 inputCS+=cmd[i];
+					 }
+					 if(!(inputCS==0x00)&&(ind==(cmdLen+2))){
+		//			 	LL_USART_TransmitData9(USART2,(uint16_t*)cmd[2]);
+						 firstByteReceived=0;
+						 				 for (i=0;i<(cmdLen+2);i++){
+						 					 cmd[i]=0;
+						 				 }
+					 }
+					 else{
+						 answer2CPU(cmd);
+					 }
+		//			 if(inputCS!=0){
+		//				 GPIOC->ODR |= 1 << 6;	//set BF
+		//			 }
+				  }
+			  }
+		//	  ind = 0;
+			  USART2->ICR|=USART_ICR_ORECF;
 	}
 	void USART_AS_SPI_sendCMD(uint8_t byte) {
 			HAL_USART_Transmit(&husart3, (uint8_t*)&byte, 1, 10);
@@ -2269,10 +2276,16 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		{
 			bf4me=0x12;	//set BF flag 4 me
 			cmdCur = 0x12;
+			if(picWithSound == 1)
+			{
+				picWithSound = 0;
+				soundPlay(14);
+			}
 //			if(cmd2Execute!=0){GPIOC->ODR &= ~(1 << 6);}	//reset BF
 			weoShowSmallImageDMA(picNum,imX,imY);
 //			weoShowSmallImage(picNum,imX,imY);
 			USART2->ICR|=USART_ICR_ORECF;
+//			GPIOC->ODR |= 1 << 6;	//set BF
 			return;
 		}
 
