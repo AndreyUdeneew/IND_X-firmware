@@ -1199,7 +1199,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 		//		  BFEN=0;
 		//	  }
 			  cmdLen = cmd[1];
-			  if((cmdLen & 0x80) == 0x80)
+			  if((cmd[1] & 0x80) == 0x80)
 			  		  {
 			  			  picWithSound = 1;
 			  			  cmdLen &= 0x7F;
@@ -1220,6 +1220,7 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s1)
 						 				 }
 					 }
 					 else{
+						 cmd[1] &= 0x7F;
 						 answer2CPU(cmd);
 					 }
 		//			 if(inputCS!=0){
